@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>澳洲打工度假生活必備 & 德國碩士自保金進度追蹤</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ochre: {
+              50: '#FAF6F0',
+              100: '#F4ECE1',
+              500: '#D97706',
+              600: '#B45309',
+              700: '#8C3B07',
+              800: '#682C05',
+              900: '#451D03',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col font-sans antialiased selection:bg-ochre-500 selection:text-white pb-16">
+
+  <!-- ================= TOP HEADER ================= -->
+  <header class="bg-white border-b border-stone-200 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap gap-3 items-center justify-between">
+      <!-- Title & Branding -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-ochre-600 to-amber-700 flex items-center justify-center text-white shadow-sm shrink-0">
+          <i data-lucide="compass" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base md:text-lg text-slate-900 leading-tight">
+            澳洲打工度假 × 德國碩士自保金
+          </h1>
+          <p class="text-xs text-stone-500 flex items-center gap-2">
+            <span>🇦🇺 烏魯魯旅程</span>
+            <span>•</span>
+            <span>🇩🇪 2027 留學自保金 (40萬 NTD)</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Live FX Rate Badge -->
+      <div class="flex items-center gap-2 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-xl text-xs">
+        <span class="text-stone-500 font-medium">匯率 1 AUD =</span>
+        <div class="flex items-center gap-1">
+          <input 
+            type="number" 
+            id="fx-rate-input" 
+            step="0.1" 
+            value="23.0" 
+            class="w-14 bg-white border border-stone-300 rounded px-1.5 py-0.5 text-center font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+            onchange="updateFxRate(this.value)"
+          />
+          <span class="text-stone-600 font-semibold">TWD</span>
+        </div>
+      </div>
+
+      <!-- Backup & Restore Data Buttons -->
+      <div class="flex items-center gap-1.5">
+        <button 
+          onclick="exportAppData()" 
+          class="flex items-center gap-1 px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-semibold transition"
+          title="匯出並備份所有記帳與行程資料 (JSON)"
+        >
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>備份</span>
+        </button>
+        <button 
+          onclick="triggerImportData()" 
+          class="flex items-center gap-1 px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-semibold transition"
+          title="匯入先前備份的資料"
+        >
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+          <span>還原</span>
+        </button>
+        <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="handleFileImport(event)" />
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-5xl mx-auto px-4 flex border-t border-stone-100 overflow-x-auto gap-2">
+      <button 
+        id="tab-btn-finance" 
+        onclick="switchTab('finance')" 
+        class="flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold border-b-2 border-ochre-600 text-ochre-700 transition shrink-0"
+      >
+        <i data-lucide="wallet" class="w-4 h-4"></i>
+        雙幣財務 & 自保金
+      </button>
+      <button 
+        id="tab-btn-calendar" 
+        onclick="switchTab('calendar')" 
+        class="flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-medium border-b-2 border-transparent text-stone-500 hover:text-stone-800 transition shrink-0"
+      >
+        <i data-lucide="calendar" class="w-4 h-4"></i>
+        重要時程日曆
+      </button>
+      <button 
+        id="tab-btn-checklist" 
+        onclick="switchTab('checklist')" 
+        class="flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-medium border-b-2 border-transparent text-stone-500 hover:text-stone-800 transition shrink-0"
+      >
+        <i data-lucide="check-square" class="w-4 h-4"></i>
+        出發裝備清單
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT CONTAINER ================= -->
+  <main class="max-w-5xl mx-auto px-4 py-6 w-full flex-1">
+
+    <!-- ========================================================= -->
+    <!-- TAB 1: FINANCE DASHBOARD (DUAL-CURRENCY)                   -->
+    <!-- ========================================================= -->
+    <div id="tab-content-finance" class="space-y-6">
+      
+      <!-- Top Target Hero Card -->
+      <div class="bg-gradient-to-br from-slate-900 via-stone-900 to-amber-950 text-white rounded-3xl p-5 md:p-7 shadow-lg relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold mb-2">
+              <i data-lucide="target" class="w-3.5 h-3.5"></i>
+              2027 德國碩士自保金目標：NT$ 400,000 (約 $17,391 AUD)
+            </div>
+            <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight" id="hero-net-savings-twd">
+              NT$ 0
+            </h2>
+            <p class="text-xs md:text-sm text-stone-300 mt-1 flex items-center gap-2" id="hero-net-savings-aud">
+              折合約 $0 AUD • 距離達標還差 NT$ 400,000
+            </p>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex items-center gap-2 shrink-0">
+            <button 
+              onclick="openTxModal('income')" 
+              class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs md:text-sm font-bold px-3.5 py-2.5 rounded-xl shadow-sm transition"
+            >
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              記一筆收入
+            </button>
+            <button 
+              onclick="openTxModal('expense')" 
+              class="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs md:text-sm font-bold px-3.5 py-2.5 rounded-xl shadow-sm transition"
+            >
+              <i data-lucide="minus-circle" class="w-4 h-4"></i>
+              記一筆支出
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="mt-5 relative z-10">
+          <div class="flex justify-between items-center text-xs mb-1.5">
+            <span class="text-stone-300 font-medium">總儲蓄進度</span>
+            <span class="font-extrabold text-amber-400" id="hero-progress-percent">0%</span>
+          </div>
+          <div class="w-full bg-white/10 h-3 rounded-full overflow-hidden p-0.5 border border-white/10">
+            <div id="hero-progress-bar" class="bg-gradient-to-r from-amber-400 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Run Rate Tracker Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-white/10 text-xs">
+          <div>
+            <div class="text-stone-400">離澳目標日</div>
+            <div class="font-bold text-stone-100 text-sm mt-0.5">2027-06-30</div>
+          </div>
+          <div>
+            <div class="text-stone-400">距今剩餘時間</div>
+            <div class="font-bold text-stone-100 text-sm mt-0.5" id="stat-weeks-left">-- 週</div>
+          </div>
+          <div>
+            <div class="text-stone-400">每週需淨存 (AUD)</div>
+            <div class="font-bold text-amber-300 text-sm mt-0.5" id="stat-weekly-target-aud">$0 AUD</div>
+          </div>
+          <div>
+            <div class="text-stone-400">Super 估算可拿回 (35%)</div>
+            <div class="font-bold text-emerald-300 text-sm mt-0.5" id="stat-super-net">$0 AUD</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Currency Pots: AUD vs TWD -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- AUD Pot -->
+        <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-xs flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">澳洲資金池 (AUD)</span>
+              <div class="text-2xl font-black text-slate-900 mt-1" id="pot-aud-net">$0 AUD</div>
+            </div>
+            <span class="p-2 rounded-xl bg-amber-50 text-amber-700">
+              <i data-lucide="badge-dollar-sign" class="w-5 h-5"></i>
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-stone-100 text-xs">
+            <div>
+              <span class="text-stone-400">稅後收入</span>
+              <p class="font-bold text-emerald-600 mt-0.5" id="pot-aud-inc">+$0</p>
+            </div>
+            <div>
+              <span class="text-stone-400">累計支出</span>
+              <p class="font-bold text-rose-600 mt-0.5" id="pot-aud-exp">-$0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TWD Pot -->
+        <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-xs flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">台灣資金池 (TWD)</span>
+              <div class="text-2xl font-black text-slate-900 mt-1" id="pot-twd-net">NT$ 0</div>
+            </div>
+            <span class="p-2 rounded-xl bg-blue-50 text-blue-700">
+              <i data-lucide="credit-card" class="w-5 h-5"></i>
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-stone-100 text-xs">
+            <div>
+              <span class="text-stone-400">遠距/兼職收入</span>
+              <p class="font-bold text-emerald-600 mt-0.5" id="pot-twd-inc">+NT$ 0</p>
+            </div>
+            <div>
+              <span class="text-stone-400">簽證/體檢/前期支出</span>
+              <p class="font-bold text-rose-600 mt-0.5" id="pot-twd-exp">-NT$ 0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Analytics & Management -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-xs">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-ochre-600"></i>
+            <h3 class="font-bold text-sm text-slate-900">支出分類佔比 (換算 NTD 統計)</h3>
+          </div>
+          <button 
+            onclick="openCategoryManagerModal()" 
+            class="text-xs text-ochre-700 hover:text-ochre-800 font-bold flex items-center gap-1 hover:underline"
+          >
+            <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+            自訂分類名稱
+          </button>
+        </div>
+        <div id="category-bars-container" class="space-y-3">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Transaction Log -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="receipt" class="w-4 h-4 text-ochre-600"></i>
+            <h3 class="font-bold text-sm text-slate-900">收支明細紀錄</h3>
+          </div>
+          
+          <!-- Filter buttons -->
+          <div class="flex gap-1 bg-stone-100 p-1 rounded-xl text-xs">
+            <button 
+              id="tx-filter-all" 
+              onclick="setTxFilter('all')" 
+              class="px-2.5 py-1 rounded-lg font-bold bg-white text-slate-800 shadow-xs"
+            >全部</button>
+            <button 
+              id="tx-filter-income" 
+              onclick="setTxFilter('income')" 
+              class="px-2.5 py-1 rounded-lg font-medium text-stone-600 hover:text-slate-900"
+            >收入</button>
+            <button 
+              id="tx-filter-expense" 
+              onclick="setTxFilter('expense')" 
+              class="px-2.5 py-1 rounded-lg font-medium text-stone-600 hover:text-slate-900"
+            >支出</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-stone-600">
+            <thead class="bg-stone-50 border-b border-stone-100 text-stone-500 font-semibold uppercase tracking-wider">
+              <tr>
+                <th class="py-2.5 px-4">日期</th>
+                <th class="py-2.5 px-4">分類</th>
+                <th class="py-2.5 px-4">備註/項目</th>
+                <th class="py-2.5 px-4 text-right">原始幣別金額</th>
+                <th class="py-2.5 px-4 text-right">折合台幣 (TWD)</th>
+                <th class="py-2.5 px-4 text-center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tx-table-body" class="divide-y divide-stone-100">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: CALENDAR & TIMELINE                                -->
+    <!-- ========================================================= -->
+    <div id="tab-content-calendar" class="space-y-6 hidden">
+      
+      <!-- Calendar Controls & Grid Card -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-xs">
+        
+        <!-- Calendar Header (Month Switcher & Add Button) -->
+        <div class="flex items-center justify-between pb-4 border-b border-stone-100">
+          <div class="flex items-center gap-2">
+            <button 
+              onclick="changeCalendarMonth(-1)" 
+              class="p-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition"
+              title="上個月"
+            >
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <h2 id="calendar-month-label" class="font-extrabold text-base md:text-lg text-slate-900 min-w-[120px] text-center">
+              2027 年 4 月
+            </h2>
+            <button 
+              onclick="changeCalendarMonth(1)" 
+              class="p-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition"
+              title="下個月"
+            >
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+            <button 
+              onclick="jumpToToday()" 
+              class="text-xs font-semibold px-2.5 py-1 bg-stone-100 hover:bg-stone-200 rounded-lg text-stone-700 transition"
+            >
+              回到今天
+            </button>
+          </div>
+
+          <button 
+            onclick="openEventModal()" 
+            class="flex items-center gap-1.5 bg-ochre-600 hover:bg-ochre-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs"
+          >
+            <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+            新增事項
+          </button>
+        </div>
+
+        <!-- Days of Week Header -->
+        <div class="grid grid-cols-7 text-center text-xs font-bold text-stone-400 py-2 border-b border-stone-100">
+          <div>日</div>
+          <div>一</div>
+          <div>二</div>
+          <div>三</div>
+          <div>四</div>
+          <div>五</div>
+          <div>六</div>
+        </div>
+
+        <!-- Dynamic Days Grid -->
+        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 pt-2">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Selected Day Details & Upcoming Milestones -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Selected Date View -->
+        <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-stone-100 mb-3">
+              <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                <i data-lucide="clock" class="w-4 h-4 text-ochre-600"></i>
+                <span id="selected-date-label">當日排程事項</span>
+              </h3>
+              <button 
+                onclick="openEventModal(selectedCalendarDate)" 
+                class="text-xs text-ochre-700 hover:underline font-semibold"
+              >
+                + 此日加事項
+              </button>
+            </div>
+            <div id="selected-day-events" class="space-y-2">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Key Milestones -->
+        <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-xs">
+          <div class="flex items-center justify-between pb-2 border-b border-stone-100 mb-3">
+            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+              <i data-lucide="flag" class="w-4 h-4 text-amber-600"></i>
+              即將到來重要節點
+            </h3>
+            <span class="text-[11px] text-stone-400">依時序排列</span>
+          </div>
+          <div id="upcoming-events-container" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 3: PACKING CHECKLIST                                  -->
+    <!-- ========================================================= -->
+    <div id="tab-content-checklist" class="space-y-6 hidden">
+      
+      <!-- Checklist Header & Progress -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-xs">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-stone-100">
+          <div>
+            <h2 class="font-bold text-base text-slate-900">必買實用五金與生活小物清單</h2>
+            <p class="text-xs text-stone-500">專為澳洲青旅、宿舍修繕及烏魯魯荒漠環境量身打造</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <span class="text-xs text-stone-400">完成度</span>
+              <div class="text-base font-black text-ochre-700" id="checklist-progress-text">0 / 11</div>
+            </div>
+            <div class="w-24 bg-stone-100 h-2.5 rounded-full overflow-hidden">
+              <div id="checklist-progress-bar" class="bg-ochre-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Filter Buttons -->
+        <div class="flex flex-wrap gap-1.5 pt-3" id="checklist-category-filters">
+          <button onclick="filterChecklist('all')" class="category-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white" data-cat="all">全部</button>
+          <button onclick="filterChecklist('修繕自修與固定')" class="category-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-stone-100 text-stone-600 hover:text-stone-900" data-cat="修繕自修與固定">修繕固定</button>
+          <button onclick="filterChecklist('青旅生活與防盜')" class="category-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-stone-100 text-stone-600 hover:text-stone-900" data-cat="青旅生活與防盜">青旅防盜</button>
+          <button onclick="filterChecklist('個人衛生與洗沐')" class="category-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-stone-100 text-stone-600 hover:text-stone-900" data-cat="個人衛生與洗沐">個人洗沐</button>
+          <button onclick="filterChecklist('戶外與極端氣候')" class="category-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-stone-100 text-stone-600 hover:text-stone-900" data-cat="戶外與極端氣候">戶外氣候</button>
+        </div>
+      </div>
+
+      <!-- Checklist Items Container -->
+      <div id="checklist-container" class="space-y-2.5">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Add Custom Item Card -->
+      <div class="bg-stone-50 border border-dashed border-stone-300 rounded-2xl p-4">
+        <h4 class="text-xs font-bold text-stone-700 mb-2 flex items-center gap-1.5">
+          <i data-lucide="plus" class="w-3.5 h-3.5 text-ochre-600"></i>
+          自訂新增備忘物品
+        </h4>
+        <div class="flex flex-col sm:flex-row gap-2 text-xs">
+          <input 
+            type="text" 
+            id="custom-item-label" 
+            placeholder="物品名稱 (例: 澳洲規格三腳轉接頭)" 
+            class="flex-1 bg-white border border-stone-200 rounded-lg px-3 py-2 text-stone-800 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          />
+          <input 
+            type="text" 
+            id="custom-item-subline" 
+            placeholder="規格備註 (例: 買 2 個，帶接地孔)" 
+            class="flex-1 bg-white border border-stone-200 rounded-lg px-3 py-2 text-stone-800 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          />
+          <select id="custom-item-cat" class="bg-white border border-stone-200 rounded-lg px-2 py-2 text-stone-700 focus:outline-none">
+            <option value="修繕自修與固定">修繕固定</option>
+            <option value="青旅生活與防盜">青旅防盜</option>
+            <option value="個人衛生與洗沐">個人洗沐</option>
+            <option value="戶外與極端氣候">戶外氣候</option>
+            <option value="其他雜物">其他雜物</option>
+          </select>
+          <button 
+            onclick="addCustomChecklistItem()" 
+            class="bg-ochre-600 hover:bg-ochre-700 text-white font-bold px-4 py-2 rounded-lg transition shrink-0"
+          >
+            新增物品
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: ADD TRANSACTION (INCOME / EXPENSE)                 -->
+  <!-- ========================================================= -->
+  <div id="tx-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+        <h3 id="tx-modal-title" class="font-bold text-base text-slate-900">記一筆收入</h3>
+        <button onclick="closeTxModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleTxSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="tx-type" value="income" />
+
+        <!-- Currency Selector -->
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">幣別選擇</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button 
+              type="button" 
+              id="currency-btn-aud" 
+              onclick="selectTxCurrency('AUD')" 
+              class="py-2 rounded-xl font-bold border-2 border-ochre-600 text-ochre-700 bg-ochre-50 flex items-center justify-center gap-1.5"
+            >
+              🇦🇺 澳幣 (AUD)
+            </button>
+            <button 
+              type="button" 
+              id="currency-btn-twd" 
+              onclick="selectTxCurrency('TWD')" 
+              class="py-2 rounded-xl font-semibold border-2 border-stone-200 text-stone-600 bg-white flex items-center justify-center gap-1.5"
+            >
+              🇹🇼 台幣 (TWD)
+            </button>
+          </div>
+          <input type="hidden" id="tx-currency" value="AUD" />
+        </div>
+
+        <!-- Date & Amount -->
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">日期</label>
+            <input 
+              type="date" 
+              id="tx-date" 
+              required 
+              class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-800 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+            />
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1" id="tx-amount-label">金額 (AUD)</label>
+            <input 
+              type="number" 
+              id="tx-amount" 
+              step="0.01" 
+              required 
+              placeholder="0.00" 
+              class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-800 font-bold focus:outline-none focus:ring-1 focus:ring-ochre-500"
+            />
+          </div>
+        </div>
+
+        <!-- Category & Item Description -->
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">分類歸屬</label>
+          <select 
+            id="tx-category" 
+            class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-700 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          >
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">備註說明 / 品項</label>
+          <input 
+            type="text" 
+            id="tx-desc" 
+            placeholder="例: IGA 超市買肉蛋蔬菜、417簽證申請規費" 
+            class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-800 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          />
+        </div>
+
+        <!-- Super Toggle for Australian Legal Income -->
+        <div id="tx-super-container" class="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl flex items-center justify-between">
+          <div>
+            <span class="font-bold text-amber-900 block">計入澳洲合法退休金 (Super 11.5%)</span>
+            <span class="text-[11px] text-amber-700 block">烏魯魯/白工薪資將推算提撥並計入 DASP 離澳退稅 (實拿 35%)</span>
+          </div>
+          <input type="checkbox" id="tx-is-super" class="w-4 h-4 text-ochre-600 rounded focus:ring-0 cursor-pointer" />
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full bg-slate-900 hover:bg-black text-white font-bold py-2.5 rounded-xl transition text-xs mt-2"
+        >
+          儲存此筆紀錄
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: ADD / EDIT CALENDAR EVENT                          -->
+  <!-- ========================================================= -->
+  <div id="event-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+        <h3 id="event-modal-title" class="font-bold text-base text-slate-900">新增日曆事項</h3>
+        <button onclick="closeEventModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleEventSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="event-edit-id" value="" />
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">日期</label>
+          <input 
+            type="date" 
+            id="event-date" 
+            required 
+            class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-800 font-medium focus:ring-1 focus:ring-ochre-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-semibold text-stone-700">分類標籤</label>
+            <button 
+              type="button" 
+              onclick="openTagManagerModal()" 
+              class="text-ochre-700 hover:underline text-[11px] font-medium"
+            >
+              管理/自訂標籤
+            </button>
+          </div>
+          <select 
+            id="event-tag" 
+            class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-700 focus:ring-1 focus:ring-ochre-500 focus:outline-none"
+          >
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">事項標題</label>
+          <input 
+            type="text" 
+            id="event-title" 
+            required 
+            placeholder="例: 台北德協預約候補、繳交機票費用" 
+            class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-800 font-semibold focus:ring-1 focus:ring-ochre-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">備註詳情 (選填)</label>
+          <textarea 
+            id="event-note" 
+            rows="2" 
+            placeholder="填寫細節指引、所需證件清單或提醒" 
+            class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-stone-800 focus:ring-1 focus:ring-ochre-500 focus:outline-none"
+          ></textarea>
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full bg-ochre-600 hover:bg-ochre-700 text-white font-bold py-2.5 rounded-xl transition text-xs"
+        >
+          儲存事項
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: CATEGORY MANAGER (EXPENSE / INCOME)                -->
+  <!-- ========================================================= -->
+  <div id="category-manager-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+        <div>
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+            <i data-lucide="tag" class="w-4 h-4 text-ochre-600"></i>
+            自訂收支分類名稱
+          </h3>
+          <p class="text-[11px] text-stone-500">修改名稱後，歷史交易紀錄將自動同步更新</p>
+        </div>
+        <button onclick="closeCategoryManagerModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Expense / Income Category Tabs -->
+      <div class="flex bg-stone-100 p-1 rounded-xl text-xs">
+        <button 
+          id="cat-tab-expense" 
+          onclick="switchCategoryManagerTab('expense')" 
+          class="flex-1 py-1.5 rounded-lg font-bold bg-white text-rose-700 shadow-xs"
+        >
+          支出分類
+        </button>
+        <button 
+          id="cat-tab-income" 
+          onclick="switchCategoryManagerTab('income')" 
+          class="flex-1 py-1.5 rounded-lg font-semibold text-stone-600 hover:text-slate-900"
+        >
+          收入分類
+        </button>
+      </div>
+
+      <!-- Add Category Input -->
+      <div class="flex gap-2">
+        <input 
+          id="new-category-input" 
+          type="text" 
+          placeholder="輸入新分類名稱 (例: 娛樂交際、代購收入)" 
+          class="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-ochre-500"
+        />
+        <button 
+          onclick="addNewCategory()" 
+          class="bg-ochre-600 hover:bg-ochre-700 text-white font-bold px-3 py-2 rounded-lg text-xs transition"
+        >
+          新增
+        </button>
+      </div>
+
+      <!-- Categories List -->
+      <div class="space-y-2 border border-stone-100 rounded-xl p-2.5 max-h-56 overflow-y-auto">
+        <div id="category-manager-list" class="space-y-1.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-stone-100 text-xs">
+        <button 
+          onclick="resetCategoriesToDefault()" 
+          class="text-stone-400 hover:text-rose-600 text-[11px] transition"
+        >
+          恢復原廠預設分類
+        </button>
+        <button 
+          onclick="closeCategoryManagerModal()" 
+          class="bg-stone-900 hover:bg-black text-white font-bold px-4 py-2 rounded-lg text-xs transition"
+        >
+          完成關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: CALENDAR TAG MANAGER                               -->
+  <!-- ========================================================= -->
+  <div id="tag-manager-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+        <div>
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+            <i data-lucide="tag" class="w-4 h-4 text-ochre-600"></i>
+            自訂日曆分類標籤
+          </h3>
+          <p class="text-[11px] text-stone-500">修改名稱後，日曆上所有該標籤的事項將同步更新</p>
+        </div>
+        <button onclick="closeTagManagerModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Add New Tag Bar -->
+      <div class="flex gap-2">
+        <input 
+          id="new-tag-name-input" 
+          type="text" 
+          placeholder="輸入新標籤名稱 (例: 🤿 假日旅遊 / 📚 語言檢定)" 
+          class="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-ochre-500"
+        />
+        <select id="new-tag-color-select" class="bg-stone-50 border border-stone-200 rounded-lg px-2 text-xs text-stone-600 focus:outline-none">
+          <option value="amber">琥珀金</option>
+          <option value="emerald">翡翠綠</option>
+          <option value="blue">晴空藍</option>
+          <option value="purple">星空紫</option>
+          <option value="rose">珊瑚紅</option>
+          <option value="stone">極簡灰</option>
+        </select>
+        <button 
+          onclick="addNewCalendarTag()" 
+          class="bg-ochre-600 hover:bg-ochre-700 text-white font-bold px-3 py-2 rounded-lg text-xs transition"
+        >
+          新增
+        </button>
+      </div>
+
+      <!-- Tag List with In-place Edit -->
+      <div class="space-y-2 border border-stone-100 rounded-xl p-2.5 max-h-64 overflow-y-auto">
+        <div id="tag-manager-list" class="space-y-1.5">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-stone-100 text-xs">
+        <button 
+          onclick="resetCalendarTagsToDefault()" 
+          class="text-stone-400 hover:text-rose-600 text-[11px] transition"
+        >
+          恢復預設標籤
+        </button>
+        <button 
+          onclick="closeTagManagerModal()" 
+          class="bg-stone-900 hover:bg-black text-white font-bold px-4 py-2 rounded-lg text-xs transition"
+        >
+          完成關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- JAVASCRIPT APPLICATION LOGIC                              -->
+  <!-- ========================================================= -->
+  <script>
+    // ----------------------------------------------------
+    // DEFAULT DATA CONSTANTS
+    // ----------------------------------------------------
+    const DEFAULT_CHECKLIST = [
+      { id: "1", label: "布基大力膠帶 (Duct Tape)", sublines: ["規格：寬度 2.5 cm，長度 3m～5m，黑色或銀灰"], category: "修繕自修與固定", checked: false },
+      { id: "2", label: "3M VHB 雙面膠貼片", sublines: ["規格：40×40×1 mm，買 1 包，抽 4～5 片帶出國"], category: "修繕自修與固定", checked: false },
+      { id: "3", label: "釹鐵硼強磁掛勾", sublines: ["規格：D25 (直徑2.5cm) × 2 個 + D20 (直徑2.0cm) × 1 個"], category: "修繕自修與固定", checked: false },
+      { id: "4", label: "魔鬼氈理線帶", sublines: ["長度約 15～20 cm 帶扣款，準備 4～6 條"], category: "修繕自修與固定", checked: false },
+      { id: "5", label: "密碼鎖 × 2 個 (無鑰匙款)", sublines: ["1 個鎖梁直徑約 3.5mm 鎖青旅鐵櫃；1 個 TSA 細鋼纜鎖行李箱"], category: "青旅生活與防盜", checked: false },
+      { id: "6", label: "黑色大長尾夾 (燕尾夾)", sublines: ["規格：大號 41mm 或 51mm，準備 3～4 個夾床簾"], category: "青旅生活與防盜", checked: false },
+      { id: "7", label: "加厚細網洗衣袋 × 2 個", sublines: ["特大號 (50×60cm) × 1 放外衣毛巾；中號 (30×40cm) × 1 放內著襪子"], category: "青旅生活與防盜", checked: false },
+      { id: "8", label: "立體透氣防潑水鞋袋 × 2 個", sublines: ["分別收納外出球鞋/工鞋與防滑拖鞋"], category: "青旅生活與防盜", checked: false },
+      { id: "9", label: "下捲插扣式 EVA 防水盥洗袋", sublines: ["規格選大號 (約 89g)，洗澡可提、可掛、可塞毛巾"], category: "個人衛生與洗沐", checked: false },
+      { id: "10", label: "純黑無 Logo 厚底工作襪", sublines: ["準備 3～5 雙，渡假村工裝規範必備且防磨腳"], category: "個人衛生與洗沐", checked: false },
+      { id: "11", label: "防蠅面罩 (Fly Net)", sublines: ["黑色細網束口款 × 2 個 (烏魯魯沙漠戶外防蠅保命神物)"], category: "戶外與極端氣候", checked: false }
+    ];
+
+    const DEFAULT_CATEGORIES = {
+      expense: [
+        "住宿宿舍",
+        "超市伙食",
+        "外食社交",
+        "生活日用",
+        "交通共乘",
+        "通訊網路",
+        "簽證醫療",
+        "其他雜支"
+      ],
+      income: [
+        "渡假村正職薪資",
+        "台灣遠距線上教學",
+        "Superprof 線上家教",
+        "兼職/打工收入",
+        "其他收入"
+      ]
+    };
+
+    const DEFAULT_EVENT_TAGS = [
+      { name: "留學德簽", color: "amber" },
+      { name: "澳打事務", color: "emerald" },
+      { name: "財務收支", color: "blue" },
+      { name: "移動交通", color: "purple" },
+      { name: "重要備忘", color: "stone" }
+    ];
+
+    const DEFAULT_EVENTS = [
+      { id: "ev_1", date: "2027-04-15", title: "台北德國在台協會簽證候補登記 (Warteliste)", tag: "留學德簽", note: "在澳洲線上進排隊系統卡位，不需等正式錄取許可" },
+      { id: "ev_2", date: "2027-05-15", title: "開立限制提領帳戶 (Blocked Account) & 電匯", tag: "留學德簽", note: "透過 Expatrio/Fintiba 開戶，直接由澳洲銀行帳戶電匯歐元" },
+      { id: "ev_3", date: "2027-06-25", title: "烏魯魯合約期滿 / 領取交通補助 & 整理行李", tag: "澳打事務", note: "辦理離職、申請終期所得證明與離境退退休金 (DASP)" },
+      { id: "ev_4", date: "2027-07-01", title: "正式返抵台灣，備齊紙本畢業證書與公證", tag: "移動交通", note: "整理成績單、正本證件、自保金證明準備德協面試" },
+      { id: "ev_5", date: "2027-07-15", title: "台北 101 德國在台協會親自面試送件", tag: "留學德簽", note: "攜帶所有申請文件正影本面試送審" },
+      { id: "ev_6", date: "2027-08-15", title: "追蹤德簽審查核准，補繳學生保險貼簽", tag: "留學德簽", note: "收到核准通知信後，補買開學保險並寄回護照貼簽證" },
+      { id: "ev_7", date: "2027-09-20", title: "啟程飛往德國，辦理市政廳入籍 (Anmeldung)", tag: "移動交通", note: "抵德後完成大學現場註冊、銀行開戶啟用，準備冬季學期開課" }
+    ];
+
+    // ----------------------------------------------------
+    // STATE VARIABLES
+    // ----------------------------------------------------
+    let checklist = [];
+    let currentFilter = 'all';
+    let transactions = [];
+    let currentTxFilter = 'all';
+    let categories = { expense: [], income: [] };
+    let currentCatManagerType = 'expense';
+    let fxRate = 23.0; // 1 AUD = 23.0 TWD
+    let eventTags = [];
+    let calendarEvents = [];
+    let calendarCurrentYear = 2027;
+    let calendarCurrentMonth = 3; // 0-indexed (3 = April 2027)
+    let selectedCalendarDate = "2027-04-15";
+
+    // ----------------------------------------------------
+    // SAFE LUCIDE RENDER
+    // ----------------------------------------------------
+    function safeRenderIcons() {
+      try {
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          lucide.createIcons();
+        }
+      } catch (err) {
+        console.debug("Lucide render notice:", err);
+      }
+    }
+
+    // ----------------------------------------------------
+    // APP INITIALIZATION
+    // ----------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFxRate();
+      loadCategories();
+      loadCalendarTags();
+      loadChecklist();
+      loadFinance();
+      loadCalendarEvents();
+
+      // Set default dates
+      const todayStr = new Date().toISOString().split('T')[0];
+      const txDateInput = document.getElementById('tx-date');
+      if (txDateInput) txDateInput.value = todayStr;
+
+      const eventDateInput = document.getElementById('event-date');
+      if (eventDateInput) eventDateInput.value = selectedCalendarDate;
+
+      safeRenderIcons();
+    });
+
+    // ----------------------------------------------------
+    // TAB SWITCHING LOGIC
+    // ----------------------------------------------------
+    function switchTab(tab) {
+      const tabs = ['finance', 'calendar', 'checklist'];
+      tabs.forEach(t => {
+        const content = document.getElementById(`tab-content-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (content && btn) {
+          if (t === tab) {
+            content.classList.remove('hidden');
+            btn.className = "flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold border-b-2 border-ochre-600 text-ochre-700 transition shrink-0";
+          } else {
+            content.classList.add('hidden');
+            btn.className = "flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-medium border-b-2 border-transparent text-stone-500 hover:text-stone-800 transition shrink-0";
+          }
+        }
+      });
+
+      if (tab === 'finance') {
+        renderFinanceDashboard();
+      } else if (tab === 'calendar') {
+        renderCalendar();
+        renderSelectedDayEvents();
+        renderUpcomingEvents();
+      } else if (tab === 'checklist') {
+        renderChecklist();
+      }
+
+      safeRenderIcons();
+    }
+
+    // ----------------------------------------------------
+    // FX RATE LOGIC
+    // ----------------------------------------------------
+    function loadFxRate() {
+      const stored = localStorage.getItem('au_de_fx_rate');
+      if (stored) {
+        fxRate = parseFloat(stored) || 23.0;
+      }
+      const input = document.getElementById('fx-rate-input');
+      if (input) input.value = fxRate.toFixed(1);
+    }
+
+    function updateFxRate(val) {
+      const num = parseFloat(val);
+      if (num && num > 0) {
+        fxRate = num;
+        localStorage.setItem('au_de_fx_rate', fxRate.toString());
+        renderFinanceDashboard();
+      }
+    }
+
+    // ----------------------------------------------------
+    // FINANCE LOGIC (DUAL CURRENCY & STATS)
+    // ----------------------------------------------------
+    function loadFinance() {
+      try {
+        const stored = localStorage.getItem('au_de_transactions');
+        if (stored) {
+          transactions = JSON.parse(stored);
+        } else {
+          // Initial sample realistic transactions
+          transactions = [
+            { id: "tx_1", date: "2026-08-01", type: "expense", currency: "TWD", amount: 14200, category: "簽證醫療", desc: "澳洲打工度假417簽證申請費", isSuper: false },
+            { id: "tx_2", date: "2026-08-15", type: "expense", currency: "TWD", amount: 2500, category: "簽證醫療", desc: "指定醫院胸部X光體檢", isSuper: false },
+            { id: "tx_3", date: "2026-09-10", type: "income", currency: "TWD", amount: 12000, category: "台灣遠距線上教學", desc: "遠距線上伴讀與家教", isSuper: false }
+          ];
+        }
+      } catch (e) {
+        transactions = [];
+      }
+      renderFinanceDashboard();
+    }
+
+    function saveFinance() {
+      localStorage.setItem('au_de_transactions', JSON.stringify(transactions));
+      renderFinanceDashboard();
+    }
+
+    function renderFinanceDashboard() {
+      let audIncome = 0;
+      let audExpense = 0;
+      let twdIncome = 0;
+      let twdExpense = 0;
+      let superAccumulated = 0;
+
+      // Category map in TWD equivalent
+      const expenseByCategoryTwd = {};
+      (categories.expense || []).forEach(c => expenseByCategoryTwd[c] = 0);
+
+      transactions.forEach(tx => {
+        const amt = parseFloat(tx.amount) || 0;
+        if (tx.currency === 'AUD') {
+          if (tx.type === 'income') {
+            audIncome += amt;
+            if (tx.isSuper) {
+              superAccumulated += amt * 0.115;
+            }
+          } else {
+            audExpense += amt;
+            const twdEquiv = amt * fxRate;
+            expenseByCategoryTwd[tx.category] = (expenseByCategoryTwd[tx.category] || 0) + twdEquiv;
+          }
+        } else { // TWD
+          if (tx.type === 'income') {
+            twdIncome += amt;
+          } else {
+            twdExpense += amt;
+            expenseByCategoryTwd[tx.category] = (expenseByCategoryTwd[tx.category] || 0) + amt;
+          }
+        }
+      });
+
+      const netAud = audIncome - audExpense;
+      const netTwd = twdIncome - twdExpense;
+
+      // Estimate 35% net return from Superannuation after 65% DASP
+      const superEstimatedNetAud = superAccumulated * 0.35;
+      const superEstimatedNetTwd = superEstimatedNetAud * fxRate;
+
+      // Total liquid + estimated return in TWD
+      const totalNetSavingsTwd = (netAud * fxRate) + netTwd + superEstimatedNetTwd;
+      const totalNetSavingsAud = totalNetSavingsTwd / fxRate;
+
+      const targetTwd = 400000;
+      const progressPercent = Math.min(100, Math.max(0, (totalNetSavingsTwd / targetTwd) * 100));
+      const remainingTwd = Math.max(0, targetTwd - totalNetSavingsTwd);
+
+      // Weeks left until 2027-06-30
+      const targetDate = new Date('2027-06-30T00:00:00');
+      const now = new Date();
+      const diffMs = targetDate - now;
+      const weeksLeft = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24 * 7)));
+      const weeklyAudNeeded = (remainingTwd / fxRate) / weeksLeft;
+
+      // Update Hero Card UI
+      const heroTwd = document.getElementById('hero-net-savings-twd');
+      if (heroTwd) heroTwd.innerText = `NT$ ${Math.round(totalNetSavingsTwd).toLocaleString()}`;
+
+      const heroAud = document.getElementById('hero-net-savings-aud');
+      if (heroAud) {
+        heroAud.innerText = `折合約 $${Math.round(totalNetSavingsAud).toLocaleString()} AUD • 距離達標還差 NT$ ${Math.round(remainingTwd).toLocaleString()}`;
+      }
+
+      const heroPercent = document.getElementById('hero-progress-percent');
+      if (heroPercent) heroPercent.innerText = `${progressPercent.toFixed(1)}%`;
+
+      const heroBar = document.getElementById('hero-progress-bar');
+      if (heroBar) heroBar.style.width = `${progressPercent}%`;
+
+      const statWeeks = document.getElementById('stat-weeks-left');
+      if (statWeeks) statWeeks.innerText = `${weeksLeft} 週`;
+
+      const statTargetAud = document.getElementById('stat-weekly-target-aud');
+      if (statTargetAud) statTargetAud.innerText = `$${Math.round(weeklyAudNeeded).toLocaleString()} AUD`;
+
+      const statSuperNet = document.getElementById('stat-super-net');
+      if (statSuperNet) statSuperNet.innerText = `$${Math.round(superEstimatedNetAud).toLocaleString()} AUD`;
+
+      // Update Pot Cards
+      const potAudNet = document.getElementById('pot-aud-net');
+      if (potAudNet) potAudNet.innerText = `$${Math.round(netAud).toLocaleString()} AUD`;
+
+      const potAudInc = document.getElementById('pot-aud-inc');
+      if (potAudInc) potAudInc.innerText = `+$${Math.round(audIncome).toLocaleString()}`;
+
+      const potAudExp = document.getElementById('pot-aud-exp');
+      if (potAudExp) potAudExp.innerText = `-$${Math.round(audExpense).toLocaleString()}`;
+
+      const potTwdNet = document.getElementById('pot-twd-net');
+      if (potTwdNet) potTwdNet.innerText = `NT$ ${Math.round(netTwd).toLocaleString()}`;
+
+      const potTwdInc = document.getElementById('pot-twd-inc');
+      if (potTwdInc) potTwdInc.innerText = `+NT$ ${Math.round(twdIncome).toLocaleString()}`;
+
+      const potTwdExp = document.getElementById('pot-twd-exp');
+      if (potTwdExp) potTwdExp.innerText = `-NT$ ${Math.round(twdExpense).toLocaleString()}`;
+
+      // Render Expense Categories
+      renderCategoryAnalytics(expenseByCategoryTwd);
+
+      // Render Transactions Table
+      renderTransactionTable();
+    }
+
+    function renderCategoryAnalytics(expenseByCategoryTwd) {
+      const container = document.getElementById('category-bars-container');
+      if (!container) return;
+
+      const entries = Object.entries(expenseByCategoryTwd).sort((a, b) => b[1] - a[1]);
+      const totalExpenseTwd = entries.reduce((acc, curr) => acc + curr[1], 0);
+
+      if (totalExpenseTwd === 0) {
+        container.innerHTML = `<p class="text-xs text-stone-400 py-2">目前尚無支出紀錄。</p>`;
+        return;
+      }
+
+      container.innerHTML = entries.map(([category, amount]) => {
+        if (amount <= 0) return '';
+        const pct = ((amount / totalExpenseTwd) * 100).toFixed(1);
+        return `
+          <div class="space-y-1">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-medium text-stone-700">${category}</span>
+              <span class="text-stone-500 font-mono">NT$ ${Math.round(amount).toLocaleString()} (${pct}%)</span>
+            </div>
+            <div class="w-full bg-stone-100 h-2 rounded-full overflow-hidden">
+              <div class="bg-rose-500 h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTransactionTable() {
+      const tbody = document.getElementById('tx-table-body');
+      if (!tbody) return;
+
+      let filtered = [...transactions];
+      if (currentTxFilter !== 'all') {
+        filtered = filtered.filter(tx => tx.type === currentTxFilter);
+      }
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-stone-400">尚無相關紀錄</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(tx => {
+        const isInc = tx.type === 'income';
+        const amt = parseFloat(tx.amount) || 0;
+        const twdVal = tx.currency === 'AUD' ? (amt * fxRate) : amt;
+        const colorClass = isInc ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
+        const sign = isInc ? '+' : '-';
+        const currPrefix = tx.currency === 'AUD' ? '$' : 'NT$ ';
+        const currSuffix = tx.currency === 'AUD' ? ' AUD' : '';
+
+        return `
+          <tr class="hover:bg-stone-50/70 transition">
+            <td class="py-2.5 px-4 font-mono text-[11px]">${tx.date}</td>
+            <td class="py-2.5 px-4">
+              <span class="px-2 py-0.5 rounded text-[11px] font-medium ${isInc ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+                ${tx.category}
+              </span>
+            </td>
+            <td class="py-2.5 px-4 max-w-xs truncate text-stone-800 font-medium">
+              ${tx.desc || '-'}
+              ${tx.isSuper ? '<span class="ml-1 text-[10px] text-amber-700 bg-amber-50 px-1 py-0.5 rounded font-mono">Super11.5%</span>' : ''}
+            </td>
+            <td class="py-2.5 px-4 text-right ${colorClass}">
+              ${sign}${currPrefix}${amt.toLocaleString()}${currSuffix}
+            </td>
+            <td class="py-2.5 px-4 text-right font-mono text-stone-500">
+              ${sign}NT$ ${Math.round(twdVal).toLocaleString()}
+            </td>
+            <td class="py-2.5 px-4 text-center">
+              <button onclick="deleteTx('${tx.id}')" class="text-stone-300 hover:text-rose-600 p-1" title="刪除">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      safeRenderIcons();
+    }
+
+    function setTxFilter(filter) {
+      currentTxFilter = filter;
+      ['all', 'income', 'expense'].forEach(f => {
+        const btn = document.getElementById(`tx-filter-${f}`);
+        if (!btn) return;
+        if (f === filter) {
+          btn.className = "px-2.5 py-1 rounded-lg font-bold bg-white text-slate-800 shadow-xs";
+        } else {
+          btn.className = "px-2.5 py-1 rounded-lg font-medium text-stone-600 hover:text-slate-900";
+        }
+      });
+      renderTransactionTable();
+    }
+
+    function deleteTx(id) {
+      transactions = transactions.filter(t => t.id !== id);
+      saveFinance();
+    }
+
+    // Modal: Open & Submit Transaction
+    function openTxModal(type) {
+      const modal = document.getElementById('tx-modal');
+      const title = document.getElementById('tx-modal-title');
+      const typeInput = document.getElementById('tx-type');
+      const superBox = document.getElementById('tx-super-container');
+      if (!modal || !title || !typeInput) return;
+
+      typeInput.value = type;
+      title.innerText = type === 'income' ? '記一筆收入' : '記一筆支出';
+
+      if (superBox) {
+        superBox.style.display = type === 'income' ? 'flex' : 'none';
+      }
+
+      populateCategories(type);
+      modal.classList.remove('hidden');
+      safeRenderIcons();
+    }
+
+    function closeTxModal() {
+      const modal = document.getElementById('tx-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function selectTxCurrency(curr) {
+      const currInput = document.getElementById('tx-currency');
+      const audBtn = document.getElementById('currency-btn-aud');
+      const twdBtn = document.getElementById('currency-btn-twd');
+      const label = document.getElementById('tx-amount-label');
+      if (!currInput || !audBtn || !twdBtn) return;
+
+      currInput.value = curr;
+      if (label) label.innerText = `金額 (${curr})`;
+
+      if (curr === 'AUD') {
+        audBtn.className = "py-2 rounded-xl font-bold border-2 border-ochre-600 text-ochre-700 bg-ochre-50 flex items-center justify-center gap-1.5";
+        twdBtn.className = "py-2 rounded-xl font-semibold border-2 border-stone-200 text-stone-600 bg-white flex items-center justify-center gap-1.5";
+      } else {
+        twdBtn.className = "py-2 rounded-xl font-bold border-2 border-blue-600 text-blue-700 bg-blue-50 flex items-center justify-center gap-1.5";
+        audBtn.className = "py-2 rounded-xl font-semibold border-2 border-stone-200 text-stone-600 bg-white flex items-center justify-center gap-1.5";
+      }
+    }
+
+    function handleTxSubmit(e) {
+      e.preventDefault();
+      const type = document.getElementById('tx-type').value;
+      const currency = document.getElementById('tx-currency').value;
+      const date = document.getElementById('tx-date').value;
+      const amount = parseFloat(document.getElementById('tx-amount').value);
+      const category = document.getElementById('tx-category').value;
+      const desc = document.getElementById('tx-desc').value.trim();
+      const isSuper = document.getElementById('tx-is-super')?.checked || false;
+
+      if (!date || isNaN(amount) || amount <= 0) return;
+
+      transactions.unshift({
+        id: "tx_" + Date.now(),
+        date,
+        type,
+        currency,
+        amount,
+        category,
+        desc,
+        isSuper: type === 'income' && currency === 'AUD' ? isSuper : false
+      });
+
+      saveFinance();
+      closeTxModal();
+
+      // Reset form
+      document.getElementById('tx-amount').value = '';
+      document.getElementById('tx-desc').value = '';
+    }
+
+    // ----------------------------------------------------
+    // CATEGORY MANAGEMENT
+    // ----------------------------------------------------
+    function loadCategories() {
+      try {
+        const stored = localStorage.getItem('au_de_custom_categories');
+        if (stored) {
+          categories = JSON.parse(stored);
+        } else {
+          categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        }
+      } catch (e) {
+        categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      }
+    }
+
+    function saveCategories() {
+      localStorage.setItem('au_de_custom_categories', JSON.stringify(categories));
+      renderCategoryManagerList();
+      renderFinanceDashboard();
+    }
+
+    function populateCategories(type) {
+      const select = document.getElementById('tx-category');
+      if (!select) return;
+      const list = categories[type] || [];
+      select.innerHTML = list.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function openCategoryManagerModal() {
+      const modal = document.getElementById('category-manager-modal');
+      if (!modal) return;
+      renderCategoryManagerList();
+      modal.classList.remove('hidden');
+      safeRenderIcons();
+    }
+
+    function closeCategoryManagerModal() {
+      const modal = document.getElementById('category-manager-modal');
+      if (modal) modal.classList.add('hidden');
+      const curType = document.getElementById('tx-type')?.value || 'expense';
+      populateCategories(curType);
+    }
+
+    function switchCategoryManagerTab(type) {
+      currentCatManagerType = type;
+      const expBtn = document.getElementById('cat-tab-expense');
+      const incBtn = document.getElementById('cat-tab-income');
+      if (!expBtn || !incBtn) return;
+
+      if (type === 'expense') {
+        expBtn.className = "flex-1 py-1.5 rounded-lg font-bold bg-white text-rose-700 shadow-xs";
+        incBtn.className = "flex-1 py-1.5 rounded-lg font-semibold text-stone-600 hover:text-slate-900";
+      } else {
+        incBtn.className = "flex-1 py-1.5 rounded-lg font-bold bg-white text-emerald-700 shadow-xs";
+        expBtn.className = "flex-1 py-1.5 rounded-lg font-semibold text-stone-600 hover:text-slate-900";
+      }
+      renderCategoryManagerList();
+    }
+
+    function renderCategoryManagerList() {
+      const container = document.getElementById('category-manager-list');
+      if (!container) return;
+
+      const list = categories[currentCatManagerType] || [];
+      container.innerHTML = list.map((cat, idx) => `
+        <div class="flex items-center gap-2 p-2 bg-stone-50 border border-stone-200 rounded-lg">
+          <input 
+            type="text" 
+            value="${cat}" 
+            onchange="updateCategoryName('${currentCatManagerType}', ${idx}, this.value)" 
+            class="flex-1 bg-white border border-stone-300 rounded px-2 py-1 text-xs text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          />
+          <button 
+            onclick="deleteCategory('${currentCatManagerType}', ${idx})" 
+            class="text-stone-400 hover:text-rose-500 p-1"
+            title="刪除"
+          >
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      `).join('');
+
+      safeRenderIcons();
+    }
+
+    function updateCategoryName(type, idx, newName) {
+      newName = newName.trim();
+      if (!newName) return;
+      const oldName = categories[type][idx];
+      if (oldName === newName) return;
+
+      categories[type][idx] = newName;
+
+      // Update historic transactions
+      transactions.forEach(tx => {
+        if (tx.type === type && tx.category === oldName) {
+          tx.category = newName;
+        }
+      });
+      localStorage.setItem('au_de_transactions', JSON.stringify(transactions));
+
+      saveCategories();
+    }
+
+    function addNewCategory() {
+      const input = document.getElementById('new-category-input');
+      if (!input) return;
+      const name = input.value.trim();
+      if (!name) return;
+
+      if (!categories[currentCatManagerType].includes(name)) {
+        categories[currentCatManagerType].push(name);
+        input.value = '';
+        saveCategories();
+      }
+    }
+
+    function deleteCategory(type, idx) {
+      const targetName = categories[type][idx];
+      const isUsed = transactions.some(tx => tx.type === type && tx.category === targetName);
+
+      if (isUsed) {
+        const fallback = categories[type].length > 1 ? (categories[type][idx === 0 ? 1 : 0]) : '其他雜支';
+        transactions.forEach(tx => {
+          if (tx.type === type && tx.category === targetName) {
+            tx.category = fallback;
+          }
+        });
+        localStorage.setItem('au_de_transactions', JSON.stringify(transactions));
+      }
+
+      categories[type].splice(idx, 1);
+      if (categories[type].length === 0) {
+        categories[type].push(type === 'expense' ? '其他雜支' : '其他收入');
+      }
+      saveCategories();
+    }
+
+    function resetCategoriesToDefault() {
+      categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      saveCategories();
+    }
+
+    // ----------------------------------------------------
+    // CALENDAR LOGIC & TAG MANAGER
+    // ----------------------------------------------------
+    function loadCalendarTags() {
+      try {
+        const stored = localStorage.getItem('au_de_calendar_tags');
+        if (stored) {
+          eventTags = JSON.parse(stored);
+        } else {
+          eventTags = JSON.parse(JSON.stringify(DEFAULT_EVENT_TAGS));
+        }
+      } catch (e) {
+        eventTags = JSON.parse(JSON.stringify(DEFAULT_EVENT_TAGS));
+      }
+      populateEventTagsSelect();
+    }
+
+    function saveCalendarTags() {
+      localStorage.setItem('au_de_calendar_tags', JSON.stringify(eventTags));
+      populateEventTagsSelect();
+      renderTagManagerList();
+      renderCalendar();
+      renderSelectedDayEvents();
+      renderUpcomingEvents();
+    }
+
+    function populateEventTagsSelect() {
+      const select = document.getElementById('event-tag');
+      if (!select) return;
+      select.innerHTML = eventTags.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+    }
+
+    function openTagManagerModal() {
+      const modal = document.getElementById('tag-manager-modal');
+      if (!modal) return;
+      renderTagManagerList();
+      modal.classList.remove('hidden');
+      safeRenderIcons();
+    }
+
+    function closeTagManagerModal() {
+      const modal = document.getElementById('tag-manager-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function renderTagManagerList() {
+      const container = document.getElementById('tag-manager-list');
+      if (!container) return;
+
+      container.innerHTML = eventTags.map((tag, idx) => `
+        <div class="flex items-center gap-2 p-2 bg-stone-50 border border-stone-200 rounded-lg">
+          <input 
+            type="text" 
+            value="${tag.name}" 
+            onchange="updateTagName(${idx}, this.value)" 
+            class="flex-1 bg-white border border-stone-300 rounded px-2 py-1 text-xs text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          />
+          <select 
+            onchange="updateTagColor(${idx}, this.value)"
+            class="bg-white border border-stone-300 rounded px-1.5 py-1 text-xs text-stone-700 focus:outline-none"
+          >
+            <option value="amber" ${tag.color === 'amber' ? 'selected' : ''}>琥珀金</option>
+            <option value="emerald" ${tag.color === 'emerald' ? 'selected' : ''}>翡翠綠</option>
+            <option value="blue" ${tag.color === 'blue' ? 'selected' : ''}>晴空藍</option>
+            <option value="purple" ${tag.color === 'purple' ? 'selected' : ''}>星空紫</option>
+            <option value="rose" ${tag.color === 'rose' ? 'selected' : ''}>珊瑚紅</option>
+            <option value="stone" ${tag.color === 'stone' ? 'selected' : ''}>極簡灰</option>
+          </select>
+          <button 
+            onclick="deleteCalendarTag(${idx})" 
+            class="text-stone-400 hover:text-rose-500 p-1"
+            title="刪除標籤"
+          >
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      `).join('');
+
+      safeRenderIcons();
+    }
+
+    function updateTagName(idx, newName) {
+      newName = newName.trim();
+      if (!newName) return;
+      const oldName = eventTags[idx].name;
+      if (oldName === newName) return;
+
+      eventTags[idx].name = newName;
+      calendarEvents.forEach(ev => {
+        if (ev.tag === oldName) ev.tag = newName;
+      });
+      localStorage.setItem('au_de_calendar_events', JSON.stringify(calendarEvents));
+      saveCalendarTags();
+    }
+
+    function updateTagColor(idx, newColor) {
+      eventTags[idx].color = newColor;
+      saveCalendarTags();
+    }
+
+    function addNewCalendarTag() {
+      const input = document.getElementById('new-tag-name-input');
+      const colorSelect = document.getElementById('new-tag-color-select');
+      if (!input || !colorSelect) return;
+
+      const name = input.value.trim();
+      const color = colorSelect.value;
+      if (!name) return;
+
+      if (!eventTags.some(t => t.name === name)) {
+        eventTags.push({ name, color });
+        input.value = '';
+        saveCalendarTags();
+      }
+    }
+
+    function deleteCalendarTag(idx) {
+      const targetName = eventTags[idx].name;
+      const fallback = eventTags.length > 1 ? (eventTags[idx === 0 ? 1 : 0].name) : '重要備忘';
+      calendarEvents.forEach(ev => {
+        if (ev.tag === targetName) ev.tag = fallback;
+      });
+      localStorage.setItem('au_de_calendar_events', JSON.stringify(calendarEvents));
+
+      eventTags.splice(idx, 1);
+      if (eventTags.length === 0) {
+        eventTags.push({ name: "重要備忘", color: "stone" });
+      }
+      saveCalendarTags();
+    }
+
+    function resetCalendarTagsToDefault() {
+      eventTags = JSON.parse(JSON.stringify(DEFAULT_EVENT_TAGS));
+      saveCalendarTags();
+    }
+
+    function loadCalendarEvents() {
+      try {
+        const stored = localStorage.getItem('au_de_calendar_events');
+        if (stored) {
+          calendarEvents = JSON.parse(stored);
+        } else {
+          calendarEvents = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
+        }
+      } catch (e) {
+        calendarEvents = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
+      }
+      renderCalendar();
+      renderSelectedDayEvents();
+      renderUpcomingEvents();
+    }
+
+    function saveCalendarEvents() {
+      localStorage.setItem('au_de_calendar_events', JSON.stringify(calendarEvents));
+      renderCalendar();
+      renderSelectedDayEvents();
+      renderUpcomingEvents();
+    }
+
+    function getTagStyle(tagName) {
+      const found = eventTags.find(t => t.name === tagName);
+      const color = found ? found.color : 'stone';
+
+      switch (color) {
+        case 'amber': return { badge: 'bg-amber-100 text-amber-800 border-amber-200', dot: 'bg-amber-500' };
+        case 'emerald': return { badge: 'bg-emerald-100 text-emerald-800 border-emerald-200', dot: 'bg-emerald-500' };
+        case 'blue': return { badge: 'bg-blue-100 text-blue-800 border-blue-200', dot: 'bg-blue-500' };
+        case 'purple': return { badge: 'bg-purple-100 text-purple-800 border-purple-200', dot: 'bg-purple-500' };
+        case 'rose': return { badge: 'bg-rose-100 text-rose-800 border-rose-200', dot: 'bg-rose-500' };
+        default: return { badge: 'bg-stone-100 text-stone-700 border-stone-200', dot: 'bg-stone-500' };
+      }
+    }
+
+    function changeCalendarMonth(offset) {
+      calendarCurrentMonth += offset;
+      if (calendarCurrentMonth > 11) {
+        calendarCurrentMonth = 0;
+        calendarCurrentYear++;
+      } else if (calendarCurrentMonth < 0) {
+        calendarCurrentMonth = 11;
+        calendarCurrentYear--;
+      }
+      renderCalendar();
+    }
+
+    function jumpToToday() {
+      const d = new Date();
+      calendarCurrentYear = d.getFullYear();
+      calendarCurrentMonth = d.getMonth();
+      selectedCalendarDate = d.toISOString().split('T')[0];
+      renderCalendar();
+      renderSelectedDayEvents();
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-days-grid');
+      const label = document.getElementById('calendar-month-label');
+      if (!grid || !label) return;
+
+      label.innerText = `${calendarCurrentYear} 年 ${calendarCurrentMonth + 1} 月`;
+
+      // Calculate days in month
+      const firstDayIndex = new Date(calendarCurrentYear, calendarCurrentMonth, 1).getDay();
+      const totalDays = new Date(calendarCurrentYear, calendarCurrentMonth + 1, 0).getDate();
+      const prevMonthDays = new Date(calendarCurrentYear, calendarCurrentMonth, 0).getDate();
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      let html = '';
+
+      // Previous month trailing days
+      for (let i = firstDayIndex - 1; i >= 0; i--) {
+        const d = prevMonthDays - i;
+        html += `<div class="h-16 md:h-20 p-1 text-stone-300 text-xs bg-stone-50/40 rounded-lg flex flex-col justify-between">${d}</div>`;
+      }
+
+      // Current month days
+      for (let d = 1; d <= totalDays; d++) {
+        const mm = String(calendarCurrentMonth + 1).padStart(2, '0');
+        const dd = String(d).padStart(2, '0');
+        const dateStr = `${calendarCurrentYear}-${mm}-${dd}`;
+
+        const isSelected = dateStr === selectedCalendarDate;
+        const isToday = dateStr === todayStr;
+
+        const dayEvents = calendarEvents.filter(e => e.date === dateStr);
+
+        let borderClass = isSelected ? 'border-2 border-ochre-600 bg-amber-50/40' : 'border border-stone-100 hover:border-stone-300';
+        let numClass = isToday ? 'w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[11px]' : 'font-semibold text-stone-700';
+
+        html += `
+          <div 
+            onclick="selectCalendarDate('${dateStr}')" 
+            class="h-16 md:h-20 p-1 rounded-lg ${borderClass} transition cursor-pointer flex flex-col justify-between overflow-hidden"
+          >
+            <div class="flex justify-between items-center text-xs">
+              <span class="${numClass}">${d}</span>
+              ${dayEvents.length > 0 ? `<span class="w-1.5 h-1.5 rounded-full bg-ochre-600"></span>` : ''}
+            </div>
+
+            <div class="space-y-0.5 overflow-hidden">
+              ${dayEvents.slice(0, 2).map(ev => {
+                const style = getTagStyle(ev.tag);
+                return `
+                  <div class="text-[9px] md:text-[10px] truncate px-1 rounded font-medium ${style.badge}" title="${ev.title}">
+                    ${ev.title}
+                  </div>
+                `;
+              }).join('')}
+              ${dayEvents.length > 2 ? `<div class="text-[9px] text-stone-400 pl-1 font-mono">+${dayEvents.length - 2}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      grid.innerHTML = html;
+    }
+
+    function selectCalendarDate(dateStr) {
+      selectedCalendarDate = dateStr;
+      renderCalendar();
+      renderSelectedDayEvents();
+    }
+
+    function renderSelectedDayEvents() {
+      const container = document.getElementById('selected-day-events');
+      const label = document.getElementById('selected-date-label');
+      if (!container) return;
+
+      if (label) label.innerText = `${selectedCalendarDate} 排程事項`;
+
+      const dayEvents = calendarEvents.filter(e => e.date === selectedCalendarDate);
+
+      if (dayEvents.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-stone-400 text-xs">
+            本日無指定事項，點擊上方按鈕即可快速新增。
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = dayEvents.map(ev => {
+        const style = getTagStyle(ev.tag);
+        return `
+          <div class="p-3 bg-stone-50 border border-stone-200 rounded-xl flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full ${style.dot}"></span>
+                <span class="text-xs font-bold text-slate-900">${ev.title}</span>
+              </div>
+              <span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${style.badge}">
+                ${ev.tag}
+              </span>
+              ${ev.note ? `<p class="text-xs text-stone-600 mt-1 pl-3.5 border-l-2 border-stone-200">${ev.note}</p>` : ''}
+            </div>
+            <button onclick="deleteCalendarEvent('${ev.id}')" class="text-stone-300 hover:text-rose-600 p-1" title="刪除">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      safeRenderIcons();
+    }
+
+    function renderUpcomingEvents() {
+      const container = document.getElementById('upcoming-events-container');
+      if (!container) return;
+
+      const sorted = [...calendarEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if (sorted.length === 0) {
+        container.innerHTML = `<p class="text-xs text-stone-400 py-4 text-center">無後續排程事項</p>`;
+        return;
+      }
+
+      container.innerHTML = sorted.map(ev => {
+        const style = getTagStyle(ev.tag);
+        return `
+          <div 
+            onclick="selectCalendarDate('${ev.date}')" 
+            class="p-2.5 rounded-xl border border-stone-100 hover:border-stone-300 hover:bg-stone-50/80 transition cursor-pointer flex items-center justify-between text-xs"
+          >
+            <div class="flex items-center gap-2 truncate">
+              <span class="w-2 h-2 rounded-full ${style.dot} shrink-0"></span>
+              <span class="font-mono text-stone-500 font-bold shrink-0">${ev.date}</span>
+              <span class="text-slate-800 font-semibold truncate">${ev.title}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-medium border shrink-0 ${style.badge}">
+              ${ev.tag}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openEventModal(defaultDate = null) {
+      const modal = document.getElementById('event-modal');
+      const dateInput = document.getElementById('event-date');
+      if (!modal) return;
+
+      if (dateInput) {
+        dateInput.value = defaultDate || selectedCalendarDate;
+      }
+
+      modal.classList.remove('hidden');
+      safeRenderIcons();
+    }
+
+    function closeEventModal() {
+      const modal = document.getElementById('event-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleEventSubmit(e) {
+      e.preventDefault();
+      const date = document.getElementById('event-date').value;
+      const tag = document.getElementById('event-tag').value;
+      const title = document.getElementById('event-title').value.trim();
+      const note = document.getElementById('event-note').value.trim();
+
+      if (!date || !title) return;
+
+      calendarEvents.push({
+        id: "ev_" + Date.now(),
+        date,
+        tag,
+        title,
+        note
+      });
+
+      selectedCalendarDate = date;
+      const [y, m] = date.split('-').map(Number);
+      calendarCurrentYear = y;
+      calendarCurrentMonth = m - 1;
+
+      saveCalendarEvents();
+      closeEventModal();
+
+      document.getElementById('event-title').value = '';
+      document.getElementById('event-note').value = '';
+    }
+
+    function deleteCalendarEvent(id) {
+      calendarEvents = calendarEvents.filter(e => e.id !== id);
+      saveCalendarEvents();
+    }
+
+    // ----------------------------------------------------
+    // CHECKLIST LOGIC
+    // ----------------------------------------------------
+    function loadChecklist() {
+      try {
+        const stored = localStorage.getItem('au_de_checklist');
+        if (stored) {
+          checklist = JSON.parse(stored);
+        } else {
+          checklist = JSON.parse(JSON.stringify(DEFAULT_CHECKLIST));
+        }
+      } catch (e) {
+        checklist = JSON.parse(JSON.stringify(DEFAULT_CHECKLIST));
+      }
+      renderChecklist();
+    }
+
+    function saveChecklist() {
+      localStorage.setItem('au_de_checklist', JSON.stringify(checklist));
+      renderChecklist();
+    }
+
+    function filterChecklist(cat) {
+      currentFilter = cat;
+      document.querySelectorAll('.category-filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.className = "category-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white";
+        } else {
+          btn.className = "category-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-stone-100 text-stone-600 hover:text-stone-900";
+        }
+      });
+      renderChecklist();
+    }
+
+    // ----------------------------------------------------
+    // DATA EXPORT & IMPORT (BACKUP / RESTORE)
+    // ----------------------------------------------------
+    function exportAppData() {
+      const backupData = {
+        version: "1.0",
+        exportDate: new Date().toISOString(),
+        fxRate,
+        categories,
+        transactions,
+        eventTags,
+        calendarEvents,
+        checklist
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const filename = `Aus_German_Tracker_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", filename);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function triggerImportData() {
+      const fileInput = document.getElementById('import-file-input');
+      if (fileInput) fileInput.click();
+    }
+
+    function handleFileImport(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (parsed.transactions && parsed.calendarEvents) {
+            if (parsed.fxRate) fxRate = parsed.fxRate;
+            if (parsed.categories) categories = parsed.categories;
+            if (parsed.transactions) transactions = parsed.transactions;
+            if (parsed.eventTags) eventTags = parsed.eventTags;
+            if (parsed.calendarEvents) calendarEvents = parsed.calendarEvents;
+            if (parsed.checklist) checklist = parsed.checklist;
+
+            // Save all to localStorage
+            localStorage.setItem('au_de_fx_rate', fxRate.toString());
+            localStorage.setItem('au_de_custom_categories', JSON.stringify(categories));
+            localStorage.setItem('au_de_transactions', JSON.stringify(transactions));
+            localStorage.setItem('au_de_calendar_tags', JSON.stringify(eventTags));
+            localStorage.setItem('au_de_calendar_events', JSON.stringify(calendarEvents));
+            localStorage.setItem('au_de_checklist', JSON.stringify(checklist));
+
+            // Refresh UI
+            loadFxRate();
+            populateCategories(document.getElementById('tx-type')?.value || 'expense');
+            populateEventTagsSelect();
+            renderFinanceDashboard();
+            renderCalendar();
+            renderSelectedDayEvents();
+            renderUpcomingEvents();
+            renderChecklist();
+
+            // Custom safe feedback
+            const btn = document.getElementById('tab-btn-finance');
+            if (btn) btn.click();
+          }
+        } catch (err) {
+          console.error("Import error:", err);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = ''; // reset input
+    }
+
+    function toggleCheck(id) {
+      const item = checklist.find(i => i.id === id);
+      if (item) {
+        item.checked = !item.checked;
+        saveChecklist();
+      }
+    }
+
+    function deleteItem(id) {
+      checklist = checklist.filter(i => i.id !== id);
+      saveChecklist();
+    }
+
+    function addCustomChecklistItem() {
+      const labelInput = document.getElementById('custom-item-label');
+      const sublineInput = document.getElementById('custom-item-subline');
+      const catSelect = document.getElementById('custom-item-cat');
+      if (!labelInput) return;
+
+      const label = labelInput.value.trim();
+      const subline = sublineInput ? sublineInput.value.trim() : '';
+      const cat = catSelect ? catSelect.value : '其他雜物';
+
+      if (!label) return;
+
+      checklist.push({
+        id: "item_" + Date.now(),
+        label,
+        sublines: subline ? [subline] : [],
+        category: cat,
+        checked: false
+      });
+
+      labelInput.value = '';
+      if (sublineInput) sublineInput.value = '';
+      saveChecklist();
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklist-container');
+      const progressText = document.getElementById('checklist-progress-text');
+      const progressBar = document.getElementById('checklist-progress-bar');
+      if (!container) return;
+
+      // Update Checklist Progress
+      const total = checklist.length;
+      const checked = checklist.filter(i => i.checked).length;
+      const pct = total === 0 ? 0 : Math.round((checked / total) * 100);
+
+      if (progressText) progressText.innerText = `${checked} / ${total} (${pct}%)`;
+      if (progressBar) progressBar.style.width = `${pct}%`;
+
+      // Filter
+      let list = checklist;
+      if (currentFilter !== 'all') {
+        list = checklist.filter(i => i.category === currentFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-2xl border border-stone-200 text-center text-stone-400 text-xs">無符合條件的物品</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-stone-200 shadow-xs flex items-start gap-3 transition ${item.checked ? 'opacity-60 bg-stone-50/50' : ''}">
+            <input 
+              type="checkbox" 
+              ${item.checked ? 'checked' : ''} 
+              onchange="toggleCheck('${item.id}')" 
+              class="w-5 h-5 rounded-md text-ochre-600 mt-0.5 cursor-pointer accent-amber-600 focus:ring-0"
+            />
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm font-bold ${item.checked ? 'line-through text-stone-400' : 'text-slate-900'}">
+                  ${item.label}
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-stone-100 text-stone-600">
+                  ${item.category}
+                </span>
+              </div>
+              ${item.sublines && item.sublines.length > 0 ? `
+                <div class="text-xs text-stone-500 mt-1 space-y-0.5">
+                  ${item.sublines.map(s => `<p>• ${s}</p>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+            <button onclick="deleteItem('${item.id}')" class="text-stone-300 hover:text-rose-500 p-1" title="刪除">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      safeRenderIcons();
+    }
+  </script>
+</body>
+</html>
