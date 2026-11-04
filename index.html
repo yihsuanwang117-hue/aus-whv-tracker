@@ -411,4 +411,769 @@
         <div id="tagsListContainer" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
       </div>
 
-      <div class="pt-
+      <div class="pt-2 flex justify-end border-t border-stone-100">
+        <button type="button" onclick="closeModal('manageTagsModal')" class="px-4 py-1.5 bg-stone-100 text-stone-800 rounded-lg text-xs font-bold cursor-pointer">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: 新增/編輯日曆事項 -->
+  <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+      <h3 id="eventModalTitle" class="text-base font-bold text-stone-900 mb-3">待辦事項</h3>
+      <form onsubmit="handleSaveEvent(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="eventId">
+        <div>
+          <label class="block font-semibold mb-1">事項名稱</label>
+          <input type="text" id="eventTitle" required placeholder="輸入待辦或行程名稱" class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-semibold">選擇標籤分類</label>
+            <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[11px] font-bold cursor-pointer">＋ 管理/新增標籤</button>
+          </div>
+          <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">日期</label>
+          <input type="date" id="eventDate" required class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">備註說明 (選填)</label>
+          <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
+        </div>
+        <div class="pt-2 flex justify-between items-center">
+          <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-2.5 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 cursor-pointer hidden">刪除</button>
+          <div class="flex gap-2 ml-auto">
+            <button type="button" onclick="closeModal('eventModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
+            <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">儲存事項</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: 記帳 -->
+  <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+      <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
+      <form onsubmit="handleSaveTx(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="txType">
+        <div>
+          <label class="block font-semibold mb-1">幣別與日期</label>
+          <div class="grid grid-cols-2 gap-2">
+            <select id="txCurrency" class="p-2 border rounded font-bold" onchange="toggleSuper()">
+              <option value="AUD">AUD (澳幣)</option>
+              <option value="TWD">TWD (新台幣)</option>
+            </select>
+            <input type="date" id="txDate" required class="p-2 border rounded">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">金額</label>
+          <input type="number" id="txAmount" step="0.01" required placeholder="0.00" class="w-full p-2.5 text-base font-bold border rounded font-mono">
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">分類類別</label>
+          <input type="text" id="txCategory" required placeholder="例如：薪資、生活採買、房租..." class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">備註說明 (選填)</label>
+          <input type="text" id="txNote" class="w-full p-2 border rounded">
+        </div>
+        <div id="txSuperOption" class="p-2.5 bg-amber-50 rounded-lg border border-amber-200 hidden">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="txIncludeSuper" class="rounded text-amber-700">
+            <span class="font-bold text-amber-900 text-xs">計入 Super (12%) 離澳退稅實拿 35%</span>
+          </label>
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('txModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
+          <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">儲存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: 裝備項目 -->
+  <div id="gearModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+      <h3 class="text-base font-bold text-stone-900 mb-3">新增裝備物品</h3>
+      <form onsubmit="handleSaveGearItem(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">物品名稱</label>
+          <input type="text" id="gearLabel" required placeholder="例如：萬國轉接頭、睡袋..." class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">選擇現有分類，或在下方自訂新分類</label>
+          <select id="gearCategorySelect" class="w-full p-2 border rounded mb-1.5" onchange="document.getElementById('gearCustomCategory').value = this.value"></select>
+          <input type="text" id="gearCustomCategory" required placeholder="自訂新分類名稱" class="w-full p-2 border border-amber-300 bg-amber-50/40 rounded font-semibold text-amber-900">
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">規格或注意事項 (選填)</label>
+          <input type="text" id="gearSubline" placeholder="規格尺寸、購買備註..." class="w-full p-2 border rounded">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('gearModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
+          <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">新增</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 核心邏輯腳本 -->
+  <script>
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAKM55FbwK-kOP7Jl9a1QPOtn0f2WHnrZ8",
+      authDomain: "aus-2026whv.firebaseapp.com",
+      projectId: "aus-2026whv",
+      storageBucket: "aus-2026whv.firebasestorage.app",
+      messagingSenderId: "141943124719",
+      appId: "1:141943124719:web:deb5a3bf531a40b16ea11a",
+      measurementId: "G-XFP80TVSLZ"
+    };
+
+    const DEFAULT_GEAR = [
+      { id: "g1", label: "布基大力膠帶 (Duct Tape)", sublines: ["規格：寬度 2.5 cm，長度 3m～5m，黑色或銀灰"], category: "修繕自修與固定", checked: false },
+      { id: "g2", label: "3M VHB 雙面膠貼片", sublines: ["規格：40×40×1 mm，買 1 包，抽 4～5 片帶出國"], category: "修繕自修與固定", checked: false },
+      { id: "g3", label: "釹鐵硼強磁掛勾", sublines: ["規格：D25 (直徑2.5cm) × 2 個 + D20 (直徑2.0cm) × 1 個"], category: "修繕自修與固定", checked: false },
+      { id: "g4", label: "魔鬼氈理線帶", sublines: ["長度約 15～20 cm 帶扣款，準備 4～6 條"], category: "修繕自修與固定", checked: false },
+      { id: "g5", label: "密碼鎖 × 2 個 (無鑰匙款)", sublines: ["1 個鎖梁直徑約 3.5mm 鎖青旅鐵櫃；1 個 TSA 細鋼纜鎖行李箱"], category: "青旅生活與防盜", checked: false },
+      { id: "g6", label: "黑色大長尾夾 (燕尾夾)", sublines: ["規格：大號 41mm 或 51mm，準備 3～4 個夾床簾"], category: "青旅生活與防盜", checked: false },
+      { id: "g7", label: "加厚細網洗衣袋 × 2 個", sublines: ["特大號 (50×60cm) × 1 放外衣毛巾；中號 (30×40cm) × 1 放內著襪子"], category: "青旅生活與防盜", checked: false },
+      { id: "g8", label: "立體透氣防潑水鞋袋 × 2 個", sublines: ["分別收納外出球鞋/工鞋與防滑拖鞋"], category: "青旅生活與防盜", checked: false },
+      { id: "g9", label: "下捲插扣式 EVA 防水盥洗袋", sublines: ["規格選大號 (約 89g)，洗澡可提、可掛、可塞毛巾"], category: "個人衛生與洗沐", checked: false },
+      { id: "g10", label: "純黑無 Logo 厚底工作襪", sublines: ["準備 3～5 雙，渡假村工裝規範必備且防磨腳"], category: "個人衛生與洗沐", checked: false },
+      { id: "g11", label: "防蠅面罩 (Fly Net)", sublines: ["黑色細網束口款 × 2 個 (烏魯魯沙漠戶外防蠅保命神物)"], category: "戶外與極端氣候", checked: false }
+    ];
+
+    const DEFAULT_TAGS = [
+      { id: "t_1", name: "重要截止", color: "rose" },
+      { id: "t_2", name: "澳打時程", color: "amber" },
+      { id: "t_3", name: "簽證文件", color: "purple" },
+      { id: "t_4", name: "工作排班", color: "emerald" },
+      { id: "t_5", name: "生活休閒", color: "blue" }
+    ];
+
+    const DEFAULT_EVENTS = [
+      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", desc: "完成目標資金匯出或結算。" },
+      { id: "ev2", title: "工作結束交接 & 離澳", tagId: "t_2", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" }
+    ];
+
+    let appState = {
+      mainTitle: "澳洲打工度假 × 德國碩士自保金",
+      subTitle: "AU 旅程儲蓄 • 留學自保金目標追蹤",
+      targetNTD: 400000,
+      targetEndDate: "2027-06-30",
+      audPoolTitle: "澳洲資金池 (AUD)",
+      twdPoolTitle: "台灣資金池 (TWD)",
+      fxRate: 23.0,
+      transactions: [],
+      tags: DEFAULT_TAGS,
+      events: DEFAULT_EVENTS,
+      gear: DEFAULT_GEAR
+    };
+
+    let calendarDate = new Date();
+    let currentEditingEventId = null;
+    let currentSelectedGearCategory = "ALL"; // 預設顯示全部或特定分類
+    let db = null;
+    let syncUnsubscribe = null;
+    let isRemoteUpdate = false;
+
+    function getColorBadgeClass(color) {
+      switch (color) {
+        case 'rose': return 'bg-rose-100 text-rose-800 border-rose-300';
+        case 'blue': return 'bg-blue-100 text-blue-800 border-blue-300';
+        case 'emerald': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        case 'purple': return 'bg-purple-100 text-purple-800 border-purple-300';
+        case 'amber': return 'bg-amber-100 text-amber-900 border-amber-300';
+        case 'pink': return 'bg-pink-100 text-pink-800 border-pink-300';
+        case 'cyan': return 'bg-cyan-100 text-cyan-800 border-cyan-300';
+        default: return 'bg-stone-100 text-stone-800 border-stone-300';
+      }
+    }
+
+    function toggleAccordion(id) {
+      const el = document.getElementById(id);
+      const icon = document.getElementById(id + "-icon");
+      if (el) {
+        if (el.classList.contains("hidden")) {
+          el.classList.remove("hidden");
+          if (icon) icon.textContent = "▲ 收合";
+        } else {
+          el.classList.add("hidden");
+          if (icon) icon.textContent = "＋ 展開";
+        }
+      }
+    }
+
+    function switchTab(tabId) {
+      ['guide', 'finance', 'calendar', 'gear'].forEach(t => {
+        const c = document.getElementById('content-' + t);
+        const b = document.getElementById('tab-' + t);
+        if (c && b) {
+          if (t === tabId) {
+            c.classList.remove('hidden');
+            b.className = "py-2.5 tab-active cursor-pointer";
+          } else {
+            c.classList.add('hidden');
+            b.className = "py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer";
+          }
+        }
+      });
+    }
+
+    function init() {
+      try {
+        const local = localStorage.getItem("au_de_tracker_data");
+        if (local) appState = Object.assign({}, appState, JSON.parse(local));
+      } catch (e) {}
+
+      if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
+
+      const fxInput = document.getElementById("fxRateInput");
+      if (fxInput) fxInput.value = appState.fxRate || 23.0;
+
+      applyTitlesAndSettings();
+      renderAll();
+
+      const savedKey = localStorage.getItem("au_sync_key");
+      if (savedKey) {
+        const keyEl = document.getElementById("syncKeyDirect");
+        if (keyEl) keyEl.value = savedKey;
+        connectDirectSync();
+      }
+    }
+
+    window.onload = init;
+
+    function applyTitlesAndSettings() {
+      const getEl = id => document.getElementById(id);
+      if (getEl("headerMainTitle")) getEl("headerMainTitle").textContent = appState.mainTitle;
+      if (getEl("headerSubTitle")) getEl("headerSubTitle").textContent = appState.subTitle;
+      if (getEl("audPoolTitle")) getEl("audPoolTitle").textContent = appState.audPoolTitle;
+      if (getEl("twdPoolTitle")) getEl("twdPoolTitle").textContent = appState.twdPoolTitle;
+      if (getEl("cardTargetDate")) getEl("cardTargetDate").textContent = appState.targetEndDate;
+
+      if (getEl("settingMainTitle")) getEl("settingMainTitle").value = appState.mainTitle;
+      if (getEl("settingSubTitle")) getEl("settingSubTitle").value = appState.subTitle;
+      if (getEl("settingTargetNTD")) getEl("settingTargetNTD").value = appState.targetNTD;
+      if (getEl("settingTargetDate")) getEl("settingTargetDate").value = appState.targetEndDate;
+      if (getEl("settingAudPoolTitle")) getEl("settingAudPoolTitle").value = appState.audPoolTitle;
+      if (getEl("settingTwdPoolTitle")) getEl("settingTwdPoolTitle").value = appState.twdPoolTitle;
+    }
+
+    function openSettingsModal() {
+      applyTitlesAndSettings();
+      document.getElementById("settingsModal").classList.remove("hidden");
+    }
+
+    function saveCustomSettings() {
+      appState.mainTitle = document.getElementById("settingMainTitle").value || "個人旅程儲蓄追蹤";
+      appState.subTitle = document.getElementById("settingSubTitle").value || "目標追蹤看板";
+      appState.targetNTD = parseFloat(document.getElementById("settingTargetNTD").value) || 400000;
+      appState.targetEndDate = document.getElementById("settingTargetDate").value || "2027-06-30";
+      appState.audPoolTitle = document.getElementById("settingAudPoolTitle").value || "澳洲資金池 (AUD)";
+      appState.twdPoolTitle = document.getElementById("settingTwdPoolTitle").value || "本國資金池 (TWD)";
+
+      applyTitlesAndSettings();
+      saveState();
+      renderFinance();
+      closeModal("settingsModal");
+      switchTab('finance');
+    }
+
+    function saveState() {
+      try { localStorage.setItem("au_de_tracker_data", JSON.stringify(appState)); } catch (e) {}
+      const syncKey = localStorage.getItem("au_sync_key");
+      if (db && syncKey && !isRemoteUpdate) {
+        db.collection("sync_data").doc(syncKey).set({
+          data: appState,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => console.error(err));
+      }
+    }
+
+    function renderAll() {
+      renderFinance();
+      renderTransactions();
+      renderCalendar();
+      renderGear();
+    }
+
+    function updateFxRate(val) {
+      const r = parseFloat(val);
+      if (r > 0) {
+        appState.fxRate = r;
+        saveState();
+        renderFinance();
+      }
+    }
+
+    function renderFinance() {
+      const fx = appState.fxRate || 23.0;
+      let audInc = 0, audExp = 0, twdInc = 0, twdExp = 0, superRefund = 0;
+
+      (appState.transactions || []).forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        if (t.currency === "AUD") {
+          if (t.type === "income") {
+            audInc += amt;
+            if (t.includeSuper) superRefund += (amt * 0.12 * 0.35);
+          } else audExp += amt;
+        } else {
+          if (t.type === "income") twdInc += amt;
+          else twdExp += amt;
+        }
+      });
+
+      const audNet = audInc - audExp;
+      const twdNet = twdInc - twdExp;
+      const totalSavingsNTD = Math.round((audNet * fx) + (superRefund * fx) + twdNet);
+      const targetNTD = appState.targetNTD || 400000;
+      const gapNTD = targetNTD - totalSavingsNTD;
+      const pct = Math.min(100, Math.max(0, Math.round((totalSavingsNTD / targetNTD) * 100)));
+
+      const weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - new Date()) / (1000 * 60 * 60 * 24 * 7)));
+      const weeklyNeedAUD = gapNTD > 0 ? Math.round((gapNTD / fx) / weeksLeft) : 0;
+
+      const getEl = id => document.getElementById(id);
+      if (getEl("targetBadgeText")) getEl("targetBadgeText").textContent = `儲蓄目標：NT$ ${targetNTD.toLocaleString()} (約 $${Math.round(targetNTD/fx).toLocaleString()} AUD)`;
+      if (getEl("totalSavingsNTD")) getEl("totalSavingsNTD").textContent = `NT$ ${totalSavingsNTD.toLocaleString()}`;
+      if (getEl("totalSavingsAUD")) getEl("totalSavingsAUD").textContent = `折合約 $${Math.round(totalSavingsNTD / fx).toLocaleString()} AUD`;
+      if (getEl("remainingGapText")) getEl("remainingGapText").textContent = gapNTD > 0 ? `距離達成目標還差 NT$ ${gapNTD.toLocaleString()}` : "🎉 恭喜達成儲蓄目標！";
+      if (getEl("progressPercent")) getEl("progressPercent").textContent = `${pct}%`;
+      if (getEl("progressBar")) getEl("progressBar").style.width = `${pct}%`;
+      if (getEl("weeksLeftText")) getEl("weeksLeftText").textContent = `${weeksLeft} 週`;
+      if (getEl("weeklyNeedAUD")) getEl("weeklyNeedAUD").textContent = `$${weeklyNeedAUD.toLocaleString()} AUD`;
+      if (getEl("superRefundEst")) getEl("superRefundEst").textContent = `$${Math.round(superRefund).toLocaleString()} AUD`;
+      if (getEl("audBalance")) getEl("audBalance").textContent = `$${audNet.toLocaleString()} AUD`;
+      if (getEl("audIncome")) getEl("audIncome").textContent = `+$${audInc.toLocaleString()}`;
+      if (getEl("audExpense")) getEl("audExpense").textContent = `-$${audExp.toLocaleString()}`;
+      if (getEl("twdBalance")) getEl("twdBalance").textContent = `NT$ ${twdNet.toLocaleString()}`;
+      if (getEl("twdIncome")) getEl("twdIncome").textContent = `+NT$ ${twdInc.toLocaleString()}`;
+      if (getEl("twdExpense")) getEl("twdExpense").textContent = `-NT$ ${twdExp.toLocaleString()}`;
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById("transactionTableBody");
+      if (!tbody) return;
+      const list = (appState.transactions || []).slice().reverse();
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-stone-400">目前尚無收支紀錄</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(t => `
+        <tr class="hover:bg-stone-50">
+          <td class="py-2.5 px-4 font-mono">${t.date}</td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+              ${t.type === 'income' ? '收入' : '支出'}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 font-medium">${t.category}</td>
+          <td class="py-2.5 px-4 text-stone-500">${t.note || '-'}</td>
+          <td class="py-2.5 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-900'}">
+            ${t.type === 'income' ? '+' : '-'}${t.currency === 'AUD' ? '$' : 'NT$ '} ${t.amount}
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            <button type="button" onclick="delTx('${t.id}')" class="text-stone-400 hover:text-rose-600 cursor-pointer">✕</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openTxModal(type) {
+      document.getElementById("txType").value = type;
+      document.getElementById("txDate").value = new Date().toISOString().split('T')[0];
+      document.getElementById("txAmount").value = "";
+      document.getElementById("txCategory").value = "";
+      document.getElementById("txNote").value = "";
+      document.getElementById("txModalTitle").textContent = type === "income" ? "記一筆收入" : "記一筆支出";
+      toggleSuper();
+      document.getElementById("txModal").classList.remove("hidden");
+    }
+
+    function toggleSuper() {
+      const isAudInc = document.getElementById("txType").value === "income" && document.getElementById("txCurrency").value === "AUD";
+      const superBox = document.getElementById("txSuperOption");
+      if (superBox) superBox.classList.toggle("hidden", !isAudInc);
+    }
+
+    function handleSaveTx(e) {
+      e.preventDefault();
+      const newTx = {
+        id: "tx_" + Date.now(),
+        type: document.getElementById("txType").value,
+        currency: document.getElementById("txCurrency").value,
+        date: document.getElementById("txDate").value,
+        amount: parseFloat(document.getElementById("txAmount").value) || 0,
+        category: document.getElementById("txCategory").value || "一般",
+        note: document.getElementById("txNote").value,
+        includeSuper: document.getElementById("txIncludeSuper").checked
+      };
+      if (!appState.transactions) appState.transactions = [];
+      appState.transactions.push(newTx);
+      saveState();
+      closeModal("txModal");
+      renderFinance();
+      renderTransactions();
+    }
+
+    function delTx(id) {
+      if (confirm("確定刪除這筆紀錄？")) {
+        appState.transactions = appState.transactions.filter(t => t.id !== id);
+        saveState();
+        renderFinance();
+        renderTransactions();
+      }
+    }
+
+    // --- 日曆自訂標籤管理 ---
+    function openManageTagsModal() {
+      const container = document.getElementById("tagsListContainer");
+      container.innerHTML = (appState.tags || []).map(tag => `
+        <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${getColorBadgeClass(tag.color)}">
+            ● ${tag.name}
+          </span>
+          <button type="button" onclick="deleteTag('${tag.id}')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer">刪除</button>
+        </div>
+      `).join('');
+      document.getElementById("manageTagsModal").classList.remove("hidden");
+    }
+
+    function handleAddNewTag() {
+      const name = document.getElementById("newTagName").value.trim();
+      const color = document.getElementById("newTagColor").value;
+      if (!name) return;
+
+      if (!appState.tags) appState.tags = [];
+      appState.tags.push({
+        id: "t_" + Date.now(),
+        name: name,
+        color: color
+      });
+
+      saveState();
+      document.getElementById("newTagName").value = "";
+      openManageTagsModal();
+      renderCalendar();
+    }
+
+    function deleteTag(tagId) {
+      if (confirm("確定要刪除此標籤嗎？")) {
+        appState.tags = appState.tags.filter(t => t.id !== tagId);
+        saveState();
+        openManageTagsModal();
+        renderCalendar();
+      }
+    }
+
+    function renderCalendar() {
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+      const titleEl = document.getElementById("calendarMonthTitle");
+      if (titleEl) titleEl.textContent = `${year} 年 ${month + 1} 月`;
+      const grid = document.getElementById("calendarGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      const legendEl = document.getElementById("eventCategoryLegend");
+      if (legendEl) {
+        legendEl.innerHTML = (appState.tags || []).map(t => `
+          <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${getColorBadgeClass(t.color)}">
+            ● ${t.name}
+          </span>
+        `).join('');
+      }
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const prevTotalDays = new Date(year, month, 0).getDate();
+
+      for (let i = firstDay - 1; i >= 0; i--) {
+        grid.innerHTML += `<div class="bg-stone-50 min-h-[85px] p-1.5 opacity-40"><span class="font-mono text-stone-400">${prevTotalDays - i}</span></div>`;
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const evs = (appState.events || []).filter(e => e.date === dStr);
+        grid.innerHTML += `
+          <div onclick="openAddEventForDate('${dStr}')" class="bg-white min-h-[85px] p-1.5 hover:bg-stone-50 transition cursor-pointer">
+            <span class="font-mono text-xs font-semibold text-stone-700">${day}</span>
+            <div class="mt-1 space-y-1">
+              ${evs.map(e => {
+                const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
+                return `
+                  <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${getColorBadgeClass(tag.color)}">
+                    <span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function changeMonth(d) {
+      if (d === 0) calendarDate = new Date();
+      else calendarDate.setMonth(calendarDate.getMonth() + d);
+      renderCalendar();
+    }
+
+    function openAddEventModal() {
+      currentEditingEventId = null;
+      document.getElementById("eventId").value = "";
+      document.getElementById("eventTitle").value = "";
+      document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
+      document.getElementById("eventDesc").value = "";
+      document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
+      document.getElementById("eventDeleteBtn").classList.add("hidden");
+
+      const tagSelect = document.getElementById("eventTagSelect");
+      tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}">● ${t.name}</option>`).join('');
+
+      document.getElementById("eventModal").classList.remove("hidden");
+    }
+
+    function openAddEventForDate(dateStr) {
+      openAddEventModal();
+      document.getElementById("eventDate").value = dateStr;
+    }
+
+    function openEditEvent(id, evt) {
+      evt.stopPropagation();
+      currentEditingEventId = id;
+      const ev = (appState.events || []).find(e => e.id === id);
+      if (!ev) return;
+      document.getElementById("eventId").value = ev.id;
+      document.getElementById("eventTitle").value = ev.title;
+      document.getElementById("eventDate").value = ev.date;
+      document.getElementById("eventDesc").value = ev.desc || "";
+      document.getElementById("eventModalTitle").textContent = "編輯行程事項";
+      document.getElementById("eventDeleteBtn").classList.remove("hidden");
+
+      const tagSelect = document.getElementById("eventTagSelect");
+      tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}" ${t.id === ev.tagId ? 'selected' : ''}>● ${t.name}</option>`).join('');
+
+      document.getElementById("eventModal").classList.remove("hidden");
+    }
+
+    function handleSaveEvent(e) {
+      e.preventDefault();
+      const id = document.getElementById("eventId").value;
+      const newEv = {
+        id: id || "ev_" + Date.now(),
+        title: document.getElementById("eventTitle").value,
+        tagId: document.getElementById("eventTagSelect").value,
+        date: document.getElementById("eventDate").value,
+        desc: document.getElementById("eventDesc").value
+      };
+
+      if (!appState.events) appState.events = [];
+      if (id) {
+        const idx = appState.events.findIndex(e => e.id === id);
+        if (idx !== -1) appState.events[idx] = newEv;
+      } else {
+        appState.events.push(newEv);
+      }
+
+      saveState();
+      closeModal("eventModal");
+      renderCalendar();
+    }
+
+    function deleteCurrentEvent() {
+      if (currentEditingEventId && confirm("確定刪除此事項？")) {
+        appState.events = appState.events.filter(e => e.id !== currentEditingEventId);
+        saveState();
+        closeModal("eventModal");
+        renderCalendar();
+      }
+    }
+
+    // --- 裝備清單（橫向分類頁籤架構） ---
+    function renderGear() {
+      const tabsContainer = document.getElementById("gearCategoryTabs");
+      const itemsContainer = document.getElementById("gearItemsContainer");
+      if (!tabsContainer || !itemsContainer) return;
+
+      const gearList = appState.gear || DEFAULT_GEAR;
+
+      // 提取目前所有分類
+      const existingCategories = Array.from(new Set(gearList.map(g => g.category || "未分類小物")));
+
+      // 如果當前選取的分類已被刪除，重置為 ALL
+      if (currentSelectedGearCategory !== "ALL" && !existingCategories.includes(currentSelectedGearCategory)) {
+        currentSelectedGearCategory = "ALL";
+      }
+
+      // 總進度文字
+      const total = gearList.length;
+      const done = gearList.filter(g => g.checked).length;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      const progressText = document.getElementById("gearProgressText");
+      if (progressText) progressText.textContent = `完成度：${done} / ${total} (${pct}%)`;
+
+      // 渲染橫向分類標籤按鈕
+      let tabsHtml = `
+        <button type="button" onclick="selectGearCategory('ALL')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ${currentSelectedGearCategory === 'ALL' ? 'gear-cat-active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'}">
+          全部物品 (${total})
+        </button>
+      `;
+
+      existingCategories.forEach(cat => {
+        const catItems = gearList.filter(g => g.category === cat);
+        const catDone = catItems.filter(g => g.checked).length;
+        const isActive = currentSelectedGearCategory === cat;
+        tabsHtml += `
+          <button type="button" onclick="selectGearCategory('${cat}')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ${isActive ? 'gear-cat-active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'}">
+            ${cat} (${catDone}/${catItems.length})
+          </button>
+        `;
+      });
+      tabsContainer.innerHTML = tabsHtml;
+
+      // 根據選定分類過濾物品
+      const filteredItems = currentSelectedGearCategory === "ALL" 
+        ? gearList 
+        : gearList.filter(g => g.category === currentSelectedGearCategory);
+
+      if (filteredItems.length === 0) {
+        itemsContainer.innerHTML = `<div class="p-8 text-center text-stone-400 text-xs">該分類尚無任何物品，點擊右上角新增物品吧！</div>`;
+        return;
+      }
+
+      // 渲染物品卡片
+      itemsContainer.innerHTML = filteredItems.map(item => `
+        <div class="flex items-start justify-between p-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-white hover:border-amber-700/40 transition">
+          <label class="flex items-start gap-2.5 cursor-pointer flex-1">
+            <input type="checkbox" onchange="toggleGear('${item.id}', this.checked)" ${item.checked ? 'checked' : ''} class="mt-0.5 rounded text-amber-800 w-4 h-4 cursor-pointer">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold ${item.checked ? 'line-through text-stone-400' : 'text-stone-800'}">${item.label}</span>
+                ${currentSelectedGearCategory === 'ALL' ? `<span class="px-1.5 py-0.2 bg-stone-200 text-stone-600 rounded text-[10px]">${item.category}</span>` : ''}
+              </div>
+              ${item.sublines && item.sublines.length ? `<p class="text-[11px] text-stone-500 mt-0.5 leading-relaxed">${item.sublines.join(' / ')}</p>` : ''}
+            </div>
+          </label>
+          <button type="button" onclick="deleteGearItem('${item.id}')" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer transition" title="刪除此物品">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function selectGearCategory(cat) {
+      currentSelectedGearCategory = cat;
+      renderGear();
+    }
+
+    function toggleGear(id, chk) {
+      const item = (appState.gear || []).find(g => g.id === id);
+      if (item) {
+        item.checked = chk;
+        saveState();
+        renderGear();
+      }
+    }
+
+    function openAddGearModal() {
+      document.getElementById("gearLabel").value = "";
+      document.getElementById("gearSubline").value = "";
+
+      const existingCats = Array.from(new Set((appState.gear || DEFAULT_GEAR).map(g => g.category)));
+      const selectEl = document.getElementById("gearCategorySelect");
+      selectEl.innerHTML = existingCats.map(c => `<option value="${c}">${c}</option>`).join('') + `<option value="自訂全新分類">＋ 自訂全新分類名稱</option>`;
+      
+      const defaultCat = currentSelectedGearCategory !== "ALL" ? currentSelectedGearCategory : (existingCats[0] || "修繕自修與固定");
+      selectEl.value = defaultCat;
+      document.getElementById("gearCustomCategory").value = defaultCat;
+
+      document.getElementById("gearModal").classList.remove("hidden");
+    }
+
+    function handleSaveGearItem(e) {
+      e.preventDefault();
+      const customCat = document.getElementById("gearCustomCategory").value.trim() || "自訂分類";
+      if (!appState.gear) appState.gear = [];
+      appState.gear.push({
+        id: "g_" + Date.now(),
+        label: document.getElementById("gearLabel").value,
+        category: customCat,
+        sublines: document.getElementById("gearSubline").value ? [document.getElementById("gearSubline").value] : [],
+        checked: false
+      });
+      saveState();
+      closeModal("gearModal");
+      currentSelectedGearCategory = customCat; // 新增後自動切換至該分類
+      renderGear();
+    }
+
+    function deleteGearItem(id) {
+      if (confirm("確定刪除此項目？")) {
+        appState.gear = appState.gear.filter(g => g.id !== id);
+        saveState();
+        renderGear();
+      }
+    }
+
+    // --- Firebase 直連同步 ---
+    function connectDirectSync() {
+      const key = document.getElementById("syncKeyDirect").value.trim();
+      if (!key) {
+        alert("請輸入一組自訂的同步密碼！");
+        return;
+      }
+
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        db = firebase.firestore();
+
+        localStorage.setItem("au_sync_key", key);
+        const btn = document.getElementById("syncDirectBtn");
+        btn.textContent = "連線中...";
+
+        if (syncUnsubscribe) syncUnsubscribe();
+
+        syncUnsubscribe = db.collection("sync_data").doc(key).onSnapshot(doc => {
+          btn.textContent = "🟢 同步中";
+          btn.className = "ml-1 px-2.5 py-1 bg-emerald-600 text-white rounded font-semibold text-xs cursor-pointer";
+          if (doc.exists) {
+            const remote = doc.data().data;
+            if (remote) {
+              isRemoteUpdate = true;
+              appState = Object.assign({}, appState, remote);
+              localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
+              applyTitlesAndSettings();
+              renderAll();
+              isRemoteUpdate = false;
+            }
+          } else {
+            saveState();
+          }
+        }, err => {
+          btn.textContent = "連線失敗";
+          btn.className = "ml-1 px-2.5 py-1 bg-rose-600 text-white rounded font-semibold text-xs cursor-pointer";
+        });
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `aus_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
