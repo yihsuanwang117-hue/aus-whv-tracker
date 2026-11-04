@@ -927,26 +927,25 @@
       window.open(buildGoogleMapsUrl(input), "_blank");
     };
 
-    // --- 跨國多時區時程換算核心 ---
+ // --- 跨國多時區時程換算核心 (已修復夏令時雙重偏移問題) ---
     function getUtcDateFromZone(dateStr, timeStr, timeZoneOrOffset) {
       if (!timeStr) return null;
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const [hh, mm] = timeStr.split(':').map(Number);
 
       // 若為自訂數字 UTC 偏移量 (例如 +3, -5, +8)
-      if (typeof timeZoneOrOffset === 'number' || (!isNaN(timeZoneOrOffset) && !timeZoneOrOffset.includes('/'))) {
+      if (typeof timeZoneOrOffset === 'number' || (!isNaN(timeZoneOrOffset) && !String(timeZoneOrOffset).includes('/'))) {
         const offsetHours = parseFloat(timeZoneOrOffset);
-        const [y, m, d] = dateStr.split('-').map(Number);
-        const [hh, mm] = timeStr.split(':').map(Number);
-        // Date.UTC 取得在該偏移下的毫秒並反推 UTC
         const utcMs = Date.UTC(y, m - 1, d, hh, mm) - (offsetHours * 60 * 60 * 1000);
         return new Date(utcMs);
       }
 
-      // 標準 IANA 時區字串 (如 Asia/Taipei, Australia/Brisbane)
-      const tempUtc = new Date(`${dateStr}T${timeStr}:00Z`);
-      const invDate = new Date(tempUtc.toLocaleString('en-US', { timeZone: 'UTC' }));
-      const targetDate = new Date(tempUtc.toLocaleString('en-US', { timeZone: timeZoneOrOffset }));
-      const diff = invDate.getTime() - targetDate.getTime();
-      return new Date(tempUtc.getTime() + diff);
+      // 標準時區：直接藉由當地 ISO 格式反推正確 UTC，避免瀏覽器誤加 Z
+      const targetIso = `${dateStr}T${timeStr}:00`;
+      const dateInTz = new Date(new Date(targetIso).toLocaleString('en-US', { timeZone: timeZoneOrOffset }));
+      const dateInUtc = new Date(new Date(targetIso).toLocaleString('en-US', { timeZone: 'UTC' }));
+      const diff = dateInUtc.getTime() - dateInTz.getTime();
+      return new Date(new Date(targetIso).getTime() + diff);
     }
 
     function formatTimeInZone(utcDate, timeZoneOrOffset) {
