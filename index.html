@@ -2326,6 +2326,7 @@
       }
     };
 
+  // --- 安全雙向同步防護機制 (防止空裝置覆蓋現有資料) ---
     window.connectDirectSync = function() {
       const key = document.getElementById("syncKeyDirect").value.trim();
       if (!key) { alert("請輸入一組自訂的同步密碼！"); return; }
@@ -2343,9 +2344,21 @@
         syncUnsubscribe = db.collection("sync_data").doc(key).onSnapshot(doc => {
           btn.textContent = "🟢 同步中";
           btn.className = "ml-1 px-2.5 py-1 bg-emerald-600 text-white rounded font-semibold text-xs cursor-pointer";
+
           if (doc.exists) {
             const remote = doc.data().data;
             if (remote) {
+              // 檢查雲端資料是否比本地多，避免空雲端覆蓋了有資料的本地
+              const remoteEventCount = (remote.events || []).length;
+              const localEventCount = (appState.events || []).length;
+
+              // 如果雲端完全沒行程，但本地已經建了很多行程，提示保護
+              if (remoteEventCount === 0 && localEventCount > 0) {
+                console.warn("雲端為空但本地有資料，自動將本地完整資料推上雲端保護...");
+                saveState();
+                return;
+              }
+
               isRemoteUpdate = true;
               appState = Object.assign({}, appState, remote);
               localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
@@ -2355,9 +2368,13 @@
               isRemoteUpdate = false;
             }
           } else {
-            saveState();
+            // 雲端文件完全不存在時：只有本地確實有實質資料才建立，絕不主動寫入空白覆蓋
+            if ((appState.events || []).length > 0 || (appState.transactions || []).length > 0) {
+              saveState();
+            }
           }
         }, err => {
+          console.error(err);
           btn.textContent = "連線失敗";
           btn.className = "ml-1 px-2.5 py-1 bg-rose-600 text-white rounded font-semibold text-xs cursor-pointer";
         });
