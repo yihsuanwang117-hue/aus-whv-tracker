@@ -75,6 +75,21 @@
   <!-- 主內容區 -->
   <main class="max-w-5xl mx-auto px-4 mt-6">
 
+    <!-- 自動智能待辦預警橫幅 (今日與未來3天待辦) -->
+    <div id="smartReminderBanner" class="hidden mb-6 bg-gradient-to-r from-amber-900 to-stone-900 text-white p-4 rounded-2xl shadow-md border border-amber-700/30">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🔔</span>
+          <div>
+            <h3 class="text-xs sm:text-sm font-bold text-amber-300">重要時程提醒預警</h3>
+            <p class="text-[11px] text-stone-300 mt-0.5">系統偵測到近期或今日的重要待辦事項：</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('smartReminderBanner').classList.add('hidden')" class="text-stone-400 hover:text-white text-xs px-2 py-1 cursor-pointer">✕ 關閉</button>
+      </div>
+      <div id="smartReminderList" class="mt-3 space-y-1.5 text-xs"></div>
+    </div>
+
     <!-- TAB 0: 澳打避坑 & 稅務指南 -->
     <div id="content-guide" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -373,7 +388,7 @@
     </div>
   </main>
 
-  <!-- MODAL: 個人化看板設定 (新增自訂頭像設定) -->
+  <!-- MODAL: 個人化看板設定 -->
   <div id="settingsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -383,7 +398,6 @@
         <button type="button" onclick="closeModal('settingsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
       </div>
 
-      <!-- 自訂頭像與圖片上傳區塊 -->
       <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between gap-4 text-xs">
         <div class="flex items-center gap-3">
           <div id="settingsAvatarPreview" class="w-12 h-12 rounded-full bg-amber-800 flex items-center justify-center text-white font-bold text-base shadow-inner overflow-hidden border border-stone-300 flex-shrink-0">
@@ -398,7 +412,7 @@
           <button type="button" onclick="triggerAvatarUpload()" class="px-2.5 py-1.5 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-stone-700 font-bold cursor-pointer shadow-xs">
             選擇圖片
           </button>
-          <button type="button" onclick="resetAvatarToDefault()" class="px-2 py-1.5 bg-stone-200 hover:bg-stone-300 rounded-lg text-stone-600 font-medium cursor-pointer" title="清除圖片回歸預設文字">
+          <button type="button" onclick="resetAvatarToDefault()" class="px-2 py-1.5 bg-stone-200 hover:bg-stone-300 rounded-lg text-stone-600 font-medium cursor-pointer">
             重設
           </button>
         </div>
@@ -410,7 +424,7 @@
           <input type="text" id="settingMainTitle" class="w-full p-2 border border-stone-200 rounded-lg">
         </div>
         <div>
-          <label class="block font-semibold text-stone-700 mb-1">頭像文字縮寫 (若未上傳圖片時顯示)</label>
+          <label class="block font-semibold text-stone-700 mb-1">頭像文字縮寫 (未上傳圖片時顯示)</label>
           <input type="text" id="settingAvatarInitials" maxlength="4" placeholder="例如: AU, ME, 2026" class="w-full p-2 border border-stone-200 rounded-lg font-bold font-mono uppercase">
         </div>
         <div>
@@ -478,7 +492,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 -->
+  <!-- MODAL: 新增/編輯日曆事項 (新增一鍵匯入 Google/手機行事曆) -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -517,10 +531,22 @@
           <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
         </div>
 
-        <div id="eventMapDirectLinkArea" class="pt-1 hidden">
-          <a id="eventMapDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition">
+        <!-- 外部跳轉與行事曆同步快捷列 -->
+        <div id="eventActionsArea" class="pt-2 border-t border-stone-100 flex flex-col gap-2 hidden">
+          <!-- Google Maps 導航 -->
+          <a id="eventMapDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition">
             <span id="eventMapDirectLinkText">🗺️ 開啟 Google Maps 導航 ↗</span>
           </a>
+
+          <!-- 一鍵匯入行事曆 (雙模：Google Web + 原生 ICS 下載) -->
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="addToGoogleCalendarFromModal()" class="px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer">
+              <span>📅 Google 日曆</span>
+            </button>
+            <button type="button" onclick="downloadIcsFileFromModal()" class="px-2 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer">
+              <span>📲 手機行事曆</span>
+            </button>
+          </div>
         </div>
 
         <div class="pt-2 flex justify-between items-center border-t border-stone-100">
@@ -653,8 +679,8 @@
     let appState = {
       mainTitle: "澳洲打工度假 × 德國碩士自保金",
       subTitle: "AU 旅程儲蓄 • 留學自保金目標追蹤",
-      avatarInitials: "AU", // 預設縮寫
-      avatarImage: "", // 自訂圖片 base64
+      avatarInitials: "AU",
+      avatarImage: "",
       targetNTD: 400000,
       targetEndDate: "2027-06-30",
       audPoolTitle: "澳洲資金池 (AUD)",
@@ -714,7 +740,130 @@
       window.open(buildGoogleMapsUrl(input), "_blank");
     };
 
-    // --- 頭像上傳與渲染模組 ---
+    // --- 提醒功能 1：智慧即期橫幅 ---
+    function checkSmartReminders() {
+      const banner = document.getElementById("smartReminderBanner");
+      const listEl = document.getElementById("smartReminderList");
+      if (!banner || !listEl) return;
+
+      const now = new Date();
+      now.setHours(0,0,0,0);
+
+      const upcoming = [];
+
+      (appState.events || []).forEach(ev => {
+        if (!ev.date) return;
+        const [y, m, d] = ev.date.split("-").map(Number);
+        const evDate = new Date(y, m - 1, d);
+        evDate.setHours(0,0,0,0);
+
+        const diffDays = Math.round((evDate - now) / (1000 * 60 * 60 * 24));
+
+        // 包含今天或未來 3 天內的事項
+        if (diffDays >= 0 && diffDays <= 3) {
+          upcoming.push({ ...ev, diffDays });
+        }
+      });
+
+      if (upcoming.length === 0) {
+        banner.classList.add("hidden");
+        return;
+      }
+
+      upcoming.sort((a, b) => a.diffDays - b.diffDays);
+
+      listEl.innerHTML = upcoming.map(item => {
+        let dayBadge = "";
+        if (item.diffDays === 0) {
+          dayBadge = `<span class="px-1.5 py-0.5 rounded bg-rose-600 text-white font-bold text-[10px] animate-pulse">今日到期</span>`;
+        } else if (item.diffDays === 1) {
+          dayBadge = `<span class="px-1.5 py-0.5 rounded bg-amber-500 text-stone-900 font-bold text-[10px]">明天</span>`;
+        } else {
+          dayBadge = `<span class="px-1.5 py-0.5 rounded bg-stone-700 text-stone-300 font-semibold text-[10px]">${item.diffDays} 天後</span>`;
+        }
+
+        const loc = item.location || item.mapUrl || "";
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-stone-800/80 border border-stone-700">
+            <div class="flex items-center gap-2 overflow-hidden">
+              ${dayBadge}
+              <span class="font-bold text-stone-100 truncate">${item.title}</span>
+              ${loc ? `<span class="text-stone-400 text-[11px] truncate hidden sm:inline">📍 ${loc}</span>` : ''}
+            </div>
+            <button type="button" onclick="openEditEvent('${item.id}', event); switchTab('calendar');" class="text-amber-400 hover:text-amber-300 text-[11px] font-bold whitespace-nowrap ml-2 cursor-pointer">
+              查看 ➔
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      banner.classList.remove("hidden");
+    }
+
+    // --- 提醒功能 2：一鍵加入 Google 日曆 ---
+    window.addToGoogleCalendarFromModal = function() {
+      const title = document.getElementById("eventTitle").value.trim();
+      const dateStr = document.getElementById("eventDate").value; // YYYY-MM-DD
+      const loc = document.getElementById("eventLocationInput").value.trim();
+      const desc = document.getElementById("eventDesc").value.trim();
+
+      if (!title || !dateStr) {
+        alert("請確認已填寫事項名稱與日期！");
+        return;
+      }
+
+      const cleanDate = dateStr.replace(/-/g, "");
+      // 全天行程格式
+      const datesParam = `${cleanDate}/${cleanDate}`;
+
+      let details = desc || "";
+      if (loc) {
+        details += `\n地點導航：${buildGoogleMapsUrl(loc)}`;
+      }
+
+      const gUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${datesParam}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(loc)}`;
+      window.open(gUrl, "_blank");
+    };
+
+    // --- 提醒功能 3：匯出通用 .ics (支援 iPhone / Apple Calendar 原生開啟) ---
+    window.downloadIcsFileFromModal = function() {
+      const title = document.getElementById("eventTitle").value.trim();
+      const dateStr = document.getElementById("eventDate").value;
+      const loc = document.getElementById("eventLocationInput").value.trim();
+      const desc = document.getElementById("eventDesc").value.trim();
+
+      if (!title || !dateStr) {
+        alert("請確認已填寫事項名稱與日期！");
+        return;
+      }
+
+      const cleanDate = dateStr.replace(/-/g, "");
+      const icsData = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//AU WHV Tracker//CN",
+        "BEGIN:VEVENT",
+        `UID:${Date.now()}@whv-tracker`,
+        `DTSTAMP:${cleanDate}T000000Z`,
+        `DTSTART;VALUE=DATE:${cleanDate}`,
+        `DTEND;VALUE=DATE:${cleanDate}`,
+        `SUMMARY:${title}`,
+        `DESCRIPTION:${desc} ${loc ? '\\n導航: ' + buildGoogleMapsUrl(loc) : ''}`,
+        `LOCATION:${loc}`,
+        "END:VEVENT",
+        "END:VCALENDAR"
+      ].join("\r\n");
+
+      const blob = new Blob([icsData], { type: "text/calendar;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute("download", `${title}_${dateStr}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    // --- 頭像上傳與渲染 ---
     window.triggerAvatarUpload = function() {
       document.getElementById('avatarFileInput').click();
     };
@@ -730,7 +879,6 @@
 
       const reader = new FileReader();
       reader.onload = function(event) {
-        // 利用 Canvas 進行輕量化壓縮 (限制在 120x120 像素內，節省 LocalStorage 與 Firebase 額度)
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
@@ -894,6 +1042,7 @@
       renderCalendar();
       renderGear();
       renderPieChart();
+      checkSmartReminders();
     }
 
     window.updateFxRate = function(val) {
@@ -1214,6 +1363,7 @@
       }
     };
 
+    // --- 日曆渲染 ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -1279,7 +1429,7 @@
       document.getElementById("eventDesc").value = "";
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
       document.getElementById("eventDeleteBtn").classList.add("hidden");
-      document.getElementById("eventMapDirectLinkArea").classList.add("hidden");
+      document.getElementById("eventActionsArea").classList.add("hidden");
 
       const tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}">● ${t.name}</option>`).join('');
@@ -1307,17 +1457,20 @@
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
 
-      const mapBtnArea = document.getElementById("eventMapDirectLinkArea");
+      // 導航與行事曆動作區
+      const actionsArea = document.getElementById("eventActionsArea");
       const mapBtn = document.getElementById("eventMapDirectLink");
       const mapBtnText = document.getElementById("eventMapDirectLinkText");
+
+      actionsArea.classList.remove("hidden");
 
       if (locVal && locVal.trim()) {
         const fullMapsUrl = buildGoogleMapsUrl(locVal);
         mapBtn.href = fullMapsUrl;
         mapBtnText.textContent = locVal.startsWith("http") ? "🗺️ 開啟 Google Maps 連結 ↗" : `🗺️ 前往導航：「${locVal.substring(0, 16)}...」↗`;
-        mapBtnArea.classList.remove("hidden");
+        mapBtn.classList.remove("hidden");
       } else {
-        mapBtnArea.classList.add("hidden");
+        mapBtn.classList.add("hidden");
       }
 
       const tagSelect = document.getElementById("eventTagSelect");
@@ -1351,6 +1504,7 @@
       saveState();
       closeModal("eventModal");
       renderCalendar();
+      checkSmartReminders();
     };
 
     window.deleteCurrentEvent = function() {
@@ -1359,6 +1513,7 @@
         saveState();
         closeModal("eventModal");
         renderCalendar();
+        checkSmartReminders();
       }
     };
 
