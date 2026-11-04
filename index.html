@@ -4,12 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>澳洲打工度假生活必備 & 儲蓄目標進度追蹤</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js 圓餅圖套件 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <style>
     .tab-active { border-bottom: 2px solid #8C3B07 !important; color: #8C3B07 !important; font-weight: bold !important; }
     .gear-cat-active { background-color: #8C3B07 !important; color: #ffffff !important; border-color: #8C3B07 !important; }
+    .chart-btn-active { background-color: #8C3B07 !important; color: #ffffff !important; border-color: #8C3B07 !important; }
   </style>
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans min-h-screen pb-16">
@@ -50,7 +55,7 @@
     <!-- 頁籤選單 -->
     <div class="max-w-5xl mx-auto px-4 flex flex-wrap gap-x-6 text-sm">
       <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🚨 澳打避坑 & 稅務指南</button>
-      <button type="button" onclick="switchTab('finance')" id="tab-finance" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">雙幣財務 & 自保金</button>
+      <button type="button" onclick="switchTab('finance')" id="tab-finance" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">雙幣財務 & 圓餅分析</button>
       <button type="button" onclick="switchTab('calendar')" id="tab-calendar" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">重要時程日曆</button>
       <button type="button" onclick="switchTab('gear')" id="tab-gear" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">出發裝備清單</button>
     </div>
@@ -148,7 +153,7 @@
               <span id="tip5-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip5" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：澳洲 Fair Work 早已修法加入<strong>「最低時薪保底條款 (Minimum Wage Floor)」</strong>。即使是計件工作，每個工作天結算後的實得時薪，<strong>絕對不能低於法定 Casual 最低時薪底線</strong>。雇主不能再以採果數量不足為藉口支付低於法定底薪的薪水！
+              <strong>真相揭密</strong>：澳洲 Fair Work 設有<strong>「最低時薪保底條款 (Minimum Wage Floor)」</strong>。計件工作每個工作天結算後的實得時薪，<strong>絕對不能低於法定 Casual 最低時薪底線</strong>！
             </div>
           </div>
 
@@ -158,7 +163,7 @@
               <span id="tip6-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip6" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：澳洲移民局（Home Affairs）與稅務局（ATO）目前全面資料聯網對帳，嚴格審查 Payslip 薪資單流水、銀行入帳紀錄與偏遠地區 GPS 消費紀錄。一旦抓到偽造二簽，將直接<strong>取消簽證並遣返，且面臨三年禁止入境澳洲（PIC 4020 詐欺條款）</strong>，後續申請其他國家簽證亦會留下永久紀錄。
+              <strong>真相揭密</strong>：移民局與稅務局全面資料聯網對帳，嚴格審查 Payslip 薪資流水與銀行紀錄。偽造二簽將面臨<strong>直接取消簽證、遣返並三年禁止入境澳洲（PIC 4020 詐欺條款）</strong>！
             </div>
           </div>
 
@@ -168,7 +173,7 @@
               <span id="tip7-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip7" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：社群平台與二手群組充斥大量「假房東」。對方盜用照片聲稱人在外地，要求未簽合約、未實體看房前先電匯訂金。抵澳後對方直接失聯。原則：<strong>抵達澳洲前只預訂可退訂的青旅或短租，未現場看到房間鑰匙前絕不轉帳押金！</strong>
+              <strong>真相揭密</strong>：社群平台充斥大量假房東。原則：<strong>抵達澳洲前只預訂可退訂的短租青旅，未現場看到房間與鑰匙前絕不轉帳押金！</strong>
             </div>
           </div>
 
@@ -178,15 +183,16 @@
               <span id="tip8-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip8" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：在澳洲，<strong>任何雇主、工頭或房東扣留勞工護照正本皆屬嚴重的聯邦刑事犯罪</strong>。雇主僅有權查驗身分或複印存檔，絕不能以任何理由扣留正本！
+              <strong>真相揭密</strong>：在澳洲，<strong>任何雇主、工頭扣留勞工護照正本皆屬聯邦刑事犯罪</strong>。雇主僅有權查驗身分或影印留存，絕不能扣留正本！
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 1: 財務與自保金 -->
+    <!-- TAB 1: 雙幣財務 & 圓餅圖分析 -->
     <div id="content-finance" class="space-y-6 hidden">
+      <!-- 總目標進度卡 -->
       <div class="bg-stone-900 rounded-2xl p-6 text-white shadow-lg">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -224,6 +230,7 @@
         </div>
       </div>
 
+      <!-- 資金池餘額卡 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
           <span id="audPoolTitle" class="text-xs font-medium text-stone-500 uppercase">澳洲資金池 (AUD)</span>
@@ -244,6 +251,44 @@
         </div>
       </div>
 
+      <!-- 圓餅圖統計分析區塊 (新增) -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
+          <div>
+            <h3 class="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+              <span>📊</span> 收支類別圓餅圖分析
+            </h3>
+            <p class="text-xs text-stone-500 mt-0.5">依據自訂類別統計佔比，支援按「本週」與「本月」動態切換檢視。</p>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- 週期切換 -->
+            <div class="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200 text-xs">
+              <button type="button" id="chartPeriodWeek" onclick="setChartPeriod('week')" class="px-2.5 py-1 rounded-md font-semibold transition cursor-pointer">本週</button>
+              <button type="button" id="chartPeriodMonth" onclick="setChartPeriod('month')" class="px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer">本月</button>
+              <button type="button" id="chartPeriodAll" onclick="setChartPeriod('all')" class="px-2.5 py-1 rounded-md font-semibold transition cursor-pointer">全部</button>
+            </div>
+
+            <!-- 收支切換 -->
+            <div class="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200 text-xs">
+              <button type="button" id="chartTypeExpense" onclick="setChartType('expense')" class="px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer">支出佔比</button>
+              <button type="button" id="chartTypeIncome" onclick="setChartType('income')" class="px-2.5 py-1 rounded-md font-semibold transition cursor-pointer">收入佔比</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div class="relative w-full max-w-[280px] mx-auto h-[260px] flex items-center justify-center">
+            <canvas id="financePieChart"></canvas>
+            <div id="chartNoDataText" class="absolute text-xs text-stone-400 hidden">該區間尚無收支數據</div>
+          </div>
+          <div id="chartLegendList" class="space-y-2 text-xs max-h-[260px] overflow-y-auto pr-2">
+            <!-- 類別佔比進度清單 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 收支表格 -->
       <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800">收支紀錄明細</div>
         <div class="overflow-x-auto">
@@ -252,8 +297,8 @@
               <tr class="bg-stone-50 text-stone-500 border-b border-stone-200">
                 <th class="py-2.5 px-4">日期</th>
                 <th class="py-2.5 px-3">類型</th>
-                <th class="py-2.5 px-3">分類</th>
-                <th class="py-2.5 px-4">備註</th>
+                <th class="py-2.5 px-3">大分類</th>
+                <th class="py-2.5 px-4">細項說明</th>
                 <th class="py-2.5 px-4 text-right">金額</th>
                 <th class="py-2.5 px-3 text-center">操作</th>
               </tr>
@@ -438,7 +483,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 記帳 -->
+  <!-- MODAL: 記帳 (類別與細項名稱升級) -->
   <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
@@ -454,24 +499,30 @@
             <input type="date" id="txDate" required class="p-2 border rounded">
           </div>
         </div>
+
         <div>
           <label class="block font-semibold mb-1">金額</label>
           <input type="number" id="txAmount" step="0.01" required placeholder="0.00" class="w-full p-2.5 text-base font-bold border rounded font-mono">
         </div>
+
         <div>
-          <label class="block font-semibold mb-1">分類類別</label>
-          <input type="text" id="txCategory" required placeholder="例如：薪資、生活採買、房租..." class="w-full p-2 border rounded">
+          <label class="block font-semibold mb-1">大類別 (選擇現有或直接輸入自訂)</label>
+          <select id="txCategorySelect" class="w-full p-2 border rounded mb-1.5 font-medium" onchange="document.getElementById('txCategoryCustom').value = this.value"></select>
+          <input type="text" id="txCategoryCustom" required placeholder="自訂類別 (例如: 薪資、飲食、玩樂、房租)" class="w-full p-2 border border-amber-300 bg-amber-50/40 rounded font-semibold text-amber-900">
         </div>
+
         <div>
-          <label class="block font-semibold mb-1">備註說明 (選填)</label>
-          <input type="text" id="txNote" class="w-full p-2 border rounded">
+          <label class="block font-semibold mb-1">細項名稱 (具體說明)</label>
+          <input type="text" id="txNote" required placeholder="例如：超市買菜、第 3 週薪水、週末露營..." class="w-full p-2 border rounded">
         </div>
+
         <div id="txSuperOption" class="p-2.5 bg-amber-50 rounded-lg border border-amber-200 hidden">
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" id="txIncludeSuper" class="rounded text-amber-700">
             <span class="font-bold text-amber-900 text-xs">計入 Super (12%) 離澳退稅實拿 35%</span>
           </label>
         </div>
+
         <div class="pt-2 flex justify-end gap-2">
           <button type="button" onclick="closeModal('txModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
           <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">儲存</button>
@@ -483,7 +534,7 @@
   <!-- MODAL: 裝備項目 -->
   <div id="gearModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 class="text-base font-bold text-stone-900 mb-3">新增裝備物品</h3>
+      <h3 id="gearModalTitle" class="text-base font-bold text-stone-900 mb-3">新增裝備物品</h3>
       <form onsubmit="handleSaveGearItem(event)" class="space-y-3 text-xs">
         <div>
           <label class="block font-semibold mb-1">物品名稱</label>
@@ -545,6 +596,10 @@
       { id: "ev2", title: "工作結束交接 & 離澳", tagId: "t_2", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" }
     ];
 
+    // 預設常見財務類別
+    const DEFAULT_EXPENSE_CATS = ["飲食餐飲", "玩樂休閒", "住宿房租", "生活採買", "機票交通", "簽證規費", "其他雜項"];
+    const DEFAULT_INCOME_CATS = ["薪資收入", "兼職副業", "政府退稅", "利息投資", "其他收入"];
+
     let appState = {
       mainTitle: "澳洲打工度假 × 德國碩士自保金",
       subTitle: "AU 旅程儲蓄 • 留學自保金目標追蹤",
@@ -554,6 +609,8 @@
       twdPoolTitle: "台灣資金池 (TWD)",
       fxRate: 23.0,
       transactions: [],
+      expenseCategories: DEFAULT_EXPENSE_CATS,
+      incomeCategories: DEFAULT_INCOME_CATS,
       tags: DEFAULT_TAGS,
       events: DEFAULT_EVENTS,
       gear: DEFAULT_GEAR
@@ -562,9 +619,17 @@
     let calendarDate = new Date();
     let currentEditingEventId = null;
     let currentSelectedGearCategory = "ALL";
+    let chartPeriod = "month"; // week, month, all
+    let chartType = "expense"; // expense, income
+    let pieChartInstance = null;
     let db = null;
     let syncUnsubscribe = null;
     let isRemoteUpdate = false;
+
+    const CHART_PALETTE = [
+      '#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', 
+      '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'
+    ];
 
     function getColorBadgeClass(color) {
       switch (color) {
@@ -579,7 +644,6 @@
       }
     }
 
-    // 展開/收合
     window.toggleAccordion = function(id) {
       const el = document.getElementById(id);
       const icon = document.getElementById(id + "-icon");
@@ -594,7 +658,6 @@
       }
     };
 
-    // 頁籤切換
     window.switchTab = function(tabId) {
       ['guide', 'finance', 'calendar', 'gear'].forEach(t => {
         const c = document.getElementById('content-' + t);
@@ -609,6 +672,9 @@
           }
         }
       });
+      if (tabId === 'finance') {
+        renderPieChart();
+      }
     };
 
     function init() {
@@ -618,6 +684,8 @@
       } catch (e) {}
 
       if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
+      if (!appState.expenseCategories) appState.expenseCategories = DEFAULT_EXPENSE_CATS;
+      if (!appState.incomeCategories) appState.incomeCategories = DEFAULT_INCOME_CATS;
 
       const fxInput = document.getElementById("fxRateInput");
       if (fxInput) fxInput.value = appState.fxRate || 23.0;
@@ -687,6 +755,7 @@
       renderTransactions();
       renderCalendar();
       renderGear();
+      renderPieChart();
     }
 
     window.updateFxRate = function(val) {
@@ -695,6 +764,7 @@
         appState.fxRate = r;
         saveState();
         renderFinance();
+        renderPieChart();
       }
     };
 
@@ -743,6 +813,137 @@
       if (getEl("twdExpense")) getEl("twdExpense").textContent = `-NT$ ${twdExp.toLocaleString()}`;
     }
 
+    // 圓餅圖週期與類型切換
+    window.setChartPeriod = function(p) {
+      chartPeriod = p;
+      ['Week', 'Month', 'All'].forEach(k => {
+        const btn = document.getElementById('chartPeriod' + k);
+        if (btn) btn.className = (k.toLowerCase() === p) ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
+      });
+      renderPieChart();
+    };
+
+    window.setChartType = function(t) {
+      chartType = t;
+      const expBtn = document.getElementById('chartTypeExpense');
+      const incBtn = document.getElementById('chartTypeIncome');
+      if (expBtn && incBtn) {
+        expBtn.className = (t === 'expense') ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
+        incBtn.className = (t === 'income') ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
+      }
+      renderPieChart();
+    };
+
+    function renderPieChart() {
+      const canvas = document.getElementById('financePieChart');
+      const noDataEl = document.getElementById('chartNoDataText');
+      const legendListEl = document.getElementById('chartLegendList');
+      if (!canvas) return;
+
+      const fx = appState.fxRate || 23.0;
+      const now = new Date();
+
+      // 篩選週期與收支類型
+      const filtered = (appState.transactions || []).filter(t => {
+        if (t.type !== chartType) return false;
+        const tDate = new Date(t.date);
+        if (chartPeriod === 'week') {
+          const diffTime = Math.abs(now - tDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          return diffDays <= 7;
+        } else if (chartPeriod === 'month') {
+          return tDate.getFullYear() === now.getFullYear() && tDate.getMonth() === now.getMonth();
+        }
+        return true;
+      });
+
+      // 依照類別分組統計
+      const catTotals = {};
+      let totalAmountNTD = 0;
+
+      filtered.forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        const amtNTD = t.currency === 'AUD' ? (amt * fx) : amt;
+        const cat = t.category || "未分類";
+        catTotals[cat] = (catTotals[cat] || 0) + amtNTD;
+        totalAmountNTD += amtNTD;
+      });
+
+      const labels = Object.keys(catTotals);
+      const dataValues = Object.values(catTotals);
+
+      if (labels.length === 0 || totalAmountNTD === 0) {
+        if (pieChartInstance) {
+          pieChartInstance.destroy();
+          pieChartInstance = null;
+        }
+        canvas.classList.add('hidden');
+        noDataEl.classList.remove('hidden');
+        legendListEl.innerHTML = `<p class="text-stone-400 py-6 text-center">該區間無任何${chartType === 'expense' ? '支出' : '收入'}記錄</p>`;
+        return;
+      }
+
+      canvas.classList.remove('hidden');
+      noDataEl.classList.add('hidden');
+
+      // 產生色彩
+      const bgColors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+
+      if (pieChartInstance) {
+        pieChartInstance.destroy();
+      }
+
+      const ctx = canvas.getContext('2d');
+      pieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: dataValues,
+            backgroundColor: bgColors,
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.raw || 0;
+                  const pct = Math.round((val / totalAmountNTD) * 100);
+                  return ` NT$ ${Math.round(val).toLocaleString()} (${pct}%)`;
+                }
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+
+      // 渲染右側詳細佔比清單
+      const sorted = Object.entries(catTotals).sort((a,b) => b[1] - a[1]);
+      legendListEl.innerHTML = sorted.map(([cat, amt], idx) => {
+        const pct = Math.round((amt / totalAmountNTD) * 100);
+        const col = CHART_PALETTE[idx % CHART_PALETTE.length];
+        return `
+          <div class="p-2 rounded-lg bg-stone-50 border border-stone-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${col}"></span>
+              <span class="font-bold text-stone-800">${cat}</span>
+            </div>
+            <div class="text-right">
+              <span class="font-mono font-bold text-stone-900">NT$ ${Math.round(amt).toLocaleString()}</span>
+              <span class="text-[10px] text-stone-500 ml-1 font-mono">(${pct}%)</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     function renderTransactions() {
       const tbody = document.getElementById("transactionTableBody");
       if (!tbody) return;
@@ -759,8 +960,8 @@
               ${t.type === 'income' ? '收入' : '支出'}
             </span>
           </td>
-          <td class="py-2.5 px-3 font-medium">${t.category}</td>
-          <td class="py-2.5 px-4 text-stone-500">${t.note || '-'}</td>
+          <td class="py-2.5 px-3 font-bold text-stone-800">${t.category}</td>
+          <td class="py-2.5 px-4 text-stone-600">${t.note || '-'}</td>
           <td class="py-2.5 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-900'}">
             ${t.type === 'income' ? '+' : '-'}${t.currency === 'AUD' ? '$' : 'NT$ '} ${t.amount}
           </td>
@@ -775,9 +976,21 @@
       document.getElementById("txType").value = type;
       document.getElementById("txDate").value = new Date().toISOString().split('T')[0];
       document.getElementById("txAmount").value = "";
-      document.getElementById("txCategory").value = "";
       document.getElementById("txNote").value = "";
       document.getElementById("txModalTitle").textContent = type === "income" ? "記一筆收入" : "記一筆支出";
+
+      // 填充類別選單
+      const cats = type === 'income' 
+        ? (appState.incomeCategories || DEFAULT_INCOME_CATS) 
+        : (appState.expenseCategories || DEFAULT_EXPENSE_CATS);
+      
+      const selectEl = document.getElementById("txCategorySelect");
+      selectEl.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+      
+      const defaultCat = cats[0] || (type === 'income' ? '薪資收入' : '生活採買');
+      selectEl.value = defaultCat;
+      document.getElementById("txCategoryCustom").value = defaultCat;
+
       toggleSuper();
       document.getElementById("txModal").classList.remove("hidden");
     };
@@ -790,22 +1003,34 @@
 
     window.handleSaveTx = function(e) {
       e.preventDefault();
+      const type = document.getElementById("txType").value;
+      const finalCat = document.getElementById("txCategoryCustom").value.trim() || (type === 'income' ? '其他收入' : '其他雜項');
+
+      // 若為全新分類，寫入全域類別清單
+      if (type === 'income') {
+        if (!appState.incomeCategories.includes(finalCat)) appState.incomeCategories.push(finalCat);
+      } else {
+        if (!appState.expenseCategories.includes(finalCat)) appState.expenseCategories.push(finalCat);
+      }
+
       const newTx = {
         id: "tx_" + Date.now(),
-        type: document.getElementById("txType").value,
+        type: type,
         currency: document.getElementById("txCurrency").value,
         date: document.getElementById("txDate").value,
         amount: parseFloat(document.getElementById("txAmount").value) || 0,
-        category: document.getElementById("txCategory").value || "一般",
-        note: document.getElementById("txNote").value,
+        category: finalCat,
+        note: document.getElementById("txNote").value.trim(),
         includeSuper: document.getElementById("txIncludeSuper").checked
       };
+
       if (!appState.transactions) appState.transactions = [];
       appState.transactions.push(newTx);
       saveState();
       closeModal("txModal");
       renderFinance();
       renderTransactions();
+      renderPieChart();
     };
 
     window.delTx = function(id) {
@@ -814,6 +1039,7 @@
         saveState();
         renderFinance();
         renderTransactions();
+        renderPieChart();
       }
     };
 
