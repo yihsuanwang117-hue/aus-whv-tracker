@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>澳洲打工度假生活必備 & 儲蓄目標進度追蹤</title>
+  <title>個人生活必備 & 雙幣儲蓄目標進度追蹤</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js 圓餅圖套件 -->
@@ -23,7 +23,7 @@
   <header class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
-        <!-- 可點擊上傳的頭像容器 -->
+        <!-- 可點擊更換的個人頭像 -->
         <div onclick="triggerAvatarUpload()" class="relative group cursor-pointer" title="點擊更換個人圖片/頭像">
           <div id="headerAvatarContainer" class="w-10 h-10 rounded-full bg-amber-800 flex items-center justify-center text-white font-bold text-base shadow-inner overflow-hidden border border-amber-900/20">
             <span id="headerAvatarText">AU</span>
@@ -32,28 +32,31 @@
             更換
           </div>
         </div>
-        <!-- 隱藏的檔案上傳輸入框 -->
         <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="handleAvatarFileSelect(event)">
 
         <div>
-          <h1 id="headerMainTitle" class="text-base sm:text-lg font-bold text-stone-900">澳洲打工度假 × 德國碩士自保金</h1>
-          <p id="headerSubTitle" class="text-xs text-stone-500">AU 旅程儲蓄 • 留學自保金目標追蹤</p>
+          <h1 id="headerMainTitle" class="text-base sm:text-lg font-bold text-stone-900">個人旅程儲蓄 × 目標自保金追蹤</h1>
+          <p id="headerSubTitle" class="text-xs text-stone-500">雙幣資產管理 • 儲蓄進度視覺化</p>
         </div>
       </div>
       
-      <!-- 頂部功能區 -->
+      <!-- 頂部功能區 (匯率與同步) -->
       <div class="flex flex-wrap items-center gap-2">
+        <!-- 動態匯率面板 -->
         <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-stone-600">
-          <span class="mr-1 text-stone-400">1 AUD = </span>
-          <input type="number" id="fxRateInput" step="0.1" value="23.0" class="w-12 bg-white border border-stone-300 rounded px-1 py-0.5 font-mono text-center font-bold text-stone-800 focus:outline-none" onchange="updateFxRate(this.value)">
-          <span class="ml-1 text-stone-500 font-medium">TWD</span>
+          <span class="mr-1 text-stone-400">1 <span id="headerPrimaryCurrencyLabel">AUD</span> = </span>
+          <input type="number" id="fxRateInput" step="0.01" value="23.0" class="w-14 bg-white border border-stone-300 rounded px-1 py-0.5 font-mono text-center font-bold text-stone-800 focus:outline-none" onchange="updateFxRate(this.value)">
+          <span class="ml-1 text-stone-500 font-medium" id="headerHomeCurrencyLabel">TWD</span>
+          <button type="button" onclick="fetchLiveFxRate(true)" title="從即時牌價更新匯率" class="ml-1.5 text-stone-400 hover:text-amber-800 cursor-pointer">🔄</button>
         </div>
 
+        <!-- 雲端同步 -->
         <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg p-1 text-xs">
           <input type="text" id="syncKeyDirect" placeholder="自訂同步密碼" class="bg-white border border-stone-300 rounded px-2 py-1 w-28 sm:w-32 text-stone-800 focus:outline-none font-mono">
           <button type="button" onclick="connectDirectSync()" id="syncDirectBtn" class="ml-1 px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded font-semibold transition cursor-pointer">連線同步</button>
         </div>
 
+        <!-- 看板設定齒輪 -->
         <button type="button" onclick="openSettingsModal()" class="p-1.5 px-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="自訂看板設定">
           <span>⚙️</span>
           <span class="hidden sm:inline">看板設定</span>
@@ -65,7 +68,7 @@
 
     <!-- 頁籤選單 -->
     <div class="max-w-5xl mx-auto px-4 flex flex-wrap gap-x-6 text-sm">
-      <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🚨 澳打避坑 & 稅務指南</button>
+      <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🚨 避坑指南 & 備忘手冊</button>
       <button type="button" onclick="switchTab('finance')" id="tab-finance" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">雙幣財務 & 圓餅分析</button>
       <button type="button" onclick="switchTab('calendar')" id="tab-calendar" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">重要時程日曆</button>
       <button type="button" onclick="switchTab('gear')" id="tab-gear" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">出發裝備清單</button>
@@ -75,7 +78,7 @@
   <!-- 主內容區 -->
   <main class="max-w-5xl mx-auto px-4 mt-6">
 
-    <!-- 自動智能待辦預警橫幅 (今日與未來3天待辦) -->
+    <!-- 自動智能待辦預警橫幅 -->
     <div id="smartReminderBanner" class="hidden mb-6 bg-gradient-to-r from-amber-900 to-stone-900 text-white p-4 rounded-2xl shadow-md border border-amber-700/30">
       <div class="flex items-start justify-between gap-3">
         <div class="flex items-center gap-2">
@@ -90,7 +93,7 @@
       <div id="smartReminderList" class="mt-3 space-y-1.5 text-xs"></div>
     </div>
 
-    <!-- TAB 0: 澳打避坑 & 稅務指南 -->
+    <!-- TAB 0: 避坑指南 & 備忘手冊 -->
     <div id="content-guide" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-2">
@@ -118,7 +121,7 @@
         </div>
       </div>
 
-      <!-- 點擊展開的黑心話術避坑手冊 -->
+      <!-- 點擊展開的避雷手冊 -->
       <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-3">
         <div class="flex items-center justify-between pb-2 border-b border-stone-100">
           <div>
@@ -139,7 +142,7 @@
               <span id="tip1-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip1" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：ABN 是自僱獨立承包商（Contractor）。雇主叫你開 ABN 只是為了<strong>逃避幫你保工傷保險（WorkCover）、逃避提撥 12% 退休金、逃避超時加班費</strong>。年底報稅時所有稅金必須自己倒貼申報，受傷亦無賠償，極度不划算！
+              <strong>真相揭密</strong>：ABN 是自僱承包商。雇主叫你開 ABN 只是為了逃避工傷保險（WorkCover）、退休金與超時加班費，稅金須全額自負且無賠償保障！
             </div>
           </div>
 
@@ -149,7 +152,7 @@
               <span id="tip2-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip2" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：依澳洲 Fair Work 規定，合法無薪試工僅限於「展示技能所需的極短時間」（通常 1～2 小時觀察沖咖啡、端盤子等基本操作）。<strong>超過半天的全更工作依法必須給付全額工資</strong>，否則即為免費勞力剝削。
+              <strong>真相揭密</strong>：合法無薪試工僅限於展示技能的極短時間（通常 1～2 小時）。超過半天全更工作依法必須給付全額工資。
             </div>
           </div>
 
@@ -159,7 +162,7 @@
               <span id="tip3-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip3" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：一般基層打工應徵講的都是「時薪 + 退休金（Plus Super）」。若對方說含 Super，換算底薪其實只有 $30 ÷ 1.12 = $26.78，甚至低於 Casual 法定底薪 $33.05。應徵時務必確認是 <strong>Base + Super</strong>。
+              <strong>真相揭密</strong>：應徵時務必確認是 <strong>Base + Super</strong>。若對方說含 Super，換算底薪只有 $30 ÷ 1.12 = $26.78，遠低於 Casual 法定底薪。
             </div>
           </div>
 
@@ -169,7 +172,7 @@
               <span id="tip4-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip4" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：很多黑心工頭靠高於市價的「床位房租」與「高額車資」賺錢。抵達農場或肉廠後往往遭遇天氣不好或砍班，每週只做 10 小時，賺的錢甚至不夠付他的房租，直接淪為白做工。
+              <strong>真相揭密</strong>：許多黑心工頭靠高於市價的房租賺錢，抵達後可能因砍班每週只工 10 小時，賺的錢甚至不夠付房租。
             </div>
           </div>
 
@@ -179,17 +182,17 @@
               <span id="tip5-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip5" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：澳洲 Fair Work 設有<strong>「最低時薪保底條款 (Minimum Wage Floor)」</strong>。計件工作每個工作天結算後的實得時薪，<strong>絕對不能低於法定 Casual 最低時薪底線</strong>！
+              <strong>真相揭密</strong>：Fair Work 設有最低時薪保底條款。計件工作結算後的時薪，絕對不能低於法定 Casual 最低時薪底線！
             </div>
           </div>
 
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip6')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
-              <span>❌ 話術 6：「不用去偏遠地區工作，花幾千塊買二簽/三簽天數最輕鬆」</span>
+              <span>❌ 話術 6：「不用去偏遠地區工作，花錢買二簽/三簽天數最輕鬆」</span>
               <span id="tip6-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip6" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：移民局與稅務局全面資料聯網對帳，嚴格審查 Payslip 薪資流水與銀行紀錄。偽造二簽將面臨<strong>直接取消簽證、遣返並三年禁止入境澳洲（PIC 4020 詐欺條款）</strong>！
+              <strong>真相揭密</strong>：移民局與稅務局全面聯網審查銀行帳戶與 Payslip。偽造二簽將面臨直接遣返並三年禁止入境澳洲（PIC 4020 詐欺條款）！
             </div>
           </div>
 
@@ -199,7 +202,7 @@
               <span id="tip7-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip7" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：社群平台充斥大量假房東。原則：<strong>抵達澳洲前只預訂可退訂的短租青旅，未現場看到房間與鑰匙前絕不轉帳押金！</strong>
+              <strong>真相揭密</strong>：原則：抵達當地前只預訂可退訂的短租青旅，未現場看到房間鑰匙並核實房東身分前絕不轉帳押金！
             </div>
           </div>
 
@@ -209,7 +212,7 @@
               <span id="tip8-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
             </button>
             <div id="tip8" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：在澳洲，<strong>任何雇主、工頭扣留勞工護照正本皆屬聯邦刑事犯罪</strong>。雇主僅有權查驗身分或影印留存，絕不能扣留正本！
+              <strong>真相揭密</strong>：在澳洲扣留他人護照正本屬聯邦刑事犯罪。雇主僅有權查驗身分或影印留存，絕不能扣留正本！
             </div>
           </div>
         </div>
@@ -218,15 +221,16 @@
 
     <!-- TAB 1: 雙幣財務 & 圓餅圖分析 -->
     <div id="content-finance" class="space-y-6 hidden">
+      <!-- 總目標進度卡 -->
       <div class="bg-stone-900 rounded-2xl p-6 text-white shadow-lg">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <span id="targetBadgeText" class="px-2 py-0.5 text-[11px] font-semibold bg-amber-600/40 text-amber-300 rounded border border-amber-500/30">
-              儲蓄目標：NT$ 400,000 (約 $17,391 AUD)
+              儲蓄目標：NT$ 400,000
             </span>
             <div class="mt-2 flex items-baseline gap-2">
               <h2 id="totalSavingsNTD" class="text-3xl sm:text-4xl font-extrabold">NT$ 0</h2>
-              <span id="totalSavingsAUD" class="text-sm font-medium text-stone-400">折合約 $0 AUD</span>
+              <span id="totalSavingsPrimary" class="text-sm font-medium text-stone-400">折合約 $0 AUD</span>
             </div>
             <p id="remainingGapText" class="text-xs text-stone-400 mt-1">距離達成目標還差 NT$ 400,000</p>
           </div>
@@ -248,29 +252,30 @@
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-stone-700/60 text-xs">
-          <div><span class="text-stone-400 block">離澳目標日</span><span id="cardTargetDate" class="font-semibold text-stone-200 mt-0.5 block">2027-06-30</span></div>
+          <div><span class="text-stone-400 block">目標達成日</span><span id="cardTargetDate" class="font-semibold text-stone-200 mt-0.5 block">2027-06-30</span></div>
           <div><span class="text-stone-400 block">距今剩餘時間</span><span id="weeksLeftText" class="font-semibold text-stone-200 mt-0.5 block">-- 週</span></div>
-          <div><span class="text-stone-400 block">每週需淨存 (AUD)</span><span id="weeklyNeedAUD" class="font-bold text-amber-400 mt-0.5 block">$0 AUD</span></div>
-          <div><span class="text-stone-400 block">Super 預估退回 (35%)</span><span id="superRefundEst" class="font-semibold text-emerald-400 mt-0.5 block">$0 AUD</span></div>
+          <div><span class="text-stone-400 block">每週需淨存 (<span class="primaryCurrText">AUD</span>)</span><span id="weeklyNeedPrimary" class="font-bold text-amber-400 mt-0.5 block">$0</span></div>
+          <div><span class="text-stone-400 block">Super 退稅預估 (35%)</span><span id="superRefundEst" class="font-semibold text-emerald-400 mt-0.5 block">$0</span></div>
         </div>
       </div>
 
+      <!-- 資金池餘額卡 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-          <span id="audPoolTitle" class="text-xs font-medium text-stone-500 uppercase">澳洲資金池 (AUD)</span>
-          <h3 id="audBalance" class="text-2xl font-bold text-stone-900 mt-1">$0 AUD</h3>
+          <span id="primaryPoolTitle" class="text-xs font-medium text-stone-500 uppercase">主要外幣資金池 (AUD)</span>
+          <h3 id="primaryBalance" class="text-2xl font-bold text-stone-900 mt-1">$0 AUD</h3>
           <div class="mt-4 pt-3 border-t border-stone-100 grid grid-cols-2 gap-2 text-xs">
-            <div><span class="text-stone-400">稅後收入</span><p id="audIncome" class="font-semibold text-stone-700 mt-0.5">+$0</p></div>
-            <div><span class="text-stone-400">累計支出</span><p id="audExpense" class="font-semibold text-stone-700 mt-0.5">-$0</p></div>
+            <div><span class="text-stone-400">總收入</span><p id="primaryIncome" class="font-semibold text-stone-700 mt-0.5">+$0</p></div>
+            <div><span class="text-stone-400">累計支出</span><p id="primaryExpense" class="font-semibold text-stone-700 mt-0.5">-$0</p></div>
           </div>
         </div>
 
         <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-          <span id="twdPoolTitle" class="text-xs font-medium text-stone-500 uppercase">台灣資金池 (TWD)</span>
-          <h3 id="twdBalance" class="text-2xl font-bold text-stone-900 mt-1">NT$ 0</h3>
+          <span id="homePoolTitle" class="text-xs font-medium text-stone-500 uppercase">本國資金池 (TWD)</span>
+          <h3 id="homeBalance" class="text-2xl font-bold text-stone-900 mt-1">NT$ 0</h3>
           <div class="mt-4 pt-3 border-t border-stone-100 grid grid-cols-2 gap-2 text-xs">
-            <div><span class="text-stone-400">兼職/其他收入</span><p id="twdIncome" class="font-semibold text-stone-700 mt-0.5">+NT$ 0</p></div>
-            <div><span class="text-stone-400">前期規費支出</span><p id="twdExpense" class="font-semibold text-stone-700 mt-0.5">-NT$ 0</p></div>
+            <div><span class="text-stone-400">其他收入</span><p id="homeIncome" class="font-semibold text-stone-700 mt-0.5">+NT$ 0</p></div>
+            <div><span class="text-stone-400">前期規費/支出</span><p id="homeExpense" class="font-semibold text-stone-700 mt-0.5">-NT$ 0</p></div>
           </div>
         </div>
       </div>
@@ -282,7 +287,7 @@
             <h3 class="text-sm font-bold text-stone-900 flex items-center gap-1.5">
               <span>📊</span> 收支類別圓餅圖分析
             </h3>
-            <p class="text-xs text-stone-500 mt-0.5">依據自訂類別統計佔比，支援按「本週」與「本月」動態切換檢視。</p>
+            <p class="text-xs text-stone-500 mt-0.5">統計雙幣主要收支佔比 (少數獨立第三幣別不列入計算以保純淨)。</p>
           </div>
           
           <div class="flex flex-wrap items-center gap-2">
@@ -310,13 +315,17 @@
 
       <!-- 收支表格 -->
       <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800">收支紀錄明細</div>
+        <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800 flex justify-between items-center">
+          <span>收支紀錄明細</span>
+          <span class="text-xs text-stone-400 font-normal">標註「獨立幣別」之款項未列入雙幣主資金池</span>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-stone-50 text-stone-500 border-b border-stone-200">
                 <th class="py-2.5 px-4">日期</th>
                 <th class="py-2.5 px-3">類型</th>
+                <th class="py-2.5 px-3">幣別</th>
                 <th class="py-2.5 px-3">大分類</th>
                 <th class="py-2.5 px-4">細項說明</th>
                 <th class="py-2.5 px-4 text-right">金額</th>
@@ -368,7 +377,7 @@
         
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
           <div>
-            <h2 class="text-base font-bold text-stone-900">打工度假生活必備裝備清單</h2>
+            <h2 class="text-base font-bold text-stone-900">生活必備裝備清單</h2>
             <p class="text-xs text-stone-500 mt-0.5">點選上方橫排分類快速聚焦，無需反覆上下滾動找品項。</p>
           </div>
           <div class="flex items-center gap-3">
@@ -388,7 +397,7 @@
     </div>
   </main>
 
-  <!-- MODAL: 個人化看板設定 -->
+  <!-- MODAL: 個人化看板設定 (支援幣別自訂) -->
   <div id="settingsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -404,8 +413,8 @@
             <span id="settingsAvatarText">AU</span>
           </div>
           <div>
-            <span class="font-bold text-stone-800 block">左上角頭像 / 圖片</span>
-            <span class="text-stone-500 text-[11px] block">點擊右方按鈕上傳自訂圖片，或輸入縮寫文字。</span>
+            <span class="font-bold text-stone-800 block">左上角頭像 / 縮寫</span>
+            <span class="text-stone-500 text-[11px] block">點擊右方按鈕更換圖片，或輸入縮寫文字。</span>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -427,24 +436,48 @@
           <label class="block font-semibold text-stone-700 mb-1">頭像文字縮寫 (未上傳圖片時顯示)</label>
           <input type="text" id="settingAvatarInitials" maxlength="4" placeholder="例如: AU, ME, 2026" class="w-full p-2 border border-stone-200 rounded-lg font-bold font-mono uppercase">
         </div>
+
+        <!-- 幣別設定核心 -->
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">主要幣別 (Primary Currency)</label>
+          <select id="settingPrimaryCurrency" class="w-full p-2 border border-stone-200 rounded-lg font-bold">
+            <option value="AUD">AUD (澳幣)</option>
+            <option value="EUR">EUR (歐元)</option>
+            <option value="USD">USD (美元)</option>
+            <option value="JPY">JPY (日圓)</option>
+            <option value="GBP">GBP (英鎊)</option>
+            <option value="CAD">CAD (加幣)</option>
+            <option value="NZD">NZD (紐幣)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">本國幣別 (Home Currency)</label>
+          <select id="settingHomeCurrency" class="w-full p-2 border border-stone-200 rounded-lg font-bold">
+            <option value="TWD">TWD (新台幣)</option>
+            <option value="HKD">HKD (港幣)</option>
+            <option value="CNY">CNY (人民幣)</option>
+            <option value="USD">USD (美元)</option>
+          </select>
+        </div>
+
         <div>
           <label class="block font-semibold text-stone-700 mb-1">副標題說明</label>
           <input type="text" id="settingSubTitle" class="w-full p-2 border border-stone-200 rounded-lg">
         </div>
         <div>
-          <label class="block font-semibold text-stone-700 mb-1">儲蓄目標金額 (TWD)</label>
+          <label class="block font-semibold text-stone-700 mb-1">儲蓄目標金額 (本國幣別)</label>
           <input type="number" id="settingTargetNTD" step="1000" class="w-full p-2 border border-stone-200 rounded-lg font-bold font-mono">
         </div>
         <div>
-          <label class="block font-semibold text-stone-700 mb-1">離澳 / 目標達成預計日期</label>
+          <label class="block font-semibold text-stone-700 mb-1">目標達成預計日期</label>
           <input type="date" id="settingTargetDate" class="w-full p-2 border border-stone-200 rounded-lg font-mono">
         </div>
         <div>
-          <label class="block font-semibold text-stone-700 mb-1">澳洲資金池標題名稱</label>
+          <label class="block font-semibold text-stone-700 mb-1">主要外幣資金池名稱</label>
           <input type="text" id="settingAudPoolTitle" class="w-full p-2 border border-stone-200 rounded-lg">
         </div>
         <div class="md:col-span-2">
-          <label class="block font-semibold text-stone-700 mb-1">本國/台灣資金池標題名稱</label>
+          <label class="block font-semibold text-stone-700 mb-1">本國資金池名稱</label>
           <input type="text" id="settingTwdPoolTitle" class="w-full p-2 border border-stone-200 rounded-lg">
         </div>
       </div>
@@ -492,7 +525,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 (新增一鍵匯入 Google/手機行事曆) -->
+  <!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -531,14 +564,10 @@
           <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
         </div>
 
-        <!-- 外部跳轉與行事曆同步快捷列 -->
         <div id="eventActionsArea" class="pt-2 border-t border-stone-100 flex flex-col gap-2 hidden">
-          <!-- Google Maps 導航 -->
           <a id="eventMapDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition">
             <span id="eventMapDirectLinkText">🗺️ 開啟 Google Maps 導航 ↗</span>
           </a>
-
-          <!-- 一鍵匯入行事曆 (雙模：Google Web + 原生 ICS 下載) -->
           <div class="grid grid-cols-2 gap-2">
             <button type="button" onclick="addToGoogleCalendarFromModal()" class="px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer">
               <span>📅 Google 日曆</span>
@@ -560,7 +589,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 記帳 -->
+  <!-- MODAL: 記帳 (支援主幣別、本國幣別與彈性自訂第三幣別) -->
   <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
@@ -569,11 +598,25 @@
         <div>
           <label class="block font-semibold mb-1">幣別與日期</label>
           <div class="grid grid-cols-2 gap-2">
-            <select id="txCurrency" class="p-2 border rounded font-bold" onchange="toggleSuper()">
-              <option value="AUD">AUD (澳幣)</option>
-              <option value="TWD">TWD (新台幣)</option>
+            <select id="txCurrency" class="p-2 border rounded font-bold" onchange="handleTxCurrencyChange()">
+              <!-- 動態填充主幣別、本國幣別與自訂第三幣別選項 -->
             </select>
             <input type="date" id="txDate" required class="p-2 border rounded">
+          </div>
+        </div>
+
+        <!-- 第三幣別專屬設定輸入區 (預設隱藏) -->
+        <div id="thirdCurrencyArea" class="p-2.5 bg-blue-50 border border-blue-200 rounded-lg space-y-2 hidden">
+          <span class="block font-bold text-blue-900 text-[11px]">💡 少數第三幣別 (獨立紀錄，不併入主雙幣儲蓄統計)</span>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-stone-600 mb-0.5">幣別代碼</label>
+              <input type="text" id="txCustomCurrencyCode" placeholder="如 JPY, EUR" class="w-full p-1.5 border rounded uppercase font-bold font-mono">
+            </div>
+            <div>
+              <label class="block text-stone-600 mb-0.5">折合台幣匯率</label>
+              <input type="number" id="txCustomCurrencyRate" step="0.001" placeholder="例如 0.21" class="w-full p-1.5 border rounded font-mono font-bold">
+            </div>
           </div>
         </div>
 
@@ -662,29 +705,34 @@
 
     const DEFAULT_TAGS = [
       { id: "t_1", name: "重要截止", color: "rose" },
-      { id: "t_2", name: "澳打時程", color: "amber" },
-      { id: "t_3", name: "簽證文件", color: "purple" },
+      { id: "t_2", name: "重要時程", color: "amber" },
+      { id: "t_3", name: "文件簽證", color: "purple" },
       { id: "t_4", name: "工作排班", color: "emerald" },
       { id: "t_5", name: "生活休閒", color: "blue" }
     ];
 
     const DEFAULT_EVENTS = [
       { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "工作結束交接 & 離澳", tagId: "t_2", date: "2027-06-30", location: "Ayers Rock Resort", desc: "完成交接，領取 Super 退稅單據。" }
+      { id: "ev2", title: "工作結束交接 & 下一站啟程", tagId: "t_2", date: "2027-06-30", location: "Ayers Rock Resort", desc: "完成交接，領取相關退稅結算單據。" }
     ];
 
     const DEFAULT_EXPENSE_CATS = ["飲食餐飲", "玩樂休閒", "住宿房租", "生活採買", "機票交通", "簽證規費", "其他雜項"];
     const DEFAULT_INCOME_CATS = ["薪資收入", "兼職副業", "政府退稅", "利息投資", "其他收入"];
 
     let appState = {
-      mainTitle: "澳洲打工度假 × 德國碩士自保金",
-      subTitle: "AU 旅程儲蓄 • 留學自保金目標追蹤",
+      mainTitle: "個人旅程儲蓄 × 目標自保金追蹤",
+      subTitle: "雙幣資產管理 • 儲蓄進度視覺化",
       avatarInitials: "AU",
       avatarImage: "",
+
+      // 幣別設定
+      primaryCurrency: "AUD", // 預設主要外幣
+      homeCurrency: "TWD",    // 預設本國幣別
+
       targetNTD: 400000,
       targetEndDate: "2027-06-30",
-      audPoolTitle: "澳洲資金池 (AUD)",
-      twdPoolTitle: "台灣資金池 (TWD)",
+      audPoolTitle: "主要外幣資金池 (AUD)",
+      twdPoolTitle: "本國資金池 (TWD)",
       fxRate: 23.0,
       transactions: [],
       expenseCategories: DEFAULT_EXPENSE_CATS,
@@ -708,6 +756,34 @@
       '#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', 
       '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'
     ];
+
+    // --- 自動抓取即時匯率 API ---
+    async function fetchLiveFxRate(isUserTriggered = false) {
+      const pCurr = appState.primaryCurrency || "AUD";
+      const hCurr = appState.homeCurrency || "TWD";
+
+      try {
+        const res = await fetch(`https://open.er-api.com/v6/latest/${pCurr}`);
+        if (!res.ok) throw new Error("API Network error");
+        const json = await res.json();
+        if (json && json.rates && json.rates[hCurr]) {
+          const liveRate = parseFloat(json.rates[hCurr].toFixed(2));
+          appState.fxRate = liveRate;
+          document.getElementById("fxRateInput").value = liveRate;
+          saveState();
+          renderFinance();
+          renderPieChart();
+          if (isUserTriggered) {
+            alert(`已更新最新牌價參考匯率：1 ${pCurr} = ${liveRate} ${hCurr}`);
+          }
+        }
+      } catch (err) {
+        console.warn("無法取得線上匯率，維持手動或快取值:", err);
+        if (isUserTriggered) {
+          alert("無法連線至匯率伺服器，請手動輸入匯率。");
+        }
+      }
+    }
 
     function getColorBadgeClass(color) {
       switch (color) {
@@ -740,7 +816,6 @@
       window.open(buildGoogleMapsUrl(input), "_blank");
     };
 
-    // --- 提醒功能 1：智慧即期橫幅 ---
     function checkSmartReminders() {
       const banner = document.getElementById("smartReminderBanner");
       const listEl = document.getElementById("smartReminderList");
@@ -759,7 +834,6 @@
 
         const diffDays = Math.round((evDate - now) / (1000 * 60 * 60 * 24));
 
-        // 包含今天或未來 3 天內的事項
         if (diffDays >= 0 && diffDays <= 3) {
           upcoming.push({ ...ev, diffDays });
         }
@@ -800,10 +874,9 @@
       banner.classList.remove("hidden");
     }
 
-    // --- 提醒功能 2：一鍵加入 Google 日曆 ---
     window.addToGoogleCalendarFromModal = function() {
       const title = document.getElementById("eventTitle").value.trim();
-      const dateStr = document.getElementById("eventDate").value; // YYYY-MM-DD
+      const dateStr = document.getElementById("eventDate").value;
       const loc = document.getElementById("eventLocationInput").value.trim();
       const desc = document.getElementById("eventDesc").value.trim();
 
@@ -813,7 +886,6 @@
       }
 
       const cleanDate = dateStr.replace(/-/g, "");
-      // 全天行程格式
       const datesParam = `${cleanDate}/${cleanDate}`;
 
       let details = desc || "";
@@ -825,7 +897,6 @@
       window.open(gUrl, "_blank");
     };
 
-    // --- 提醒功能 3：匯出通用 .ics (支援 iPhone / Apple Calendar 原生開啟) ---
     window.downloadIcsFileFromModal = function() {
       const title = document.getElementById("eventTitle").value.trim();
       const dateStr = document.getElementById("eventDate").value;
@@ -863,7 +934,6 @@
       document.body.removeChild(link);
     };
 
-    // --- 頭像上傳與渲染 ---
     window.triggerAvatarUpload = function() {
       document.getElementById('avatarFileInput').click();
     };
@@ -873,7 +943,7 @@
       if (!file) return;
 
       if (!file.type.startsWith('image/')) {
-        alert("請選擇圖片格式檔案 (JPG, PNG, WebP)！");
+        alert("請選擇圖片格式檔案！");
         return;
       }
 
@@ -967,12 +1037,17 @@
       if (!appState.expenseCategories) appState.expenseCategories = DEFAULT_EXPENSE_CATS;
       if (!appState.incomeCategories) appState.incomeCategories = DEFAULT_INCOME_CATS;
       if (!appState.avatarInitials) appState.avatarInitials = "AU";
+      if (!appState.primaryCurrency) appState.primaryCurrency = "AUD";
+      if (!appState.homeCurrency) appState.homeCurrency = "TWD";
 
       const fxInput = document.getElementById("fxRateInput");
       if (fxInput) fxInput.value = appState.fxRate || 23.0;
 
       applyTitlesAndSettings();
       renderAll();
+
+      // 初次啟動自動嘗試更新即時匯率
+      fetchLiveFxRate(false);
 
       const savedKey = localStorage.getItem("au_sync_key");
       if (savedKey) {
@@ -986,14 +1061,24 @@
 
     function applyTitlesAndSettings() {
       const getEl = id => document.getElementById(id);
+      const pCurr = appState.primaryCurrency || "AUD";
+      const hCurr = appState.homeCurrency || "TWD";
+
       if (getEl("headerMainTitle")) getEl("headerMainTitle").textContent = appState.mainTitle;
       if (getEl("headerSubTitle")) getEl("headerSubTitle").textContent = appState.subTitle;
-      if (getEl("audPoolTitle")) getEl("audPoolTitle").textContent = appState.audPoolTitle;
-      if (getEl("twdPoolTitle")) getEl("twdPoolTitle").textContent = appState.twdPoolTitle;
+      if (getEl("primaryPoolTitle")) getEl("primaryPoolTitle").textContent = appState.audPoolTitle || `主要外幣資金池 (${pCurr})`;
+      if (getEl("homePoolTitle")) getEl("homePoolTitle").textContent = appState.twdPoolTitle || `本國資金池 (${hCurr})`;
       if (getEl("cardTargetDate")) getEl("cardTargetDate").textContent = appState.targetEndDate;
+
+      if (getEl("headerPrimaryCurrencyLabel")) getEl("headerPrimaryCurrencyLabel").textContent = pCurr;
+      if (getEl("headerHomeCurrencyLabel")) getEl("headerHomeCurrencyLabel").textContent = hCurr;
+
+      document.querySelectorAll(".primaryCurrText").forEach(el => el.textContent = pCurr);
 
       if (getEl("settingMainTitle")) getEl("settingMainTitle").value = appState.mainTitle;
       if (getEl("settingAvatarInitials")) getEl("settingAvatarInitials").value = appState.avatarInitials || "AU";
+      if (getEl("settingPrimaryCurrency")) getEl("settingPrimaryCurrency").value = pCurr;
+      if (getEl("settingHomeCurrency")) getEl("settingHomeCurrency").value = hCurr;
       if (getEl("settingSubTitle")) getEl("settingSubTitle").value = appState.subTitle;
       if (getEl("settingTargetNTD")) getEl("settingTargetNTD").value = appState.targetNTD;
       if (getEl("settingTargetDate")) getEl("settingTargetDate").value = appState.targetEndDate;
@@ -1009,16 +1094,27 @@
     };
 
     window.saveCustomSettings = function() {
+      const oldPCurr = appState.primaryCurrency;
+      const newPCurr = document.getElementById("settingPrimaryCurrency").value;
+
       appState.mainTitle = document.getElementById("settingMainTitle").value || "個人旅程儲蓄追蹤";
       appState.avatarInitials = document.getElementById("settingAvatarInitials").value.trim() || "AU";
+      appState.primaryCurrency = newPCurr;
+      appState.homeCurrency = document.getElementById("settingHomeCurrency").value;
       appState.subTitle = document.getElementById("settingSubTitle").value || "目標追蹤看板";
       appState.targetNTD = parseFloat(document.getElementById("settingTargetNTD").value) || 400000;
       appState.targetEndDate = document.getElementById("settingTargetDate").value || "2027-06-30";
-      appState.audPoolTitle = document.getElementById("settingAudPoolTitle").value || "澳洲資金池 (AUD)";
-      appState.twdPoolTitle = document.getElementById("settingTwdPoolTitle").value || "本國資金池 (TWD)";
+      appState.audPoolTitle = document.getElementById("settingAudPoolTitle").value || `主要外幣資金池 (${newPCurr})`;
+      appState.twdPoolTitle = document.getElementById("settingTwdPoolTitle").value || `本國資金池 (${appState.homeCurrency})`;
 
       applyTitlesAndSettings();
       saveState();
+
+      // 若幣別改變，自動向 API 抓取新幣別匯率
+      if (oldPCurr !== newPCurr) {
+        fetchLiveFxRate(false);
+      }
+
       renderFinance();
       closeModal("settingsModal");
       switchTab('finance');
@@ -1057,47 +1153,52 @@
 
     function renderFinance() {
       const fx = appState.fxRate || 23.0;
-      let audInc = 0, audExp = 0, twdInc = 0, twdExp = 0, superRefund = 0;
+      const pCurr = appState.primaryCurrency || "AUD";
+      const hCurr = appState.homeCurrency || "TWD";
+
+      let pInc = 0, pExp = 0, hInc = 0, hExp = 0, superRefund = 0;
 
       (appState.transactions || []).forEach(t => {
         const amt = parseFloat(t.amount) || 0;
-        if (t.currency === "AUD") {
+        // 只統計主幣別與本國幣別；自訂第三外幣暫不併入雙幣主池
+        if (t.currency === pCurr) {
           if (t.type === "income") {
-            audInc += amt;
+            pInc += amt;
             if (t.includeSuper) superRefund += (amt * 0.12 * 0.35);
-          } else audExp += amt;
-        } else {
-          if (t.type === "income") twdInc += amt;
-          else twdExp += amt;
+          } else pExp += amt;
+        } else if (t.currency === hCurr) {
+          if (t.type === "income") hInc += amt;
+          else hExp += amt;
         }
       });
 
-      const audNet = audInc - audExp;
-      const twdNet = twdInc - twdExp;
-      const totalSavingsNTD = Math.round((audNet * fx) + (superRefund * fx) + twdNet);
-      const targetNTD = appState.targetNTD || 400000;
-      const gapNTD = targetNTD - totalSavingsNTD;
-      const pct = Math.min(100, Math.max(0, Math.round((totalSavingsNTD / targetNTD) * 100)));
+      const pNet = pInc - pExp;
+      const hNet = hInc - hExp;
+      const totalSavingsHome = Math.round((pNet * fx) + (superRefund * fx) + hNet);
+      const targetHome = appState.targetNTD || 400000;
+      const gapHome = targetHome - totalSavingsHome;
+      const pct = Math.min(100, Math.max(0, Math.round((totalSavingsHome / targetHome) * 100)));
 
       const weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - new Date()) / (1000 * 60 * 60 * 24 * 7)));
-      const weeklyNeedAUD = gapNTD > 0 ? Math.round((gapNTD / fx) / weeksLeft) : 0;
+      const weeklyNeedPrimary = gapHome > 0 ? Math.round((gapHome / fx) / weeksLeft) : 0;
 
       const getEl = id => document.getElementById(id);
-      if (getEl("targetBadgeText")) getEl("targetBadgeText").textContent = `儲蓄目標：NT$ ${targetNTD.toLocaleString()} (約 $${Math.round(targetNTD/fx).toLocaleString()} AUD)`;
-      if (getEl("totalSavingsNTD")) getEl("totalSavingsNTD").textContent = `NT$ ${totalSavingsNTD.toLocaleString()}`;
-      if (getEl("totalSavingsAUD")) getEl("totalSavingsAUD").textContent = `折合約 $${Math.round(totalSavingsNTD / fx).toLocaleString()} AUD`;
-      if (getEl("remainingGapText")) getEl("remainingGapText").textContent = gapNTD > 0 ? `距離達成目標還差 NT$ ${gapNTD.toLocaleString()}` : "🎉 恭喜達成儲蓄目標！";
+      if (getEl("targetBadgeText")) getEl("targetBadgeText").textContent = `儲蓄目標：${hCurr} ${targetHome.toLocaleString()} (約 $${Math.round(targetHome/fx).toLocaleString()} ${pCurr})`;
+      if (getEl("totalSavingsNTD")) getEl("totalSavingsNTD").textContent = `${hCurr} ${totalSavingsHome.toLocaleString()}`;
+      if (getEl("totalSavingsPrimary")) getEl("totalSavingsPrimary").textContent = `折合約 $${Math.round(totalSavingsHome / fx).toLocaleString()} ${pCurr}`;
+      if (getEl("remainingGapText")) getEl("remainingGapText").textContent = gapHome > 0 ? `距離達成目標還差 ${hCurr} ${gapHome.toLocaleString()}` : "🎉 恭喜達成儲蓄目標！";
       if (getEl("progressPercent")) getEl("progressPercent").textContent = `${pct}%`;
       if (getEl("progressBar")) getEl("progressBar").style.width = `${pct}%`;
       if (getEl("weeksLeftText")) getEl("weeksLeftText").textContent = `${weeksLeft} 週`;
-      if (getEl("weeklyNeedAUD")) getEl("weeklyNeedAUD").textContent = `$${weeklyNeedAUD.toLocaleString()} AUD`;
-      if (getEl("superRefundEst")) getEl("superRefundEst").textContent = `$${Math.round(superRefund).toLocaleString()} AUD`;
-      if (getEl("audBalance")) getEl("audBalance").textContent = `$${audNet.toLocaleString()} AUD`;
-      if (getEl("audIncome")) getEl("audIncome").textContent = `+$${audInc.toLocaleString()}`;
-      if (getEl("audExpense")) getEl("audExpense").textContent = `-$${audExp.toLocaleString()}`;
-      if (getEl("twdBalance")) getEl("twdBalance").textContent = `NT$ ${twdNet.toLocaleString()}`;
-      if (getEl("twdIncome")) getEl("twdIncome").textContent = `+NT$ ${twdInc.toLocaleString()}`;
-      if (getEl("twdExpense")) getEl("twdExpense").textContent = `-NT$ ${twdExp.toLocaleString()}`;
+      if (getEl("weeklyNeedPrimary")) getEl("weeklyNeedPrimary").textContent = `$${weeklyNeedPrimary.toLocaleString()} ${pCurr}`;
+      if (getEl("superRefundEst")) getEl("superRefundEst").textContent = `$${Math.round(superRefund).toLocaleString()} ${pCurr}`;
+      
+      if (getEl("primaryBalance")) getEl("primaryBalance").textContent = `$${pNet.toLocaleString()} ${pCurr}`;
+      if (getEl("primaryIncome")) getEl("primaryIncome").textContent = `+$${pInc.toLocaleString()}`;
+      if (getEl("primaryExpense")) getEl("primaryExpense").textContent = `-$${pExp.toLocaleString()}`;
+      if (getEl("homeBalance")) getEl("homeBalance").textContent = `${hCurr} ${hNet.toLocaleString()}`;
+      if (getEl("homeIncome")) getEl("homeIncome").textContent = `+${hCurr} ${hInc.toLocaleString()}`;
+      if (getEl("homeExpense")) getEl("homeExpense").textContent = `-${hCurr} ${hExp.toLocaleString()}`;
     }
 
     window.setChartPeriod = function(p) {
@@ -1127,10 +1228,15 @@
       if (!canvas) return;
 
       const fx = appState.fxRate || 23.0;
+      const pCurr = appState.primaryCurrency || "AUD";
+      const hCurr = appState.homeCurrency || "TWD";
       const now = new Date();
 
+      // 篩選：只統計主要雙幣，排除獨立第三幣別
       const filtered = (appState.transactions || []).filter(t => {
         if (t.type !== chartType) return false;
+        if (t.isCustomThird) return false; // 排除獨立第三幣別
+
         const tDate = new Date(t.date);
         if (chartPeriod === 'week') {
           const diffTime = Math.abs(now - tDate);
@@ -1143,27 +1249,27 @@
       });
 
       const catTotals = {};
-      let totalAmountNTD = 0;
+      let totalAmountHome = 0;
 
       filtered.forEach(t => {
         const amt = parseFloat(t.amount) || 0;
-        const amtNTD = t.currency === 'AUD' ? (amt * fx) : amt;
+        const amtHome = t.currency === pCurr ? (amt * fx) : amt;
         const cat = t.category || "未分類";
-        catTotals[cat] = (catTotals[cat] || 0) + amtNTD;
-        totalAmountNTD += amtNTD;
+        catTotals[cat] = (catTotals[cat] || 0) + amtHome;
+        totalAmountHome += amtHome;
       });
 
       const labels = Object.keys(catTotals);
       const dataValues = Object.values(catTotals);
 
-      if (labels.length === 0 || totalAmountNTD === 0) {
+      if (labels.length === 0 || totalAmountHome === 0) {
         if (pieChartInstance) {
           pieChartInstance.destroy();
           pieChartInstance = null;
         }
         canvas.classList.add('hidden');
         noDataEl.classList.remove('hidden');
-        legendListEl.innerHTML = `<p class="text-stone-400 py-6 text-center">該區間無任何${chartType === 'expense' ? '支出' : '收入'}記錄</p>`;
+        legendListEl.innerHTML = `<p class="text-stone-400 py-6 text-center">該區間無雙幣${chartType === 'expense' ? '支出' : '收入'}記錄</p>`;
         return;
       }
 
@@ -1197,8 +1303,8 @@
               callbacks: {
                 label: function(context) {
                   const val = context.raw || 0;
-                  const pct = Math.round((val / totalAmountNTD) * 100);
-                  return ` NT$ ${Math.round(val).toLocaleString()} (${pct}%)`;
+                  const pct = Math.round((val / totalAmountHome) * 100);
+                  return ` ${hCurr} ${Math.round(val).toLocaleString()} (${pct}%)`;
                 }
               }
             }
@@ -1209,7 +1315,7 @@
 
       const sorted = Object.entries(catTotals).sort((a,b) => b[1] - a[1]);
       legendListEl.innerHTML = sorted.map(([cat, amt], idx) => {
-        const pct = Math.round((amt / totalAmountNTD) * 100);
+        const pct = Math.round((amt / totalAmountHome) * 100);
         const col = CHART_PALETTE[idx % CHART_PALETTE.length];
         return `
           <div class="p-2 rounded-lg bg-stone-50 border border-stone-100 flex items-center justify-between">
@@ -1218,7 +1324,7 @@
               <span class="font-bold text-stone-800">${cat}</span>
             </div>
             <div class="text-right">
-              <span class="font-mono font-bold text-stone-900">NT$ ${Math.round(amt).toLocaleString()}</span>
+              <span class="font-mono font-bold text-stone-900">${hCurr} ${Math.round(amt).toLocaleString()}</span>
               <span class="text-[10px] text-stone-500 ml-1 font-mono">(${pct}%)</span>
             </div>
           </div>
@@ -1231,29 +1337,38 @@
       if (!tbody) return;
       const list = (appState.transactions || []).slice().reverse();
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-stone-400">目前尚無收支紀錄</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-stone-400">目前尚無收支紀錄</td></tr>`;
         return;
       }
-      tbody.innerHTML = list.map(t => `
-        <tr class="hover:bg-stone-50">
-          <td class="py-2.5 px-4 font-mono">${t.date}</td>
-          <td class="py-2.5 px-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
-              ${t.type === 'income' ? '收入' : '支出'}
-            </span>
-          </td>
-          <td class="py-2.5 px-3 font-bold text-stone-800">${t.category}</td>
-          <td class="py-2.5 px-4 text-stone-600">${t.note || '-'}</td>
-          <td class="py-2.5 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-900'}">
-            ${t.type === 'income' ? '+' : '-'}${t.currency === 'AUD' ? '$' : 'NT$ '} ${t.amount}
-          </td>
-          <td class="py-2.5 px-3 text-center">
-            <button type="button" onclick="delTx('${t.id}')" class="text-stone-400 hover:text-rose-600 cursor-pointer">✕</button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = list.map(t => {
+        const isThird = Boolean(t.isCustomThird);
+        return `
+          <tr class="hover:bg-stone-50">
+            <td class="py-2.5 px-4 font-mono">${t.date}</td>
+            <td class="py-2.5 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+                ${t.type === 'income' ? '收入' : '支出'}
+              </span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="font-bold font-mono ${isThird ? 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]' : 'text-stone-700'}">
+                ${t.currency} ${isThird ? '(獨立)' : ''}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 font-bold text-stone-800">${t.category}</td>
+            <td class="py-2.5 px-4 text-stone-600">${t.note || '-'}</td>
+            <td class="py-2.5 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-900'}">
+              ${t.type === 'income' ? '+' : '-'}${t.amount}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <button type="button" onclick="delTx('${t.id}')" class="text-stone-400 hover:text-rose-600 cursor-pointer">✕</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
+    // --- 記帳彈窗處理 (含幣別動態選項) ---
     window.openTxModal = function(type) {
       document.getElementById("txType").value = type;
       document.getElementById("txDate").value = new Date().toISOString().split('T')[0];
@@ -1261,6 +1376,24 @@
       document.getElementById("txNote").value = "";
       document.getElementById("txModalTitle").textContent = type === "income" ? "記一筆收入" : "記一筆支出";
 
+      const pCurr = appState.primaryCurrency || "AUD";
+      const hCurr = appState.homeCurrency || "TWD";
+
+      // 幣別選單填充
+      const currSelect = document.getElementById("txCurrency");
+      currSelect.innerHTML = `
+        <option value="${pCurr}">${pCurr} (主要外幣)</option>
+        <option value="${hCurr}">${hCurr} (本國幣別)</option>
+        <option value="CUSTOM_THIRD">＋ 自訂第三幣別 (獨立紀錄)</option>
+      `;
+      currSelect.value = pCurr;
+
+      document.getElementById("txCustomCurrencyCode").value = "";
+      document.getElementById("txCustomCurrencyRate").value = "";
+
+      handleTxCurrencyChange();
+
+      // 分類填充
       const cats = type === 'income' 
         ? (appState.incomeCategories || DEFAULT_INCOME_CATS) 
         : (appState.expenseCategories || DEFAULT_EXPENSE_CATS);
@@ -1272,20 +1405,43 @@
       selectEl.value = defaultCat;
       document.getElementById("txCategoryCustom").value = defaultCat;
 
-      toggleSuper();
       document.getElementById("txModal").classList.remove("hidden");
     };
 
-    window.toggleSuper = function() {
-      const isAudInc = document.getElementById("txType").value === "income" && document.getElementById("txCurrency").value === "AUD";
+    window.handleTxCurrencyChange = function() {
+      const val = document.getElementById("txCurrency").value;
+      const thirdArea = document.getElementById("thirdCurrencyArea");
       const superBox = document.getElementById("txSuperOption");
+      const pCurr = appState.primaryCurrency || "AUD";
+
+      // 是否顯示第三外幣設定框
+      if (val === "CUSTOM_THIRD") {
+        thirdArea.classList.remove("hidden");
+      } else {
+        thirdArea.classList.add("hidden");
+      }
+
+      // 只有在主要幣別為 AUD 且為收入時，才顯示 Super 選項
+      const isAudInc = (val === "AUD" || (val === pCurr && pCurr === "AUD")) && document.getElementById("txType").value === "income";
       if (superBox) superBox.classList.toggle("hidden", !isAudInc);
     };
 
     window.handleSaveTx = function(e) {
       e.preventDefault();
       const type = document.getElementById("txType").value;
+      const currVal = document.getElementById("txCurrency").value;
       const finalCat = document.getElementById("txCategoryCustom").value.trim() || (type === 'income' ? '其他收入' : '其他雜項');
+
+      let finalCurrency = currVal;
+      let isCustomThird = false;
+      let customRate = 1.0;
+
+      if (currVal === "CUSTOM_THIRD") {
+        const code = document.getElementById("txCustomCurrencyCode").value.trim().toUpperCase() || "ETC";
+        finalCurrency = code;
+        isCustomThird = true;
+        customRate = parseFloat(document.getElementById("txCustomCurrencyRate").value) || 1.0;
+      }
 
       if (type === 'income') {
         if (!appState.incomeCategories.includes(finalCat)) appState.incomeCategories.push(finalCat);
@@ -1296,7 +1452,9 @@
       const newTx = {
         id: "tx_" + Date.now(),
         type: type,
-        currency: document.getElementById("txCurrency").value,
+        currency: finalCurrency,
+        isCustomThird: isCustomThird,
+        customRate: customRate,
         date: document.getElementById("txDate").value,
         amount: parseFloat(document.getElementById("txAmount").value) || 0,
         category: finalCat,
@@ -1363,7 +1521,6 @@
       }
     };
 
-    // --- 日曆渲染 ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -1457,7 +1614,6 @@
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
 
-      // 導航與行事曆動作區
       const actionsArea = document.getElementById("eventActionsArea");
       const mapBtn = document.getElementById("eventMapDirectLink");
       const mapBtnText = document.getElementById("eventMapDirectLinkText");
@@ -1517,7 +1673,6 @@
       }
     };
 
-    // --- 裝備清單 ---
     function renderGear() {
       const tabsContainer = document.getElementById("gearCategoryTabs");
       const itemsContainer = document.getElementById("gearItemsContainer");
@@ -1680,7 +1835,7 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
       const a = document.createElement('a');
       a.href = dataStr;
-      a.download = `aus_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `finance_backup_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
     };
 
