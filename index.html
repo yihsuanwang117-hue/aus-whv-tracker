@@ -322,7 +322,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: 重要時程日曆 -->
+    <!-- TAB 2: 重要時程日曆 (支援澳洲各州與台灣/土耳其滾動時差換算) -->
     <div id="content-calendar" class="space-y-6 hidden">
       <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -334,9 +334,22 @@
               <button type="button" onclick="changeMonth(1)" class="px-2.5 py-1 text-xs hover:bg-stone-100 text-stone-600 cursor-pointer">下月</button>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="openManageTagsModal()" class="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-semibold cursor-pointer">🏷️ 管理標籤</button>
-            <button type="button" onclick="openAddEventModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增待辦事項</button>
+
+          <!-- 時區定位與功能鍵 -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center bg-stone-100 border border-stone-200 rounded-lg px-2 py-1 text-xs">
+              <span class="mr-1 text-stone-500 font-semibold">📍 當前所在：</span>
+              <select id="userCurrentTimeZone" class="bg-white border border-stone-300 rounded px-1.5 py-0.5 font-bold text-stone-800 focus:outline-none" onchange="changeUserTimeZone(this.value)">
+                <option value="Australia/Brisbane">布里斯本 (昆州 UTC+10)</option>
+                <option value="Australia/Darwin">烏魯魯 / 達爾文 (北領地 UTC+9.5)</option>
+                <option value="Australia/Sydney">雪梨 / 墨爾本 (新州/維州 UTC+10/11)</option>
+                <option value="Australia/Adelaide">阿德雷德 (南澳 UTC+9.5/10.5)</option>
+                <option value="Australia/Perth">伯斯 (西澳 UTC+8)</option>
+                <option value="Asia/Taipei">台灣 (UTC+8)</option>
+              </select>
+            </div>
+            <button type="button" onclick="openManageTagsModal()" class="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-semibold cursor-pointer">🏷️ 管理標籤</button>
+            <button type="button" onclick="openAddEventModal()" class="px-3 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增待辦事項</button>
           </div>
         </div>
 
@@ -376,7 +389,7 @@
     </div>
   </main>
 
-  <!-- MODAL: 管理收支類別 (支援上下調動順序) -->
+  <!-- MODAL: 管理收支類別 (支援重新命名與上下排序) -->
   <div id="manageFinanceCategoriesModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -401,7 +414,7 @@
 
       <div class="pt-1">
         <div class="flex justify-between items-center mb-2">
-          <span class="font-semibold text-xs text-stone-600">現有類別項目 (可上下調換順序)：</span>
+          <span class="font-semibold text-xs text-stone-600">現有類別項目 (可改名或上下排序)：</span>
         </div>
         <div id="financeCategoriesListContainer" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
       </div>
@@ -412,7 +425,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 管理自訂日曆標籤 (支援上下順序移動) -->
+  <!-- MODAL: 管理自訂日曆標籤 (支援重新命名與上下排序) -->
   <div id="manageTagsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -438,7 +451,7 @@
       </div>
       <div class="pt-2">
         <div class="flex justify-between items-center mb-2">
-          <span class="font-semibold text-xs text-stone-600">現有標籤清單 (可上下調換順序)：</span>
+          <span class="font-semibold text-xs text-stone-600">現有標籤清單 (可改名或調換順序)：</span>
         </div>
         <div id="tagsListContainer" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
       </div>
@@ -530,7 +543,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 -->
+  <!-- MODAL: 新增/編輯日曆事項 (含三方跨國授課時間換算預覽) -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -541,7 +554,7 @@
         <input type="hidden" id="eventId">
         <div>
           <label class="block font-semibold mb-1">事項名稱</label>
-          <input type="text" id="eventTitle" required placeholder="例如：德協面談、肉廠報到、飛機起飛" class="w-full p-2 border rounded">
+          <input type="text" id="eventTitle" required placeholder="例如：德協面談、線上中文課(土耳其學生)" class="w-full p-2 border rounded">
         </div>
         <div>
           <div class="flex justify-between items-center mb-1">
@@ -551,14 +564,43 @@
           <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
         </div>
         
+        <!-- 時間與時區基準 -->
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block font-semibold mb-1">日期 (必填)</label>
-            <input type="date" id="eventDate" required class="w-full p-2 border rounded">
+            <input type="date" id="eventDate" required class="w-full p-2 border rounded" onchange="updateEventTimePreview()">
           </div>
           <div>
             <label class="block font-semibold mb-1">開始時間 <span class="text-stone-400 font-normal">(選填)</span></label>
-            <input type="time" id="eventStartTime" class="w-full p-2 border rounded">
+            <input type="time" id="eventStartTime" class="w-full p-2 border rounded" onchange="updateEventTimePreview()">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">此時間的基準依據：</label>
+          <select id="eventBaseZone" class="w-full p-1.5 border rounded text-xs font-medium text-stone-800" onchange="updateEventTimePreview()">
+            <option value="LOCAL">📍 以我當前所在城市時間為準</option>
+            <option value="Asia/Taipei">🇹🇼 以台灣時間為準 (學生台灣課)</option>
+            <option value="Europe/Istanbul">🇹🇷 以土耳其時間為準 (學生土耳其課)</option>
+          </select>
+        </div>
+
+        <!-- 三方時區滾動對齊即時預覽條 -->
+        <div id="timezoneConvertPreview" class="hidden p-2.5 bg-amber-50/80 border border-amber-200 rounded-lg text-[11px] space-y-1">
+          <span class="font-bold text-amber-900 block">🌐 三方時間自動換算對齊：</span>
+          <div class="grid grid-cols-3 gap-1 text-center font-mono">
+            <div class="bg-white p-1 rounded border border-amber-200">
+              <span class="block text-stone-400 text-[9px]">當地時間</span>
+              <span id="previewLocalTime" class="font-bold text-stone-800">--:--</span>
+            </div>
+            <div class="bg-white p-1 rounded border border-amber-200">
+              <span class="block text-stone-400 text-[9px]">台灣 (UTC+8)</span>
+              <span id="previewTwTime" class="font-bold text-blue-700">--:--</span>
+            </div>
+            <div class="bg-white p-1 rounded border border-amber-200">
+              <span class="block text-stone-400 text-[9px]">土耳其 (UTC+3)</span>
+              <span id="previewTrTime" class="font-bold text-emerald-700">--:--</span>
+            </div>
           </div>
         </div>
 
@@ -723,8 +765,8 @@
     ];
 
     const DEFAULT_EVENTS = [
-      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", time: "14:00", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "工作結束交接 & 下一站啟程", tagId: "t_2", date: "2027-06-30", time: "", location: "Ayers Rock Resort", desc: "完成交接，領取相關退稅結算單據。" }
+      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", time: "14:00", baseZone: "LOCAL", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
+      { id: "ev2", title: "工作結束交接 & 下一站啟程", tagId: "t_2", date: "2027-06-30", time: "", baseZone: "LOCAL", location: "Ayers Rock Resort", desc: "完成交接，領取相關退稅結算單據。" }
     ];
 
     const DEFAULT_EXPENSE_CATS = ["金融規費", "飲食餐飲", "玩樂休閒", "住宿房租", "生活採買", "機票交通", "其他雜項"];
@@ -737,6 +779,7 @@
       avatarImage: "",
       primaryCurrency: "AUD",
       homeCurrency: "TWD",
+      userTimeZone: "Australia/Brisbane", // 預設所在城市
       targetNTD: 400000,
       targetEndDate: "2027-06-30",
       audPoolTitle: "主要外幣資金池 (AUD)",
@@ -851,6 +894,70 @@
       window.open(buildGoogleMapsUrl(input), "_blank");
     };
 
+    // --- 跨國多時區時程換算核心 ---
+    function getUtcDateFromZone(dateStr, timeStr, timeZone) {
+      if (!timeStr) return null;
+      const tempUtc = new Date(`${dateStr}T${timeStr}:00Z`);
+      const invDate = new Date(tempUtc.toLocaleString('en-US', { timeZone: 'UTC' }));
+      const targetDate = new Date(tempUtc.toLocaleString('en-US', { timeZone: timeZone }));
+      const diff = invDate.getTime() - targetDate.getTime();
+      return new Date(tempUtc.getTime() + diff);
+    }
+
+    function formatTimeInZone(utcDate, timeZone) {
+      if (!utcDate) return { time: '', date: '' };
+      const formatter = new Intl.DateTimeFormat('zh-TW', {
+        timeZone: timeZone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      return {
+        time: formatter.format(utcDate),
+        date: dateFormatter.format(utcDate)
+      };
+    }
+
+    window.changeUserTimeZone = function(zone) {
+      appState.userTimeZone = zone;
+      saveState();
+      renderCalendar();
+      checkSmartReminders();
+    };
+
+    window.updateEventTimePreview = function() {
+      const dateStr = document.getElementById("eventDate").value;
+      const timeStr = document.getElementById("eventStartTime").value;
+      const baseZone = document.getElementById("eventBaseZone").value;
+      const previewBox = document.getElementById("timezoneConvertPreview");
+
+      if (!dateStr || !timeStr) {
+        previewBox.classList.add("hidden");
+        return;
+      }
+
+      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      const actualBaseZone = baseZone === "LOCAL" ? activeUserZone : baseZone;
+
+      const utcDate = getUtcDateFromZone(dateStr, timeStr, actualBaseZone);
+      if (!utcDate) return;
+
+      const localTime = formatTimeInZone(utcDate, activeUserZone).time;
+      const twTime = formatTimeInZone(utcDate, "Asia/Taipei").time;
+      const trTime = formatTimeInZone(utcDate, "Europe/Istanbul").time;
+
+      document.getElementById("previewLocalTime").textContent = localTime;
+      document.getElementById("previewTwTime").textContent = twTime;
+      document.getElementById("previewTrTime").textContent = trTime;
+      previewBox.classList.remove("hidden");
+    };
+
     function checkSmartReminders() {
       const banner = document.getElementById("smartReminderBanner");
       const listEl = document.getElementById("smartReminderList");
@@ -897,29 +1004,38 @@
       banner.classList.remove("hidden");
     }
 
+    // Google 日曆匯出：精準帶入 UTC 時間戳（永無時差偏差）
     window.addToGoogleCalendarFromModal = function() {
       const title = document.getElementById("eventTitle").value.trim();
       const dateStr = document.getElementById("eventDate").value;
       const timeStr = document.getElementById("eventStartTime").value;
+      const baseZone = document.getElementById("eventBaseZone").value;
       const loc = document.getElementById("eventLocationInput").value.trim();
       const desc = document.getElementById("eventDesc").value.trim();
 
       if (!title || !dateStr) { alert("請填寫事項名稱與日期！"); return; }
 
-      const cleanDate = dateStr.replace(/-/g, "");
+      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      const actualBaseZone = baseZone === "LOCAL" ? activeUserZone : baseZone;
+
       let datesParam = "";
 
       if (timeStr) {
-        const [h, m] = timeStr.split(":").map(Number);
-        const startH = String(h).padStart(2, '0');
-        const startM = String(m).padStart(2, '0');
-        const endH = String((h + 1) % 24).padStart(2, '0');
-        datesParam = `${cleanDate}T${startH}${startM}00/${cleanDate}T${endH}${startM}00`;
+        const utcDate = getUtcDateFromZone(dateStr, timeStr, actualBaseZone);
+        const endUtcDate = new Date(utcDate.getTime() + 60 * 60 * 1000); // 預設 1 小時課程
+
+        const fmt = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        datesParam = `${fmt(utcDate)}/${fmt(endUtcDate)}`;
       } else {
+        const cleanDate = dateStr.replace(/-/g, "");
         datesParam = `${cleanDate}/${cleanDate}`;
       }
 
       let details = desc || "";
+      if (timeStr) {
+        const utc = getUtcDateFromZone(dateStr, timeStr, actualBaseZone);
+        details += `\n[多國時間對齊] 當地: ${formatTimeInZone(utc, activeUserZone).time} | 台灣: ${formatTimeInZone(utc, "Asia/Taipei").time} | 土耳其: ${formatTimeInZone(utc, "Europe/Istanbul").time}`;
+      }
       if (loc) details += `\n地點導航：${buildGoogleMapsUrl(loc)}`;
 
       const gUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${datesParam}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(loc)}`;
@@ -930,22 +1046,24 @@
       const title = document.getElementById("eventTitle").value.trim();
       const dateStr = document.getElementById("eventDate").value;
       const timeStr = document.getElementById("eventStartTime").value;
+      const baseZone = document.getElementById("eventBaseZone").value;
       const loc = document.getElementById("eventLocationInput").value.trim();
       const desc = document.getElementById("eventDesc").value.trim();
 
       if (!title || !dateStr) { alert("請填寫事項名稱與日期！"); return; }
 
-      const cleanDate = dateStr.replace(/-/g, "");
-      let dtStartLine = `DTSTART;VALUE=DATE:${cleanDate}`;
-      let dtEndLine = `DTEND;VALUE=DATE:${cleanDate}`;
+      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      const actualBaseZone = baseZone === "LOCAL" ? activeUserZone : baseZone;
+
+      let dtStartLine = `DTSTART;VALUE=DATE:${dateStr.replace(/-/g, "")}`;
+      let dtEndLine = `DTEND;VALUE=DATE:${dateStr.replace(/-/g, "")}`;
 
       if (timeStr) {
-        const [h, m] = timeStr.split(":").map(Number);
-        const startH = String(h).padStart(2, '0');
-        const startM = String(m).padStart(2, '0');
-        const endH = String((h + 1) % 24).padStart(2, '0');
-        dtStartLine = `DTSTART:${cleanDate}T${startH}${startM}00`;
-        dtEndLine = `DTEND:${cleanDate}T${endH}${startM}00`;
+        const utcDate = getUtcDateFromZone(dateStr, timeStr, actualBaseZone);
+        const endUtcDate = new Date(utcDate.getTime() + 60 * 60 * 1000);
+        const fmt = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        dtStartLine = `DTSTART:${fmt(utcDate)}`;
+        dtEndLine = `DTEND:${fmt(endUtcDate)}`;
       }
 
       const icsData = [
@@ -954,7 +1072,7 @@
         "PRODID:-//AU WHV Tracker//CN",
         "BEGIN:VEVENT",
         `UID:${Date.now()}@whv-tracker`,
-        `DTSTAMP:${cleanDate}T000000Z`,
+        `DTSTAMP:${dateStr.replace(/-/g, "")}T000000Z`,
         dtStartLine,
         dtEndLine,
         `SUMMARY:${title}`,
@@ -1019,7 +1137,7 @@
       }
     }
 
- // --- 日曆標籤管理與上下移動排序模組 ---
+    // --- 日曆標籤管理模組 (支援重新命名與上下排序) ---
     window.openManageTagsModal = function() {
       renderTagsListWithOrder();
       document.getElementById("manageTagsModal").classList.remove("hidden");
@@ -1047,7 +1165,6 @@
       `).join('');
     }
 
-    // 重新命名日曆標籤 (保留原始 ID，不影響已綁定行程)
     window.renameTag = function(tagId) {
       const tag = (appState.tags || []).find(t => t.id === tagId);
       if (!tag) return;
@@ -1095,7 +1212,7 @@
       }
     };
 
-   // --- 管理收支類別 (支援重新命名與上下排序) ---
+    // --- 管理收支類別模組 (支援重新命名與上下排序) ---
     window.openManageFinanceCategoriesModal = function() {
       switchFinanceCategoryTab(currentManageCatTab);
       document.getElementById("manageFinanceCategoriesModal").classList.remove("hidden");
@@ -1147,14 +1264,11 @@
       `).join('');
     }
 
-    // 重新命名收支大類別 (自動同步更新所有舊交易的分類欄位)
     window.renameFinanceCategory = function(oldCatName) {
       const newName = prompt(`請輸入「${oldCatName}」的新名稱：`, oldCatName);
       if (!newName || !newName.trim() || newName.trim() === oldCatName) return;
-
       const finalNewName = newName.trim();
 
-      // 更新清單
       if (currentManageCatTab === 'expense') {
         const idx = (appState.expenseCategories || []).indexOf(oldCatName);
         if (idx !== -1) appState.expenseCategories[idx] = finalNewName;
@@ -1163,7 +1277,7 @@
         if (idx !== -1) appState.incomeCategories[idx] = finalNewName;
       }
 
-      // 同步更新現有收支紀錄中的舊名稱，避免歷史紀錄斷裂
+      // 同步更新歷史記帳中的舊類別欄位
       (appState.transactions || []).forEach(tx => {
         if (tx.type === currentManageCatTab && tx.category === oldCatName) {
           tx.category = finalNewName;
@@ -1285,6 +1399,7 @@
       if (!appState.avatarInitials) appState.avatarInitials = "AU";
       if (!appState.primaryCurrency) appState.primaryCurrency = "AUD";
       if (!appState.homeCurrency) appState.homeCurrency = "TWD";
+      if (!appState.userTimeZone) appState.userTimeZone = "Australia/Brisbane";
 
       const fxInput = document.getElementById("fxRateInput");
       if (fxInput) fxInput.value = appState.fxRate || 23.0;
@@ -1691,7 +1806,7 @@
       }
     };
 
-    // --- 日曆渲染 (全面修復月表格版面坍塌) ---
+    // --- 日曆渲染 (支援多時區滾動計算與三方對齊標籤) ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -1700,6 +1815,10 @@
       const grid = document.getElementById("calendarGrid");
       if (!grid) return;
       grid.innerHTML = "";
+
+      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      const tzSelect = document.getElementById("userCurrentTimeZone");
+      if (tzSelect) tzSelect.value = activeUserZone;
 
       const legendEl = document.getElementById("eventCategoryLegend");
       if (legendEl) {
@@ -1712,13 +1831,24 @@
       const totalDays = new Date(year, month + 1, 0).getDate();
       const prevTotalDays = new Date(year, month, 0).getDate();
 
+      // 上月墊檔
       for (let i = firstDay - 1; i >= 0; i--) {
         grid.innerHTML += `<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">${prevTotalDays - i}</span></div>`;
       }
 
+      // 當月天數
       for (let day = 1; day <= totalDays; day++) {
         const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const evs = (appState.events || []).filter(e => e.date === dStr);
+        
+        // 依據當前選取時區滾動比對當日行程
+        const evs = (appState.events || []).filter(e => {
+          if (!e.time) return e.date === dStr;
+          const baseZ = (e.baseZone === "LOCAL" || !e.baseZone) ? (e.createdInZone || activeUserZone) : e.baseZone;
+          const utc = getUtcDateFromZone(e.date, e.time, baseZ);
+          const converted = formatTimeInZone(utc, activeUserZone);
+          return converted.date === dStr;
+        });
+
         grid.innerHTML += `
           <div onclick="openAddEventForDate('${dStr}')" class="bg-white min-h-[90px] p-1.5 hover:bg-stone-50 transition cursor-pointer flex flex-col justify-between">
             <div>
@@ -1728,11 +1858,23 @@
                   const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
                   const locVal = e.location || e.mapUrl || "";
                   const hasLocation = Boolean(locVal && locVal.trim());
-                  const timeStr = e.time ? `<span class="opacity-80 mr-0.5 font-mono text-[9px]">${e.time}</span>` : '';
+
+                  let timeBadge = "";
+                  if (e.time) {
+                    const baseZ = (e.baseZone === "LOCAL" || !e.baseZone) ? (e.createdInZone || activeUserZone) : e.baseZone;
+                    const utc = getUtcDateFromZone(e.date, e.time, baseZ);
+                    const localFormatted = formatTimeInZone(utc, activeUserZone).time;
+                    const twFormatted = formatTimeInZone(utc, "Asia/Taipei").time;
+                    timeBadge = `<span class="font-mono text-[9px] block text-stone-500 leading-tight">📍${localFormatted} (台${twFormatted})</span>`;
+                  }
+
                   return `
-                    <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium flex items-center justify-between gap-1 ${getColorBadgeClass(tag.color)}">
-                      <span class="truncate">${timeStr}<span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
-                      ${hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含 Google Maps 地點">📍</span>' : ''}
+                    <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${getColorBadgeClass(tag.color)}">
+                      <div class="flex items-center justify-between gap-1 truncate">
+                        <span class="truncate"><span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
+                        ${hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含地點">📍</span>' : ''}
+                      </div>
+                      ${timeBadge}
                     </div>
                   `;
                 }).join('')}
@@ -1742,6 +1884,7 @@
         `;
       }
 
+      // 下月墊檔
       const currentCellCount = firstDay + totalDays;
       const nextMonthDays = (7 - (currentCellCount % 7)) % 7;
       for (let j = 1; j <= nextMonthDays; j++) {
@@ -1761,11 +1904,13 @@
       document.getElementById("eventTitle").value = "";
       document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
       document.getElementById("eventStartTime").value = "";
+      document.getElementById("eventBaseZone").value = "LOCAL";
       document.getElementById("eventLocationInput").value = "";
       document.getElementById("eventDesc").value = "";
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
       document.getElementById("eventDeleteBtn").classList.add("hidden");
       document.getElementById("eventActionsArea").classList.add("hidden");
+      document.getElementById("timezoneConvertPreview").classList.add("hidden");
 
       const tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}">● ${t.name}</option>`).join('');
@@ -1786,6 +1931,7 @@
       document.getElementById("eventTitle").value = ev.title;
       document.getElementById("eventDate").value = ev.date;
       document.getElementById("eventStartTime").value = ev.time || "";
+      document.getElementById("eventBaseZone").value = ev.baseZone || "LOCAL";
       
       const locVal = ev.location || ev.mapUrl || "";
       document.getElementById("eventLocationInput").value = locVal;
@@ -1810,6 +1956,7 @@
       const tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}" ${t.id === ev.tagId ? 'selected' : ''}>● ${t.name}</option>`).join('');
 
+      updateEventTimePreview();
       document.getElementById("eventModal").classList.remove("hidden");
     };
 
@@ -1817,12 +1964,16 @@
       e.preventDefault();
       const id = document.getElementById("eventId").value;
       const loc = document.getElementById("eventLocationInput").value.trim();
+      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+
       const newEv = {
         id: id || "ev_" + Date.now(),
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
         date: document.getElementById("eventDate").value,
         time: document.getElementById("eventStartTime").value,
+        baseZone: document.getElementById("eventBaseZone").value,
+        createdInZone: activeUserZone,
         location: loc,
         mapUrl: loc,
         desc: document.getElementById("eventDesc").value
@@ -1830,7 +1981,7 @@
 
       if (!appState.events) appState.events = [];
       if (id) {
-        const idx = appState.events.findIndex(e => e.id === id);
+        const idx = appState.events.findIndex(ev => ev.id === id);
         if (idx !== -1) appState.events[idx] = newEv;
       } else {
         appState.events.push(newEv);
