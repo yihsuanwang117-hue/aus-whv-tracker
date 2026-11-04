@@ -24,6 +24,7 @@
   <header class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
+        <!-- 可點擊更換的個人頭像 -->
         <div onclick="triggerAvatarUpload()" class="relative group cursor-pointer" title="點擊更換個人圖片/頭像">
           <div id="headerAvatarContainer" class="w-10 h-10 rounded-full bg-amber-800 flex items-center justify-center text-white font-bold text-base shadow-inner overflow-hidden border border-amber-900/20">
             <span id="headerAvatarText">AU</span>
@@ -216,6 +217,55 @@
         </div>
       </div>
 
+      <!-- 國際電匯/換匯實收試算器模組 (全新加入) -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-stone-100">
+          <div>
+            <h3 class="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+              <span>💱</span> 國際電匯 & 換匯手續費實收試算器
+            </h3>
+            <p class="text-xs text-stone-500 mt-0.5">模擬出匯行、中轉行與受款行手續費扣除後的「實際入帳金額」與「真實隱含匯率」。</p>
+          </div>
+          <button type="button" onclick="applyWireTransferToForm()" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition cursor-pointer">
+            ➔ 帶入記帳彈窗
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">匯出金額 (<span id="wireHomeCurrLabel">TWD</span>)</label>
+            <input type="number" id="wireSendAmount" value="100000" step="1000" class="w-full p-2 border rounded-lg font-bold font-mono" oninput="calculateWireTransfer()">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">換匯匯率 (1 <span class="primaryCurrText">AUD</span> = )</label>
+            <input type="number" id="wireFxRate" step="0.01" value="23.0" class="w-full p-2 border rounded-lg font-bold font-mono" oninput="calculateWireTransfer()">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">台灣出匯手續費 (<span id="wireFeeHomeLabel">TWD</span>)</label>
+            <input type="number" id="wireHomeFee" value="600" step="50" class="w-full p-2 border rounded-lg font-mono" oninput="calculateWireTransfer()">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">中轉行/解匯手續費 (<span class="primaryCurrText">AUD</span>)</label>
+            <input type="number" id="wireForeignFee" value="25" step="5" class="w-full p-2 border rounded-lg font-mono" oninput="calculateWireTransfer()">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-xs">
+          <div>
+            <span class="text-stone-400 block">預估實際到帳金額：</span>
+            <span id="wireNetReceivedText" class="text-base font-extrabold text-emerald-700 font-mono mt-0.5 block">$0.00 AUD</span>
+          </div>
+          <div>
+            <span class="text-stone-400 block">被手續費吃掉的金額：</span>
+            <span id="wireTotalFeeText" class="text-sm font-bold text-rose-600 font-mono mt-0.5 block">約 NT$ 0</span>
+          </div>
+          <div>
+            <span class="text-stone-400 block">實質隱含匯率 (計入所有手續費)：</span>
+            <span id="wireEffectiveRateText" class="text-sm font-bold text-stone-900 font-mono mt-0.5 block">1 AUD = 0.00 TWD</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 圓餅圖統計分析區塊 -->
       <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
@@ -272,7 +322,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: 重要時程日曆 -->
+    <!-- TAB 2: 重要時程日曆 (月表格版面修復) -->
     <div id="content-calendar" class="space-y-6 hidden">
       <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -292,20 +342,17 @@
 
         <div id="eventCategoryLegend" class="flex flex-wrap gap-2 text-[11px] mb-3 pb-2 border-b border-stone-100"></div>
 
-        <div class="grid grid-cols-7 gap-px bg-stone-200 border border-stone-200 rounded-lg overflow-hidden text-xs">
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週日</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週一</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週二</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週三</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週四</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週五</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週六</div>
-          <div id="calendarGrid" class="contents"></div>
+        <!-- 月曆格線 (確保寬高完整顯示) -->
+        <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-200 shadow-xs">
+          <div class="grid grid-cols-7 gap-px bg-stone-200 text-center font-bold text-xs text-stone-600 py-2 bg-stone-100">
+            <div>週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div>週六</div>
+          </div>
+          <div id="calendarGrid" class="grid grid-cols-7 gap-px bg-stone-200 text-xs"></div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: 出發裝備清單 -->
+    <!-- TAB 3: 出發裝備清單 (完整修復顯示) -->
     <div id="content-gear" class="space-y-6 hidden">
       <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
@@ -329,7 +376,7 @@
     </div>
   </main>
 
-  <!-- MODAL: 管理收支類別 (全新仿日曆標籤架構) -->
+  <!-- MODAL: 管理收支類別 -->
   <div id="manageFinanceCategoriesModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -339,13 +386,11 @@
         <button type="button" onclick="closeModal('manageFinanceCategoriesModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
       </div>
 
-      <!-- 切換 支出 / 收入 標籤分類 -->
       <div class="flex bg-stone-100 p-1 rounded-xl text-xs font-bold">
         <button type="button" id="catTabExpense" onclick="switchFinanceCategoryTab('expense')" class="flex-1 py-1.5 rounded-lg cat-btn-active transition cursor-pointer">支出類別</button>
         <button type="button" id="catTabIncome" onclick="switchFinanceCategoryTab('income')" class="flex-1 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition cursor-pointer">收入類別</button>
       </div>
       
-      <!-- 新增類別輸入區 -->
       <div class="space-y-1.5">
         <label id="addCategoryInputLabel" class="block font-semibold text-xs text-stone-700">＋ 新增支出類別</label>
         <div class="flex gap-1.5">
@@ -354,7 +399,6 @@
         </div>
       </div>
 
-      <!-- 類別清單列表 -->
       <div class="pt-1">
         <span class="block font-semibold text-xs text-stone-500 mb-2">現有類別項目：</span>
         <div id="financeCategoriesListContainer" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
@@ -362,6 +406,42 @@
 
       <div class="pt-2 flex justify-end border-t border-stone-100">
         <button type="button" onclick="closeModal('manageFinanceCategoriesModal')" class="px-4 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-lg text-xs font-bold cursor-pointer">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: 管理自訂日曆標籤 (支援上下順序移動) -->
+  <div id="manageTagsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+        <h3 class="text-base font-bold text-stone-900">🏷️ 管理與排序日曆標籤</h3>
+        <button type="button" onclick="closeModal('manageTagsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
+      </div>
+      <div class="space-y-2">
+        <label class="block font-semibold text-xs text-stone-700">＋ 新增標籤</label>
+        <div class="flex gap-1.5">
+          <input type="text" id="newTagName" placeholder="標籤名稱" class="flex-1 p-2 text-xs border rounded-lg">
+          <select id="newTagColor" class="p-2 text-xs border rounded-lg font-bold">
+            <option value="rose">🔴 紅色</option>
+            <option value="blue">🔵 藍色</option>
+            <option value="emerald">🟢 綠色</option>
+            <option value="amber">🟠 橘色</option>
+            <option value="purple">🟣 紫色</option>
+            <option value="pink">🌸 粉色</option>
+            <option value="cyan">🌊 青色</option>
+            <option value="stone">⚪ 灰色</option>
+          </select>
+          <button type="button" onclick="handleAddNewTag()" class="px-3 py-1.5 bg-amber-800 text-white rounded-lg text-xs font-bold cursor-pointer">新增</button>
+        </div>
+      </div>
+      <div class="pt-2">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-semibold text-xs text-stone-600">現有標籤清單 (可上下調換順序)：</span>
+        </div>
+        <div id="tagsListContainer" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
+      </div>
+      <div class="pt-2 flex justify-end border-t border-stone-100">
+        <button type="button" onclick="closeModal('manageTagsModal')" class="px-4 py-1.5 bg-stone-100 text-stone-800 rounded-lg text-xs font-bold cursor-pointer">完成</button>
       </div>
     </div>
   </div>
@@ -448,40 +528,6 @@
     </div>
   </div>
 
-  <!-- MODAL: 管理/自訂日曆標籤 -->
-  <div id="manageTagsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
-      <div class="flex justify-between items-center pb-2 border-b border-stone-100">
-        <h3 class="text-base font-bold text-stone-900">🏷️ 管理自訂標籤</h3>
-        <button type="button" onclick="closeModal('manageTagsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
-      </div>
-      <div class="space-y-2">
-        <label class="block font-semibold text-xs text-stone-700">＋ 新增標籤</label>
-        <div class="flex gap-1.5">
-          <input type="text" id="newTagName" placeholder="標籤名稱" class="flex-1 p-2 text-xs border rounded-lg">
-          <select id="newTagColor" class="p-2 text-xs border rounded-lg font-bold">
-            <option value="rose">🔴 紅色</option>
-            <option value="blue">🔵 藍色</option>
-            <option value="emerald">🟢 綠色</option>
-            <option value="amber">🟠 橘色</option>
-            <option value="purple">🟣 紫色</option>
-            <option value="pink">🌸 粉色</option>
-            <option value="cyan">🌊 青色</option>
-            <option value="stone">⚪ 灰色</option>
-          </select>
-          <button type="button" onclick="handleAddNewTag()" class="px-3 py-1.5 bg-amber-800 text-white rounded-lg text-xs font-bold cursor-pointer">新增</button>
-        </div>
-      </div>
-      <div class="pt-2">
-        <span class="block font-semibold text-xs text-stone-600 mb-2">現有標籤清單：</span>
-        <div id="tagsListContainer" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
-      </div>
-      <div class="pt-2 flex justify-end border-t border-stone-100">
-        <button type="button" onclick="closeModal('manageTagsModal')" class="px-4 py-1.5 bg-stone-100 text-stone-800 rounded-lg text-xs font-bold cursor-pointer">完成</button>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
@@ -498,7 +544,7 @@
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="font-semibold">選擇標籤分類</label>
-            <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[11px] font-bold cursor-pointer">＋ 管理/新增標籤</button>
+            <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[11px] font-bold cursor-pointer">＋ 管理/排序標籤</button>
           </div>
           <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
         </div>
@@ -586,7 +632,6 @@
           <input type="number" id="txAmount" step="0.01" required placeholder="0.00" class="w-full p-2.5 text-base font-bold border rounded font-mono">
         </div>
 
-        <!-- 類別選擇下拉：可直接跳往管理標籤彈窗 -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="font-semibold">大分類項目</label>
@@ -708,7 +753,7 @@
     let currentSelectedGearCategory = "ALL";
     let chartPeriod = "month";
     let chartType = "expense";
-    let currentManageCatTab = "expense"; // 'expense' or 'income'
+    let currentManageCatTab = "expense";
     let pieChartInstance = null;
     let db = null;
     let syncUnsubscribe = null;
@@ -716,27 +761,72 @@
 
     const CHART_PALETTE = ['#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'];
 
+    // --- 即時匯率 API ---
     async function fetchLiveFxRate(isUserTriggered = false) {
       const pCurr = appState.primaryCurrency || "AUD";
       const hCurr = appState.homeCurrency || "TWD";
 
       try {
         const res = await fetch(`https://open.er-api.com/v6/latest/${pCurr}`);
-        if (!res.ok) throw new Error("API Network error");
+        if (!res.ok) throw new Error("API error");
         const json = await res.json();
         if (json && json.rates && json.rates[hCurr]) {
           const liveRate = parseFloat(json.rates[hCurr].toFixed(2));
           appState.fxRate = liveRate;
           document.getElementById("fxRateInput").value = liveRate;
+          document.getElementById("wireFxRate").value = liveRate;
           saveState();
           renderFinance();
           renderPieChart();
+          calculateWireTransfer();
           if (isUserTriggered) alert(`已更新最新即時匯率：1 ${pCurr} = ${liveRate} ${hCurr}`);
         }
       } catch (err) {
         if (isUserTriggered) alert("暫時無法連線至即時匯率伺服器，可直接手動輸入。");
       }
     }
+
+    // --- 國際電匯試算核心演算法 ---
+    function calculateWireTransfer() {
+      const sendHome = parseFloat(document.getElementById("wireSendAmount").value) || 0;
+      const rate = parseFloat(document.getElementById("wireFxRate").value) || 1;
+      const homeFee = parseFloat(document.getElementById("wireHomeFee").value) || 0;
+      const foreignFee = parseFloat(document.getElementById("wireForeignFee").value) || 0;
+
+      const pCurr = appState.primaryCurrency || "AUD";
+      const hCurr = appState.homeCurrency || "TWD";
+
+      // 轉換後的原幣外幣總額
+      const convertedForeign = sendHome / rate;
+      // 扣除中轉行/受款行手續費後的實得金額
+      const netReceivedForeign = Math.max(0, convertedForeign - foreignFee);
+
+      // 被吃掉的總手續費折合本國幣
+      const totalLostHome = homeFee + (foreignFee * rate);
+      // 實質隱含匯率 = 實際付出的本國幣總額 / 實際拿到手的外幣
+      const totalPaidHome = sendHome + homeFee;
+      const effectiveRate = netReceivedForeign > 0 ? (totalPaidHome / netReceivedForeign).toFixed(2) : "0.00";
+
+      document.getElementById("wireNetReceivedText").textContent = `$${netReceivedForeign.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${pCurr}`;
+      document.getElementById("wireTotalFeeText").textContent = `約 ${hCurr} ${Math.round(totalLostHome).toLocaleString()}`;
+      document.getElementById("wireEffectiveRateText").textContent = `1 ${pCurr} = ${effectiveRate} ${hCurr}`;
+    }
+
+    // 一鍵將電匯試算結果帶入記帳彈窗
+    window.applyWireTransferToForm = function() {
+      const sendHome = parseFloat(document.getElementById("wireSendAmount").value) || 0;
+      const rate = parseFloat(document.getElementById("wireFxRate").value) || 1;
+      const foreignFee = parseFloat(document.getElementById("wireForeignFee").value) || 0;
+      const homeFee = parseFloat(document.getElementById("wireHomeFee").value) || 0;
+
+      const pCurr = appState.primaryCurrency || "AUD";
+      const netForeign = Math.max(0, (sendHome / rate) - foreignFee).toFixed(2);
+
+      openTxModal('income');
+      document.getElementById("txCurrency").value = pCurr;
+      document.getElementById("txAmount").value = netForeign;
+      document.getElementById("txNote").value = `跨國電匯實收 (扣除中轉手續費 $${foreignFee} ${pCurr}，出匯費 NT$${homeFee})`;
+    };
 
     function getColorBadgeClass(color) {
       switch (color) {
@@ -810,7 +900,6 @@
       banner.classList.remove("hidden");
     }
 
-    // --- Google 日曆：精準支援時間帶入 ---
     window.addToGoogleCalendarFromModal = function() {
       const title = document.getElementById("eventTitle").value.trim();
       const dateStr = document.getElementById("eventDate").value;
@@ -840,7 +929,6 @@
       window.open(gUrl, "_blank");
     };
 
-    // --- 手機原生日曆 ICS 匯出 (支援時間) ---
     window.downloadIcsFileFromModal = function() {
       const title = document.getElementById("eventTitle").value.trim();
       const dateStr = document.getElementById("eventDate").value;
@@ -934,7 +1022,69 @@
       }
     }
 
-    // --- 管理收支類別 (全新彈窗與邏輯) ---
+    // --- 日曆標籤管理與上下移動排序模組 ---
+    window.openManageTagsModal = function() {
+      renderTagsListWithOrder();
+      document.getElementById("manageTagsModal").classList.remove("hidden");
+    };
+
+    function renderTagsListWithOrder() {
+      const container = document.getElementById("tagsListContainer");
+      const tags = appState.tags || [];
+
+      if (tags.length === 0) {
+        container.innerHTML = `<p class="text-xs text-stone-400 py-3 text-center">尚無標籤，請在上方新增</p>`;
+        return;
+      }
+
+      container.innerHTML = tags.map((tag, idx) => `
+        <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${getColorBadgeClass(tag.color)}">● ${tag.name}</span>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="moveTagOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▲</button>
+            <button type="button" onclick="moveTagOrder(${idx}, 1)" ${idx === tags.length - 1 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▼</button>
+            <button type="button" onclick="deleteTag('${tag.id}')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 cursor-pointer ml-1">刪除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.moveTagOrder = function(index, delta) {
+      const tags = appState.tags || [];
+      const targetIndex = index + delta;
+      if (targetIndex < 0 || targetIndex >= tags.length) return;
+
+      const item = tags.splice(index, 1)[0];
+      tags.splice(targetIndex, 0, item);
+
+      appState.tags = tags;
+      saveState();
+      renderTagsListWithOrder();
+      renderCalendar();
+    };
+
+    window.handleAddNewTag = function() {
+      const name = document.getElementById("newTagName").value.trim();
+      const color = document.getElementById("newTagColor").value;
+      if (!name) return;
+      if (!appState.tags) appState.tags = [];
+      appState.tags.push({ id: "t_" + Date.now(), name, color });
+      saveState();
+      document.getElementById("newTagName").value = "";
+      renderTagsListWithOrder();
+      renderCalendar();
+    };
+
+    window.deleteTag = function(tagId) {
+      if (confirm("確定要刪除此標籤嗎？")) {
+        appState.tags = appState.tags.filter(t => t.id !== tagId);
+        saveState();
+        renderTagsListWithOrder();
+        renderCalendar();
+      }
+    };
+
+    // --- 管理收支類別 ---
     window.openManageFinanceCategoriesModal = function() {
       switchFinanceCategoryTab(currentManageCatTab);
       document.getElementById("manageFinanceCategoriesModal").classList.remove("hidden");
@@ -1054,6 +1204,8 @@
         }
       });
       if (tabId === 'finance') renderPieChart();
+      if (tabId === 'calendar') renderCalendar();
+      if (tabId === 'gear') renderGear();
     };
 
     function init() {
@@ -1075,6 +1227,7 @@
       applyTitlesAndSettings();
       renderAll();
       fetchLiveFxRate(false);
+      calculateWireTransfer();
 
       const savedKey = localStorage.getItem("au_sync_key");
       if (savedKey) {
@@ -1085,6 +1238,10 @@
     }
 
     window.addEventListener("DOMContentLoaded", init);
+    window.onload = function() {
+      renderCalendar();
+      renderGear();
+    };
 
     function applyTitlesAndSettings() {
       const getEl = id => document.getElementById(id);
@@ -1099,6 +1256,9 @@
 
       if (getEl("headerPrimaryCurrencyLabel")) getEl("headerPrimaryCurrencyLabel").textContent = pCurr;
       if (getEl("headerHomeCurrencyLabel")) getEl("headerHomeCurrencyLabel").textContent = hCurr;
+      if (getEl("wireHomeCurrLabel")) getEl("wireHomeCurrLabel").textContent = hCurr;
+      if (getEl("wireFeeHomeLabel")) getEl("wireFeeHomeLabel").textContent = hCurr;
+
       document.querySelectorAll(".primaryCurrText").forEach(el => el.textContent = pCurr);
 
       if (getEl("settingMainTitle")) getEl("settingMainTitle").value = appState.mainTitle;
@@ -1139,6 +1299,7 @@
       if (oldPCurr !== newPCurr) fetchLiveFxRate(false);
 
       renderFinance();
+      calculateWireTransfer();
       closeModal("settingsModal");
       switchTab('finance');
     };
@@ -1168,11 +1329,214 @@
       const r = parseFloat(val);
       if (r > 0) {
         appState.fxRate = r;
+        document.getElementById("wireFxRate").value = r;
         saveState();
         renderFinance();
         renderPieChart();
+        calculateWireTransfer();
       }
     };
+
+    function renderFinance() {
+      const fx = appState.fxRate || 23.0;
+      const pCurr = appState.primaryCurrency || "AUD";
+      const hCurr = appState.homeCurrency || "TWD";
+
+      let pInc = 0, pExp = 0, hInc = 0, hExp = 0, superRefund = 0;
+
+      (appState.transactions || []).forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        if (t.currency === pCurr) {
+          if (t.type === "income") {
+            pInc += amt;
+            if (t.includeSuper) superRefund += (amt * 0.12 * 0.35);
+          } else pExp += amt;
+        } else if (t.currency === hCurr) {
+          if (t.type === "income") hInc += amt;
+          else hExp += amt;
+        }
+      });
+
+      const pNet = pInc - pExp;
+      const hNet = hInc - hExp;
+      const totalSavingsHome = Math.round((pNet * fx) + (superRefund * fx) + hNet);
+      const targetHome = appState.targetNTD || 400000;
+      const gapHome = targetHome - totalSavingsHome;
+      const pct = Math.min(100, Math.max(0, Math.round((totalSavingsHome / targetHome) * 100)));
+
+      const weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - new Date()) / (1000 * 60 * 60 * 24 * 7)));
+      const weeklyNeedPrimary = gapHome > 0 ? Math.round((gapHome / fx) / weeksLeft) : 0;
+
+      const getEl = id => document.getElementById(id);
+      if (getEl("targetBadgeText")) getEl("targetBadgeText").textContent = `儲蓄目標：${hCurr} ${targetHome.toLocaleString()} (約 $${Math.round(targetHome/fx).toLocaleString()} ${pCurr})`;
+      if (getEl("totalSavingsNTD")) getEl("totalSavingsNTD").textContent = `${hCurr} ${totalSavingsHome.toLocaleString()}`;
+      if (getEl("totalSavingsPrimary")) getEl("totalSavingsPrimary").textContent = `折合約 $${Math.round(totalSavingsHome / fx).toLocaleString()} ${pCurr}`;
+      if (getEl("remainingGapText")) getEl("remainingGapText").textContent = gapHome > 0 ? `距離達成目標還差 ${hCurr} ${gapHome.toLocaleString()}` : "🎉 恭喜達成儲蓄目標！";
+      if (getEl("progressPercent")) getEl("progressPercent").textContent = `${pct}%`;
+      if (getEl("progressBar")) getEl("progressBar").style.width = `${pct}%`;
+      if (getEl("weeksLeftText")) getEl("weeksLeftText").textContent = `${weeksLeft} 週`;
+      if (getEl("weeklyNeedPrimary")) getEl("weeklyNeedPrimary").textContent = `$${weeklyNeedPrimary.toLocaleString()} ${pCurr}`;
+      if (getEl("superRefundEst")) getEl("superRefundEst").textContent = `$${Math.round(superRefund).toLocaleString()} ${pCurr}`;
+      
+      if (getEl("primaryBalance")) getEl("primaryBalance").textContent = `$${pNet.toLocaleString()} ${pCurr}`;
+      if (getEl("primaryIncome")) getEl("primaryIncome").textContent = `+$${pInc.toLocaleString()}`;
+      if (getEl("primaryExpense")) getEl("primaryExpense").textContent = `-$${pExp.toLocaleString()}`;
+      if (getEl("homeBalance")) getEl("homeBalance").textContent = `${hCurr} ${hNet.toLocaleString()}`;
+      if (getEl("homeIncome")) getEl("homeIncome").textContent = `+${hCurr} ${hInc.toLocaleString()}`;
+      if (getEl("homeExpense")) getEl("homeExpense").textContent = `-${hCurr} ${hExp.toLocaleString()}`;
+    }
+
+    window.setChartPeriod = function(p) {
+      chartPeriod = p;
+      ['Week', 'Month', 'All'].forEach(k => {
+        const btn = document.getElementById('chartPeriod' + k);
+        if (btn) btn.className = (k.toLowerCase() === p) ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
+      });
+      renderPieChart();
+    };
+
+    window.setChartType = function(t) {
+      chartType = t;
+      const expBtn = document.getElementById('chartTypeExpense');
+      const incBtn = document.getElementById('chartTypeIncome');
+      if (expBtn && incBtn) {
+        expBtn.className = (t === 'expense') ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
+        incBtn.className = (t === 'income') ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
+      }
+      renderPieChart();
+    };
+
+    function renderPieChart() {
+      const canvas = document.getElementById('financePieChart');
+      const noDataEl = document.getElementById('chartNoDataText');
+      const legendListEl = document.getElementById('chartLegendList');
+      if (!canvas) return;
+
+      const fx = appState.fxRate || 23.0;
+      const pCurr = appState.primaryCurrency || "AUD";
+      const hCurr = appState.homeCurrency || "TWD";
+      const now = new Date();
+
+      const filtered = (appState.transactions || []).filter(t => {
+        if (t.type !== chartType || t.isCustomThird) return false;
+        const tDate = new Date(t.date);
+        if (chartPeriod === 'week') {
+          const diffDays = Math.ceil(Math.abs(now - tDate) / (1000 * 60 * 60 * 24));
+          return diffDays <= 7;
+        } else if (chartPeriod === 'month') {
+          return tDate.getFullYear() === now.getFullYear() && tDate.getMonth() === now.getMonth();
+        }
+        return true;
+      });
+
+      const catTotals = {};
+      let totalAmountHome = 0;
+
+      filtered.forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        const amtHome = t.currency === pCurr ? (amt * fx) : amt;
+        const cat = t.category || "未分類";
+        catTotals[cat] = (catTotals[cat] || 0) + amtHome;
+        totalAmountHome += amtHome;
+      });
+
+      const labels = Object.keys(catTotals);
+      const dataValues = Object.values(catTotals);
+
+      if (labels.length === 0 || totalAmountHome === 0) {
+        if (pieChartInstance) { pieChartInstance.destroy(); pieChartInstance = null; }
+        canvas.classList.add('hidden');
+        noDataEl.classList.remove('hidden');
+        legendListEl.innerHTML = `<p class="text-stone-400 py-6 text-center">該區間無雙幣${chartType === 'expense' ? '支出' : '收入'}記錄</p>`;
+        return;
+      }
+
+      canvas.classList.remove('hidden');
+      noDataEl.classList.add('hidden');
+      const bgColors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+
+      if (pieChartInstance) pieChartInstance.destroy();
+
+      const ctx = canvas.getContext('2d');
+      pieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{ data: dataValues, backgroundColor: bgColors, borderWidth: 2, borderColor: '#ffffff' }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.raw || 0;
+                  const pct = Math.round((val / totalAmountHome) * 100);
+                  return ` ${hCurr} ${Math.round(val).toLocaleString()} (${pct}%)`;
+                }
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+
+      const sorted = Object.entries(catTotals).sort((a,b) => b[1] - a[1]);
+      legendListEl.innerHTML = sorted.map(([cat, amt], idx) => {
+        const pct = Math.round((amt / totalAmountHome) * 100);
+        const col = CHART_PALETTE[idx % CHART_PALETTE.length];
+        return `
+          <div class="p-2 rounded-lg bg-stone-50 border border-stone-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${col}"></span>
+              <span class="font-bold text-stone-800">${cat}</span>
+            </div>
+            <div class="text-right">
+              <span class="font-mono font-bold text-stone-900">${hCurr} ${Math.round(amt).toLocaleString()}</span>
+              <span class="text-[10px] text-stone-500 ml-1 font-mono">(${pct}%)</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById("transactionTableBody");
+      if (!tbody) return;
+      const list = (appState.transactions || []).slice().reverse();
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-stone-400">目前尚無收支紀錄</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(t => {
+        const isThird = Boolean(t.isCustomThird);
+        return `
+          <tr class="hover:bg-stone-50">
+            <td class="py-2.5 px-4 font-mono">${t.date}</td>
+            <td class="py-2.5 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+                ${t.type === 'income' ? '收入' : '支出'}
+              </span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="font-bold font-mono ${isThird ? 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]' : 'text-stone-700'}">
+                ${t.currency} ${isThird ? '(獨立)' : ''}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 font-bold text-stone-800">${t.category}</td>
+            <td class="py-2.5 px-4 text-stone-600">${t.note || '-'}</td>
+            <td class="py-2.5 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-900'}">
+              ${t.type === 'income' ? '+' : '-'}${t.amount}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <button type="button" onclick="delTx('${t.id}')" class="text-stone-400 hover:text-rose-600 cursor-pointer">✕</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
 
     window.openTxModal = function(type) {
       document.getElementById("txType").value = type;
@@ -1262,39 +1626,7 @@
       }
     };
 
-    window.openManageTagsModal = function() {
-      const container = document.getElementById("tagsListContainer");
-      container.innerHTML = (appState.tags || []).map(tag => `
-        <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50">
-          <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${getColorBadgeClass(tag.color)}">● ${tag.name}</span>
-          <button type="button" onclick="deleteTag('${tag.id}')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer">刪除</button>
-        </div>
-      `).join('');
-      document.getElementById("manageTagsModal").classList.remove("hidden");
-    };
-
-    window.handleAddNewTag = function() {
-      const name = document.getElementById("newTagName").value.trim();
-      const color = document.getElementById("newTagColor").value;
-      if (!name) return;
-      if (!appState.tags) appState.tags = [];
-      appState.tags.push({ id: "t_" + Date.now(), name, color });
-      saveState();
-      document.getElementById("newTagName").value = "";
-      openManageTagsModal();
-      renderCalendar();
-    };
-
-    window.deleteTag = function(tagId) {
-      if (confirm("確定要刪除此標籤嗎？")) {
-        appState.tags = appState.tags.filter(t => t.id !== tagId);
-        saveState();
-        openManageTagsModal();
-        renderCalendar();
-      }
-    };
-
-    // --- 日曆渲染 ---
+    // --- 日曆渲染 (全面修復月表格版面坍塌) ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -1315,32 +1647,43 @@
       const totalDays = new Date(year, month + 1, 0).getDate();
       const prevTotalDays = new Date(year, month, 0).getDate();
 
+      // 上個月墊檔天數
       for (let i = firstDay - 1; i >= 0; i--) {
-        grid.innerHTML += `<div class="bg-stone-50 min-h-[85px] p-1.5 opacity-40"><span class="font-mono text-stone-400">${prevTotalDays - i}</span></div>`;
+        grid.innerHTML += `<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">${prevTotalDays - i}</span></div>`;
       }
 
+      // 當月天數
       for (let day = 1; day <= totalDays; day++) {
         const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const evs = (appState.events || []).filter(e => e.date === dStr);
         grid.innerHTML += `
-          <div onclick="openAddEventForDate('${dStr}')" class="bg-white min-h-[85px] p-1.5 hover:bg-stone-50 transition cursor-pointer">
-            <span class="font-mono text-xs font-semibold text-stone-700">${day}</span>
-            <div class="mt-1 space-y-1">
-              ${evs.map(e => {
-                const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
-                const locVal = e.location || e.mapUrl || "";
-                const hasLocation = Boolean(locVal && locVal.trim());
-                const timeStr = e.time ? `<span class="opacity-80 mr-0.5 font-mono text-[9px]">${e.time}</span>` : '';
-                return `
-                  <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium flex items-center justify-between gap-1 ${getColorBadgeClass(tag.color)}">
-                    <span class="truncate">${timeStr}<span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
-                    ${hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含 Google Maps 地點">📍</span>' : ''}
-                  </div>
-                `;
-              }).join('')}
+          <div onclick="openAddEventForDate('${dStr}')" class="bg-white min-h-[90px] p-1.5 hover:bg-stone-50 transition cursor-pointer flex flex-col justify-between">
+            <div>
+              <span class="font-mono text-xs font-semibold text-stone-700">${day}</span>
+              <div class="mt-1 space-y-1">
+                ${evs.map(e => {
+                  const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
+                  const locVal = e.location || e.mapUrl || "";
+                  const hasLocation = Boolean(locVal && locVal.trim());
+                  const timeStr = e.time ? `<span class="opacity-80 mr-0.5 font-mono text-[9px]">${e.time}</span>` : '';
+                  return `
+                    <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium flex items-center justify-between gap-1 ${getColorBadgeClass(tag.color)}">
+                      <span class="truncate">${timeStr}<span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
+                      ${hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含 Google Maps 地點">📍</span>' : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
             </div>
           </div>
         `;
+      }
+
+      // 下個月墊檔天數補齊整週 (7 的倍數)
+      const currentCellCount = firstDay + totalDays;
+      const nextMonthDays = (7 - (currentCellCount % 7)) % 7;
+      for (let j = 1; j <= nextMonthDays; j++) {
+        grid.innerHTML += `<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">${j}</span></div>`;
       }
     }
 
@@ -1447,7 +1790,7 @@
       }
     };
 
-    // --- 裝備清單 ---
+    // --- 裝備清單渲染模組 ---
     function renderGear() {
       const tabsContainer = document.getElementById("gearCategoryTabs");
       const itemsContainer = document.getElementById("gearItemsContainer");
@@ -1589,6 +1932,7 @@
               localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
               applyTitlesAndSettings();
               renderAll();
+              calculateWireTransfer();
               isRemoteUpdate = false;
             }
           } else {
