@@ -23,7 +23,18 @@
   <header class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-full bg-amber-800 flex items-center justify-center text-white font-bold text-lg">AU</div>
+        <!-- 可點擊上傳的頭像容器 -->
+        <div onclick="triggerAvatarUpload()" class="relative group cursor-pointer" title="點擊更換個人圖片/頭像">
+          <div id="headerAvatarContainer" class="w-10 h-10 rounded-full bg-amber-800 flex items-center justify-center text-white font-bold text-base shadow-inner overflow-hidden border border-amber-900/20">
+            <span id="headerAvatarText">AU</span>
+          </div>
+          <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition font-semibold">
+            更換
+          </div>
+        </div>
+        <!-- 隱藏的檔案上傳輸入框 -->
+        <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="handleAvatarFileSelect(event)">
+
         <div>
           <h1 id="headerMainTitle" class="text-base sm:text-lg font-bold text-stone-900">澳洲打工度假 × 德國碩士自保金</h1>
           <p id="headerSubTitle" class="text-xs text-stone-500">AU 旅程儲蓄 • 留學自保金目標追蹤</p>
@@ -362,7 +373,7 @@
     </div>
   </main>
 
-  <!-- MODAL: 個人化看板設定 -->
+  <!-- MODAL: 個人化看板設定 (新增自訂頭像設定) -->
   <div id="settingsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -371,10 +382,36 @@
         </h3>
         <button type="button" onclick="closeModal('settingsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
       </div>
+
+      <!-- 自訂頭像與圖片上傳區塊 -->
+      <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between gap-4 text-xs">
+        <div class="flex items-center gap-3">
+          <div id="settingsAvatarPreview" class="w-12 h-12 rounded-full bg-amber-800 flex items-center justify-center text-white font-bold text-base shadow-inner overflow-hidden border border-stone-300 flex-shrink-0">
+            <span id="settingsAvatarText">AU</span>
+          </div>
+          <div>
+            <span class="font-bold text-stone-800 block">左上角頭像 / 圖片</span>
+            <span class="text-stone-500 text-[11px] block">點擊右方按鈕上傳自訂圖片，或輸入縮寫文字。</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="triggerAvatarUpload()" class="px-2.5 py-1.5 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-stone-700 font-bold cursor-pointer shadow-xs">
+            選擇圖片
+          </button>
+          <button type="button" onclick="resetAvatarToDefault()" class="px-2 py-1.5 bg-stone-200 hover:bg-stone-300 rounded-lg text-stone-600 font-medium cursor-pointer" title="清除圖片回歸預設文字">
+            重設
+          </button>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
         <div>
           <label class="block font-semibold text-stone-700 mb-1">主標題名稱</label>
           <input type="text" id="settingMainTitle" class="w-full p-2 border border-stone-200 rounded-lg">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">頭像文字縮寫 (若未上傳圖片時顯示)</label>
+          <input type="text" id="settingAvatarInitials" maxlength="4" placeholder="例如: AU, ME, 2026" class="w-full p-2 border border-stone-200 rounded-lg font-bold font-mono uppercase">
         </div>
         <div>
           <label class="block font-semibold text-stone-700 mb-1">副標題說明</label>
@@ -392,7 +429,7 @@
           <label class="block font-semibold text-stone-700 mb-1">澳洲資金池標題名稱</label>
           <input type="text" id="settingAudPoolTitle" class="w-full p-2 border border-stone-200 rounded-lg">
         </div>
-        <div>
+        <div class="md:col-span-2">
           <label class="block font-semibold text-stone-700 mb-1">本國/台灣資金池標題名稱</label>
           <input type="text" id="settingTwdPoolTitle" class="w-full p-2 border border-stone-200 rounded-lg">
         </div>
@@ -441,7 +478,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 (雙模 Google Maps：支援地標搜尋與貼網址) -->
+  <!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -466,7 +503,6 @@
           <input type="date" id="eventDate" required class="w-full p-2 border rounded">
         </div>
         
-        <!-- Google Maps 雙模輸入區：支援輸入地標名稱或貼上連結 -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="font-semibold text-stone-800">📍 地點位置 (地標名稱 或 網址)</label>
@@ -481,7 +517,6 @@
           <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
         </div>
 
-        <!-- 一鍵導航跳轉按鈕 -->
         <div id="eventMapDirectLinkArea" class="pt-1 hidden">
           <a id="eventMapDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition">
             <span id="eventMapDirectLinkText">🗺️ 開啟 Google Maps 導航 ↗</span>
@@ -618,6 +653,8 @@
     let appState = {
       mainTitle: "澳洲打工度假 × 德國碩士自保金",
       subTitle: "AU 旅程儲蓄 • 留學自保金目標追蹤",
+      avatarInitials: "AU", // 預設縮寫
+      avatarImage: "", // 自訂圖片 base64
       targetNTD: 400000,
       targetEndDate: "2027-06-30",
       audPoolTitle: "澳洲資金池 (AUD)",
@@ -659,7 +696,6 @@
       }
     }
 
-    // 格式化地點網址：如果是 URL 直接回傳，如果是名稱則包裝成 Google Maps 搜尋網址
     function buildGoogleMapsUrl(input) {
       if (!input || !input.trim()) return "";
       const trimmed = input.trim();
@@ -677,6 +713,68 @@
       }
       window.open(buildGoogleMapsUrl(input), "_blank");
     };
+
+    // --- 頭像上傳與渲染模組 ---
+    window.triggerAvatarUpload = function() {
+      document.getElementById('avatarFileInput').click();
+    };
+
+    window.handleAvatarFileSelect = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        alert("請選擇圖片格式檔案 (JPG, PNG, WebP)！");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        // 利用 Canvas 進行輕量化壓縮 (限制在 120x120 像素內，節省 LocalStorage 與 Firebase 額度)
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 120;
+          let w = img.width, h = img.height;
+          if (w > h) {
+            if (w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+          } else {
+            if (h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+          appState.avatarImage = compressedBase64;
+          saveState();
+          renderAvatar();
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.resetAvatarToDefault = function() {
+      appState.avatarImage = "";
+      saveState();
+      renderAvatar();
+    };
+
+    function renderAvatar() {
+      const headerBox = document.getElementById("headerAvatarContainer");
+      const previewBox = document.getElementById("settingsAvatarPreview");
+      const initials = (appState.avatarInitials || "AU").toUpperCase();
+
+      if (appState.avatarImage && appState.avatarImage.trim()) {
+        headerBox.innerHTML = `<img src="${appState.avatarImage}" class="w-full h-full object-cover rounded-full" alt="頭像">`;
+        if (previewBox) previewBox.innerHTML = `<img src="${appState.avatarImage}" class="w-full h-full object-cover rounded-full" alt="預覽">`;
+      } else {
+        headerBox.innerHTML = `<span id="headerAvatarText">${initials}</span>`;
+        if (previewBox) previewBox.innerHTML = `<span>${initials}</span>`;
+      }
+    }
 
     window.toggleAccordion = function(id) {
       const el = document.getElementById(id);
@@ -720,6 +818,7 @@
       if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
       if (!appState.expenseCategories) appState.expenseCategories = DEFAULT_EXPENSE_CATS;
       if (!appState.incomeCategories) appState.incomeCategories = DEFAULT_INCOME_CATS;
+      if (!appState.avatarInitials) appState.avatarInitials = "AU";
 
       const fxInput = document.getElementById("fxRateInput");
       if (fxInput) fxInput.value = appState.fxRate || 23.0;
@@ -746,11 +845,14 @@
       if (getEl("cardTargetDate")) getEl("cardTargetDate").textContent = appState.targetEndDate;
 
       if (getEl("settingMainTitle")) getEl("settingMainTitle").value = appState.mainTitle;
+      if (getEl("settingAvatarInitials")) getEl("settingAvatarInitials").value = appState.avatarInitials || "AU";
       if (getEl("settingSubTitle")) getEl("settingSubTitle").value = appState.subTitle;
       if (getEl("settingTargetNTD")) getEl("settingTargetNTD").value = appState.targetNTD;
       if (getEl("settingTargetDate")) getEl("settingTargetDate").value = appState.targetEndDate;
       if (getEl("settingAudPoolTitle")) getEl("settingAudPoolTitle").value = appState.audPoolTitle;
       if (getEl("settingTwdPoolTitle")) getEl("settingTwdPoolTitle").value = appState.twdPoolTitle;
+
+      renderAvatar();
     }
 
     window.openSettingsModal = function() {
@@ -760,6 +862,7 @@
 
     window.saveCustomSettings = function() {
       appState.mainTitle = document.getElementById("settingMainTitle").value || "個人旅程儲蓄追蹤";
+      appState.avatarInitials = document.getElementById("settingAvatarInitials").value.trim() || "AU";
       appState.subTitle = document.getElementById("settingSubTitle").value || "目標追蹤看板";
       appState.targetNTD = parseFloat(document.getElementById("settingTargetNTD").value) || 400000;
       appState.targetEndDate = document.getElementById("settingTargetDate").value || "2027-06-30";
@@ -785,6 +888,7 @@
     }
 
     function renderAll() {
+      renderAvatar();
       renderFinance();
       renderTransactions();
       renderCalendar();
@@ -1110,7 +1214,6 @@
       }
     };
 
-    // --- 日曆渲染 (支援 Google Maps 連結與名稱自動轉跳) ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -1204,7 +1307,6 @@
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
 
-      // 一鍵開啟導航按鈕處理
       const mapBtnArea = document.getElementById("eventMapDirectLinkArea");
       const mapBtn = document.getElementById("eventMapDirectLink");
       const mapBtnText = document.getElementById("eventMapDirectLinkText");
@@ -1234,7 +1336,7 @@
         tagId: document.getElementById("eventTagSelect").value,
         date: document.getElementById("eventDate").value,
         location: loc,
-        mapUrl: loc, // 兼容舊版命名
+        mapUrl: loc,
         desc: document.getElementById("eventDesc").value
       };
 
