@@ -24,26 +24,34 @@
         </div>
       </div>
       
-      <!-- 頂部匯率與連線 -->
+      <!-- 頂部功能區 -->
       <div class="flex flex-wrap items-center gap-2">
-        <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-stone-600">
+        <!-- 匯率 -->
+        <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-xs text-stone-600">
           <span class="mr-1 text-stone-400">1 AUD = </span>
           <input type="number" id="fxRateInput" step="0.1" value="23.0" class="w-12 bg-white border border-stone-300 rounded px-1 py-0.5 font-mono text-center font-bold text-stone-800 focus:outline-none" onchange="updateFxRate(this.value)">
           <span class="ml-1 text-stone-500 font-medium">TWD</span>
         </div>
 
+        <!-- 雲端同步 -->
         <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg p-1 text-xs">
-          <input type="text" id="syncKeyDirect" placeholder="自訂同步密碼" class="bg-white border border-stone-300 rounded px-2 py-1 w-32 text-stone-800 focus:outline-none font-mono">
+          <input type="text" id="syncKeyDirect" placeholder="自訂同步密碼" class="bg-white border border-stone-300 rounded px-2 py-1 w-28 sm:w-32 text-stone-800 focus:outline-none font-mono">
           <button type="button" onclick="connectDirectSync()" id="syncDirectBtn" class="ml-1 px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded font-semibold transition cursor-pointer">連線同步</button>
         </div>
 
-        <button type="button" onclick="exportData()" class="px-2.5 py-1 text-stone-600 hover:text-stone-900 bg-stone-50 border border-stone-200 rounded-lg text-xs cursor-pointer">備份</button>
+        <!-- 個人看板設定齒輪按鈕 -->
+        <button type="button" onclick="openSettingsModal()" class="p-1.5 px-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="自訂看板設定">
+          <span>⚙️</span>
+          <span class="hidden sm:inline">看板設定</span>
+        </button>
+
+        <button type="button" onclick="exportData()" class="px-2 py-1 text-stone-600 hover:text-stone-900 bg-stone-50 border border-stone-200 rounded-lg text-xs cursor-pointer">備份</button>
       </div>
     </div>
 
     <!-- 頁籤選單 -->
     <div class="max-w-5xl mx-auto px-4 flex flex-wrap gap-x-6 text-sm">
-      <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🎯 目標自訂 & 澳打指南</button>
+      <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🚨 澳打避坑 & 稅務指南</button>
       <button type="button" onclick="switchTab('finance')" id="tab-finance" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">雙幣財務 & 自保金</button>
       <button type="button" onclick="switchTab('calendar')" id="tab-calendar" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">重要時程日曆</button>
       <button type="button" onclick="switchTab('gear')" id="tab-gear" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">出發裝備清單</button>
@@ -53,49 +61,9 @@
   <!-- 主內容區 -->
   <main class="max-w-5xl mx-auto px-4 mt-6">
 
-    <!-- TAB 0: 目標設定 & 避坑指南 -->
+    <!-- TAB 0: 澳打避坑 & 稅務指南 -->
     <div id="content-guide" class="space-y-6">
       
-      <!-- 個人看板目標自訂 -->
-      <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-100 gap-3">
-          <div>
-            <h2 class="text-base font-bold text-stone-900">⚙️ 個人化看板設定</h2>
-            <p class="text-xs text-stone-500">修改下方的標題、儲蓄金額與日期，點擊儲存後將自動套用並前往財務頁籤。</p>
-          </div>
-          <button type="button" onclick="saveCustomSettings()" class="px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold rounded-xl transition shadow cursor-pointer">
-            儲存所有設定並前往下一步 ➔
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">主標題名稱</label>
-            <input type="text" id="settingMainTitle" class="w-full p-2 border border-stone-200 rounded-lg">
-          </div>
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">副標題說明</label>
-            <input type="text" id="settingSubTitle" class="w-full p-2 border border-stone-200 rounded-lg">
-          </div>
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">儲蓄目標金額 (TWD)</label>
-            <input type="number" id="settingTargetNTD" step="1000" class="w-full p-2 border border-stone-200 rounded-lg font-bold font-mono">
-          </div>
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">離澳 / 目標達成預計日期</label>
-            <input type="date" id="settingTargetDate" class="w-full p-2 border border-stone-200 rounded-lg font-mono">
-          </div>
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">澳洲資金池標題名稱</label>
-            <input type="text" id="settingAudPoolTitle" class="w-full p-2 border border-stone-200 rounded-lg">
-          </div>
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">本國/台灣資金池標題名稱</label>
-            <input type="text" id="settingTwdPoolTitle" class="w-full p-2 border border-stone-200 rounded-lg">
-          </div>
-        </div>
-      </div>
-
       <!-- 市場行情行情與法規重點 -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-2">
@@ -123,17 +91,21 @@
         </div>
       </div>
 
-      <!-- 點擊展開的注意事項（黑心話術避坑手冊） -->
+      <!-- 點擊展開的黑心話術避坑手冊 -->
       <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-bold text-stone-900 flex items-center gap-2">
-            🚨 澳洲找工防坑指南：常見雇主與仲介話術破解
-          </h3>
-          <span class="text-[11px] text-stone-400">（點擊各項目可展開/收合詳細說明）</span>
+        <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+          <div>
+            <h3 class="text-sm font-bold text-stone-900 flex items-center gap-2">
+              🚨 澳洲找工防坑手冊：常見雇主與仲介話術破解
+            </h3>
+            <p class="text-xs text-stone-500 mt-0.5">點擊各項話術卡片即可展開/收合詳細解析與應對策略。</p>
+          </div>
+          <button type="button" onclick="openSettingsModal()" class="text-xs text-amber-800 hover:text-amber-900 font-bold">
+            前往設定目標 ➔
+          </button>
         </div>
 
         <div class="space-y-2.5 text-xs pt-1">
-          
           <!-- 項目 1 -->
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip1')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
@@ -177,7 +149,6 @@
               <strong>真相揭密</strong>：很多黑心工頭靠高於市價的「床位房租」與「高額車資」賺錢。抵達農場或肉廠後往往遭遇天氣不好或砍班，每週只做 10 小時，賺的錢甚至不夠付他的房租，直接淪為白做工。
             </div>
           </div>
-
         </div>
       </div>
 
@@ -280,6 +251,9 @@
           <button type="button" onclick="openAddEventModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增待辦事項</button>
         </div>
 
+        <!-- 類別顏色圖例 -->
+        <div id="eventCategoryLegend" class="flex flex-wrap gap-2 text-[11px] mb-3 pb-2 border-b border-stone-100"></div>
+
         <div class="grid grid-cols-7 gap-px bg-stone-200 border border-stone-200 rounded-lg overflow-hidden text-xs">
           <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週日</div>
           <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週一</div>
@@ -311,6 +285,48 @@
       </div>
     </div>
   </main>
+
+  <!-- MODAL: 個人化看板設定 (齒輪彈窗) -->
+  <div id="settingsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+        <h3 class="text-base font-bold text-stone-900 flex items-center gap-1.5">
+          <span>⚙️</span> 個人化看板設定
+        </h3>
+        <button type="button" onclick="closeModal('settingsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold">✕</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">主標題名稱</label>
+          <input type="text" id="settingMainTitle" class="w-full p-2 border border-stone-200 rounded-lg">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">副標題說明</label>
+          <input type="text" id="settingSubTitle" class="w-full p-2 border border-stone-200 rounded-lg">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">儲蓄目標金額 (TWD)</label>
+          <input type="number" id="settingTargetNTD" step="1000" class="w-full p-2 border border-stone-200 rounded-lg font-bold font-mono">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">離澳 / 目標達成預計日期</label>
+          <input type="date" id="settingTargetDate" class="w-full p-2 border border-stone-200 rounded-lg font-mono">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">澳洲資金池標題名稱</label>
+          <input type="text" id="settingAudPoolTitle" class="w-full p-2 border border-stone-200 rounded-lg">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">本國/台灣資金池標題名稱</label>
+          <input type="text" id="settingTwdPoolTitle" class="w-full p-2 border border-stone-200 rounded-lg">
+        </div>
+      </div>
+      <div class="pt-2 flex justify-end gap-2 border-t border-stone-100">
+        <button type="button" onclick="closeModal('settingsModal')" class="px-3 py-1.5 bg-stone-100 text-stone-700 rounded-lg text-xs font-semibold cursor-pointer">取消</button>
+        <button type="button" onclick="saveCustomSettings()" class="px-4 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold cursor-pointer">儲存設定並前往財務 ➔</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: 記帳 -->
   <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
@@ -354,7 +370,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 日曆事項 -->
+  <!-- MODAL: 新增/編輯日曆事項 (含類別與顏色) -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 id="eventModalTitle" class="text-base font-bold text-stone-900 mb-3">待辦事項</h3>
@@ -362,15 +378,32 @@
         <input type="hidden" id="eventId">
         <div>
           <label class="block font-semibold mb-1">事項名稱</label>
-          <input type="text" id="eventTitle" required placeholder="例如：自保金電匯、簽證預約、體檢..." class="w-full p-2 border rounded">
+          <input type="text" id="eventTitle" required placeholder="例如：工作面試、德協面談..." class="w-full p-2 border rounded">
         </div>
         <div>
-          <label class="block font-semibold mb-1">日期</label>
-          <input type="date" id="eventDate" required class="w-full p-2 border rounded">
+          <label class="block font-semibold mb-1">自訂類別 (例如: 工作面試、朋友出遊、線上教學)</label>
+          <input type="text" id="eventCategory" required placeholder="輸入自訂類別名稱" class="w-full p-2 border rounded font-semibold">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">日期</label>
+            <input type="date" id="eventDate" required class="w-full p-2 border rounded">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">標籤顯示顏色</label>
+            <select id="eventColor" class="w-full p-2 border rounded font-bold">
+              <option value="rose">🔴 玫瑰紅 (面試/急件)</option>
+              <option value="blue">🔵 晴朗藍 (朋友出遊/旅行)</option>
+              <option value="emerald">🟢 綠意 (線上教學/工作)</option>
+              <option value="amber">🟠 琥珀橘 (財務/退稅)</option>
+              <option value="purple">🟣 留學紫 (簽證/文件)</option>
+              <option value="stone">⚪ 灰色 (生活日常)</option>
+            </select>
+          </div>
         </div>
         <div>
           <label class="block font-semibold mb-1">備註 (選填)</label>
-          <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
+          <input type="text" id="eventDesc" placeholder="相關細節、準備資料..." class="w-full p-2 border rounded">
         </div>
         <div class="pt-2 flex justify-between items-center">
           <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-2.5 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 cursor-pointer hidden">刪除</button>
@@ -383,7 +416,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 裝備項目 -->
+  <!-- MODAL: 裝備項目 (可選現有或自訂全新類別) -->
   <div id="gearModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 class="text-base font-bold text-stone-900 mb-3">新增裝備物品</h3>
@@ -393,14 +426,11 @@
           <input type="text" id="gearLabel" required placeholder="例如：萬國轉接頭、睡袋..." class="w-full p-2 border rounded">
         </div>
         <div>
-          <label class="block font-semibold mb-1">分類類別</label>
-          <select id="gearCategory" class="w-full p-2 border rounded">
-            <option value="修繕自修與固定">修繕自修與固定</option>
-            <option value="青旅生活與防盜">青旅生活與防盜</option>
-            <option value="個人衛生與洗沐">個人衛生與洗沐</option>
-            <option value="戶外與極端氣候">戶外與極端氣候</option>
-            <option value="其他雜項">其他雜項</option>
+          <label class="block font-semibold mb-1">選擇現有分類，或直接在下方自訂</label>
+          <select id="gearCategorySelect" class="w-full p-2 border rounded mb-1.5" onchange="document.getElementById('gearCustomCategory').value = this.value">
+            <!-- 動態填充現有分類 -->
           </select>
+          <input type="text" id="gearCustomCategory" required placeholder="自訂新分類名稱 (例如: 電子3C配件、廚具料理)" class="w-full p-2 border border-amber-300 bg-amber-50/40 rounded font-semibold text-amber-900">
         </div>
         <div>
           <label class="block font-semibold mb-1">規格或注意事項 (選填)</label>
@@ -441,9 +471,9 @@
     ];
 
     const DEFAULT_EVENTS = [
-      { id: "ev1", title: "儲蓄目標/自保金電匯截止", date: "2027-05-15", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "工作結束 & 離澳準備", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" },
-      { id: "ev3", title: "重要簽證送件/下一站啟程", date: "2027-07-15", desc: "備齊相關證件與文件。" }
+      { id: "ev1", title: "德國自保金電匯截止", category: "自保金匯款", color: "purple", date: "2027-05-15", desc: "完成目標資金匯出或結算。" },
+      { id: "ev2", title: "工作結束交接 & 離澳", category: "澳打時程", color: "amber", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" },
+      { id: "ev3", title: "簽證面試與最後送件", category: "簽證文件", color: "rose", date: "2027-07-15", desc: "備齊相關證件與文件。" }
     ];
 
     let appState = {
@@ -466,7 +496,19 @@
     let syncUnsubscribe = null;
     let isRemoteUpdate = false;
 
-    // 手風琴切換
+    // 顏色樣式映射
+    function getColorBadgeClass(color) {
+      switch (color) {
+        case 'rose': return 'bg-rose-100 text-rose-800 border-rose-300';
+        case 'blue': return 'bg-blue-100 text-blue-800 border-blue-300';
+        case 'emerald': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        case 'purple': return 'bg-purple-100 text-purple-800 border-purple-300';
+        case 'amber': return 'bg-amber-100 text-amber-900 border-amber-300';
+        default: return 'bg-stone-100 text-stone-800 border-stone-300';
+      }
+    }
+
+    // 展開/收合
     function toggleAccordion(id) {
       const el = document.getElementById(id);
       const icon = document.getElementById(id + "-icon");
@@ -536,7 +578,11 @@
       if (getEl("settingTwdPoolTitle")) getEl("settingTwdPoolTitle").value = appState.twdPoolTitle;
     }
 
-    // 儲存並直接切換至財務頁籤
+    function openSettingsModal() {
+      applyTitlesAndSettings();
+      document.getElementById("settingsModal").classList.remove("hidden");
+    }
+
     function saveCustomSettings() {
       appState.mainTitle = document.getElementById("settingMainTitle").value || "個人旅程儲蓄追蹤";
       appState.subTitle = document.getElementById("settingSubTitle").value || "目標追蹤看板";
@@ -548,8 +594,7 @@
       applyTitlesAndSettings();
       saveState();
       renderFinance();
-
-      // 自動引導切換到第二頁雙幣財務
+      closeModal("settingsModal");
       switchTab('finance');
     }
 
@@ -699,6 +744,7 @@
       }
     }
 
+    // --- 日曆與自訂類別顏色 ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -707,6 +753,20 @@
       const grid = document.getElementById("calendarGrid");
       if (!grid) return;
       grid.innerHTML = "";
+
+      // 提取目前所有事件的類別建立圖例
+      const legendMap = {};
+      (appState.events || []).forEach(e => {
+        if (e.category) legendMap[e.category] = e.color || 'stone';
+      });
+      const legendEl = document.getElementById("eventCategoryLegend");
+      if (legendEl) {
+        legendEl.innerHTML = Object.entries(legendMap).map(([cat, col]) => `
+          <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${getColorBadgeClass(col)}">
+            ● ${cat}
+          </span>
+        `).join('') || '<span class="text-stone-400 text-[10px]">尚無特定類別，點擊新增待辦設定類別與色彩</span>';
+      }
 
       const firstDay = new Date(year, month, 1).getDay();
       const totalDays = new Date(year, month + 1, 0).getDate();
@@ -724,8 +784,8 @@
             <span class="font-mono text-xs font-semibold text-stone-700">${day}</span>
             <div class="mt-1 space-y-1">
               ${evs.map(e => `
-                <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] bg-amber-50 text-amber-800 border border-amber-200 truncate cursor-pointer hover:bg-amber-100">
-                  ${e.title}
+                <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${getColorBadgeClass(e.color)}">
+                  <span class="font-bold mr-0.5">[${e.category || '待辦'}]</span>${e.title}
                 </div>
               `).join('')}
             </div>
@@ -744,7 +804,9 @@
       currentEditingEventId = null;
       document.getElementById("eventId").value = "";
       document.getElementById("eventTitle").value = "";
+      document.getElementById("eventCategory").value = "";
       document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
+      document.getElementById("eventColor").value = "blue";
       document.getElementById("eventDesc").value = "";
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
       document.getElementById("eventDeleteBtn").classList.add("hidden");
@@ -763,7 +825,9 @@
       if (!ev) return;
       document.getElementById("eventId").value = ev.id;
       document.getElementById("eventTitle").value = ev.title;
+      document.getElementById("eventCategory").value = ev.category || "自訂待辦";
       document.getElementById("eventDate").value = ev.date;
+      document.getElementById("eventColor").value = ev.color || "stone";
       document.getElementById("eventDesc").value = ev.desc || "";
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
@@ -776,6 +840,8 @@
       const newEv = {
         id: id || "ev_" + Date.now(),
         title: document.getElementById("eventTitle").value,
+        category: document.getElementById("eventCategory").value || "一般行程",
+        color: document.getElementById("eventColor").value || "stone",
         date: document.getElementById("eventDate").value,
         desc: document.getElementById("eventDesc").value
       };
@@ -802,6 +868,7 @@
       }
     }
 
+    // --- 裝備清單與自訂分類類別 ---
     function renderGear() {
       const container = document.getElementById("gearListContainer");
       if (!container) return;
@@ -809,8 +876,9 @@
       const gearList = appState.gear || DEFAULT_GEAR;
 
       gearList.forEach(g => {
-        if (!groups[g.category]) groups[g.category] = [];
-        groups[g.category].push(g);
+        const cat = g.category || "未分類小物";
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(g);
       });
 
       const total = gearList.length;
@@ -824,7 +892,10 @@
         html += `
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-white shadow-xs">
             <div class="bg-stone-50 px-4 py-2 border-b border-stone-200 flex justify-between items-center">
-              <span class="font-bold text-xs text-stone-800">${cat}</span>
+              <span class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-700"></span>
+                ${cat}
+              </span>
               <span class="text-[11px] text-stone-500">${items.filter(i => i.checked).length} / ${items.length} 備齊</span>
             </div>
             <div class="p-2 divide-y divide-stone-100">
@@ -859,16 +930,27 @@
     function openAddGearModal() {
       document.getElementById("gearLabel").value = "";
       document.getElementById("gearSubline").value = "";
+
+      // 提取目前所有現有分類供下拉選取
+      const existingCats = Array.from(new Set((appState.gear || DEFAULT_GEAR).map(g => g.category)));
+      const selectEl = document.getElementById("gearCategorySelect");
+      selectEl.innerHTML = existingCats.map(c => `<option value="${c}">${c}</option>`).join('') + `<option value="自訂全新分類">＋ 自訂全新分類名稱</option>`;
+      
+      const defaultCat = existingCats[0] || "修繕自修與固定";
+      selectEl.value = defaultCat;
+      document.getElementById("gearCustomCategory").value = defaultCat;
+
       document.getElementById("gearModal").classList.remove("hidden");
     }
 
     function handleSaveGearItem(e) {
       e.preventDefault();
+      const customCat = document.getElementById("gearCustomCategory").value.trim() || "自訂分類";
       if (!appState.gear) appState.gear = [];
       appState.gear.push({
         id: "g_" + Date.now(),
         label: document.getElementById("gearLabel").value,
-        category: document.getElementById("gearCategory").value,
+        category: customCat,
         sublines: document.getElementById("gearSubline").value ? [document.getElementById("gearSubline").value] : [],
         checked: false
       });
@@ -885,6 +967,7 @@
       }
     }
 
+    // --- Firebase 直連同步 ---
     function connectDirectSync() {
       const key = document.getElementById("syncKeyDirect").value.trim();
       if (!key) {
