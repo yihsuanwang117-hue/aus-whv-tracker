@@ -192,7 +192,6 @@
 
     <!-- TAB 1: 雙幣財務 & 圓餅圖分析 -->
     <div id="content-finance" class="space-y-6 hidden">
-      <!-- 總目標進度卡 -->
       <div class="bg-stone-900 rounded-2xl p-6 text-white shadow-lg">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -230,7 +229,6 @@
         </div>
       </div>
 
-      <!-- 資金池餘額卡 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
           <span id="audPoolTitle" class="text-xs font-medium text-stone-500 uppercase">澳洲資金池 (AUD)</span>
@@ -251,7 +249,7 @@
         </div>
       </div>
 
-      <!-- 圓餅圖統計分析區塊 (新增) -->
+      <!-- 圓餅圖統計分析區塊 -->
       <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
           <div>
@@ -262,14 +260,12 @@
           </div>
           
           <div class="flex flex-wrap items-center gap-2">
-            <!-- 週期切換 -->
             <div class="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200 text-xs">
               <button type="button" id="chartPeriodWeek" onclick="setChartPeriod('week')" class="px-2.5 py-1 rounded-md font-semibold transition cursor-pointer">本週</button>
               <button type="button" id="chartPeriodMonth" onclick="setChartPeriod('month')" class="px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer">本月</button>
               <button type="button" id="chartPeriodAll" onclick="setChartPeriod('all')" class="px-2.5 py-1 rounded-md font-semibold transition cursor-pointer">全部</button>
             </div>
 
-            <!-- 收支切換 -->
             <div class="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200 text-xs">
               <button type="button" id="chartTypeExpense" onclick="setChartType('expense')" class="px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer">支出佔比</button>
               <button type="button" id="chartTypeIncome" onclick="setChartType('income')" class="px-2.5 py-1 rounded-md font-semibold transition cursor-pointer">收入佔比</button>
@@ -282,9 +278,7 @@
             <canvas id="financePieChart"></canvas>
             <div id="chartNoDataText" class="absolute text-xs text-stone-400 hidden">該區間尚無收支數據</div>
           </div>
-          <div id="chartLegendList" class="space-y-2 text-xs max-h-[260px] overflow-y-auto pr-2">
-            <!-- 類別佔比進度清單 -->
-          </div>
+          <div id="chartLegendList" class="space-y-2 text-xs max-h-[260px] overflow-y-auto pr-2"></div>
         </div>
       </div>
 
@@ -447,11 +441,14 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 -->
+  <!-- MODAL: 新增/編輯日曆事項 (新增 Google Maps 地點連結) -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 id="eventModalTitle" class="text-base font-bold text-stone-900 mb-3">待辦事項</h3>
-      <form onsubmit="handleSaveEvent(event)" class="space-y-3 text-xs">
+      <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+        <h3 id="eventModalTitle" class="text-base font-bold text-stone-900">待辦事項</h3>
+        <button type="button" onclick="closeModal('eventModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
+      </div>
+      <form onsubmit="handleSaveEvent(event)" class="space-y-3 text-xs mt-3">
         <input type="hidden" id="eventId">
         <div>
           <label class="block font-semibold mb-1">事項名稱</label>
@@ -468,11 +465,25 @@
           <label class="block font-semibold mb-1">日期</label>
           <input type="date" id="eventDate" required class="w-full p-2 border rounded">
         </div>
+        
+        <!-- Google Maps 連結輸入區 -->
+        <div>
+          <label class="block font-semibold mb-1">📍 Google Maps 地點連結 (選填)</label>
+          <input type="url" id="eventMapUrl" placeholder="貼上 Google Maps 網址 (https://maps.app.goo.gl/...)" class="w-full p-2 border rounded border-amber-300 bg-amber-50/40 text-stone-800">
+        </div>
+
         <div>
           <label class="block font-semibold mb-1">備註說明 (選填)</label>
           <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
         </div>
-        <div class="pt-2 flex justify-between items-center">
+
+        <div id="eventMapDirectLinkArea" class="pt-1 hidden">
+          <a id="eventMapDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition">
+            <span>🗺️ 開啟 Google Maps 導航 ↗</span>
+          </a>
+        </div>
+
+        <div class="pt-2 flex justify-between items-center border-t border-stone-100">
           <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-2.5 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 cursor-pointer hidden">刪除</button>
           <div class="flex gap-2 ml-auto">
             <button type="button" onclick="closeModal('eventModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
@@ -483,7 +494,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 記帳 (類別與細項名稱升級) -->
+  <!-- MODAL: 記帳 -->
   <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
@@ -592,11 +603,10 @@
     ];
 
     const DEFAULT_EVENTS = [
-      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "工作結束交接 & 離澳", tagId: "t_2", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" }
+      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", mapUrl: "", desc: "完成目標資金匯出或結算。" },
+      { id: "ev2", title: "工作結束交接 & 離澳", tagId: "t_2", date: "2027-06-30", mapUrl: "", desc: "完成交接，領取 Super 退稅單據。" }
     ];
 
-    // 預設常見財務類別
     const DEFAULT_EXPENSE_CATS = ["飲食餐飲", "玩樂休閒", "住宿房租", "生活採買", "機票交通", "簽證規費", "其他雜項"];
     const DEFAULT_INCOME_CATS = ["薪資收入", "兼職副業", "政府退稅", "利息投資", "其他收入"];
 
@@ -619,8 +629,8 @@
     let calendarDate = new Date();
     let currentEditingEventId = null;
     let currentSelectedGearCategory = "ALL";
-    let chartPeriod = "month"; // week, month, all
-    let chartType = "expense"; // expense, income
+    let chartPeriod = "month";
+    let chartType = "expense";
     let pieChartInstance = null;
     let db = null;
     let syncUnsubscribe = null;
@@ -813,7 +823,6 @@
       if (getEl("twdExpense")) getEl("twdExpense").textContent = `-NT$ ${twdExp.toLocaleString()}`;
     }
 
-    // 圓餅圖週期與類型切換
     window.setChartPeriod = function(p) {
       chartPeriod = p;
       ['Week', 'Month', 'All'].forEach(k => {
@@ -843,7 +852,6 @@
       const fx = appState.fxRate || 23.0;
       const now = new Date();
 
-      // 篩選週期與收支類型
       const filtered = (appState.transactions || []).filter(t => {
         if (t.type !== chartType) return false;
         const tDate = new Date(t.date);
@@ -857,7 +865,6 @@
         return true;
       });
 
-      // 依照類別分組統計
       const catTotals = {};
       let totalAmountNTD = 0;
 
@@ -886,7 +893,6 @@
       canvas.classList.remove('hidden');
       noDataEl.classList.add('hidden');
 
-      // 產生色彩
       const bgColors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
 
       if (pieChartInstance) {
@@ -924,7 +930,6 @@
         }
       });
 
-      // 渲染右側詳細佔比清單
       const sorted = Object.entries(catTotals).sort((a,b) => b[1] - a[1]);
       legendListEl.innerHTML = sorted.map(([cat, amt], idx) => {
         const pct = Math.round((amt / totalAmountNTD) * 100);
@@ -979,7 +984,6 @@
       document.getElementById("txNote").value = "";
       document.getElementById("txModalTitle").textContent = type === "income" ? "記一筆收入" : "記一筆支出";
 
-      // 填充類別選單
       const cats = type === 'income' 
         ? (appState.incomeCategories || DEFAULT_INCOME_CATS) 
         : (appState.expenseCategories || DEFAULT_EXPENSE_CATS);
@@ -1006,7 +1010,6 @@
       const type = document.getElementById("txType").value;
       const finalCat = document.getElementById("txCategoryCustom").value.trim() || (type === 'income' ? '其他收入' : '其他雜項');
 
-      // 若為全新分類，寫入全域類別清單
       if (type === 'income') {
         if (!appState.incomeCategories.includes(finalCat)) appState.incomeCategories.push(finalCat);
       } else {
@@ -1083,6 +1086,7 @@
       }
     };
 
+    // --- 日曆渲染 (含 Google Maps 地圖標籤與跳轉) ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -1118,9 +1122,11 @@
             <div class="mt-1 space-y-1">
               ${evs.map(e => {
                 const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
+                const hasMap = Boolean(e.mapUrl && e.mapUrl.trim());
                 return `
-                  <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${getColorBadgeClass(tag.color)}">
-                    <span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}
+                  <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium flex items-center justify-between gap-1 ${getColorBadgeClass(tag.color)}">
+                    <span class="truncate"><span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
+                    ${hasMap ? '<span class="flex-shrink-0 text-[10px]" title="包含 Google Maps 地點">📍</span>' : ''}
                   </div>
                 `;
               }).join('')}
@@ -1141,9 +1147,11 @@
       document.getElementById("eventId").value = "";
       document.getElementById("eventTitle").value = "";
       document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
+      document.getElementById("eventMapUrl").value = "";
       document.getElementById("eventDesc").value = "";
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
       document.getElementById("eventDeleteBtn").classList.add("hidden");
+      document.getElementById("eventMapDirectLinkArea").classList.add("hidden");
 
       const tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}">● ${t.name}</option>`).join('');
@@ -1164,9 +1172,20 @@
       document.getElementById("eventId").value = ev.id;
       document.getElementById("eventTitle").value = ev.title;
       document.getElementById("eventDate").value = ev.date;
+      document.getElementById("eventMapUrl").value = ev.mapUrl || "";
       document.getElementById("eventDesc").value = ev.desc || "";
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
+
+      // 地圖連結按鈕
+      const mapBtnArea = document.getElementById("eventMapDirectLinkArea");
+      const mapBtn = document.getElementById("eventMapDirectLink");
+      if (ev.mapUrl && ev.mapUrl.trim()) {
+        mapBtn.href = ev.mapUrl.trim();
+        mapBtnArea.classList.remove("hidden");
+      } else {
+        mapBtnArea.classList.add("hidden");
+      }
 
       const tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}" ${t.id === ev.tagId ? 'selected' : ''}>● ${t.name}</option>`).join('');
@@ -1182,6 +1201,7 @@
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
         date: document.getElementById("eventDate").value,
+        mapUrl: document.getElementById("eventMapUrl").value.trim(),
         desc: document.getElementById("eventDesc").value
       };
 
