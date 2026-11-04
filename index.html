@@ -28,9 +28,7 @@
           <div id="headerAvatarContainer" class="w-10 h-10 rounded-full bg-amber-800 flex items-center justify-center text-white font-bold text-base shadow-inner overflow-hidden border border-amber-900/20">
             <span id="headerAvatarText">AU</span>
           </div>
-          <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition font-semibold">
-            更換
-          </div>
+          <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition font-semibold">更換</div>
         </div>
         <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="handleAvatarFileSelect(event)">
 
@@ -42,7 +40,6 @@
       
       <!-- 頂部功能區 (匯率與同步) -->
       <div class="flex flex-wrap items-center gap-2">
-        <!-- 動態匯率面板 -->
         <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-stone-600">
           <span class="mr-1 text-stone-400">1 <span id="headerPrimaryCurrencyLabel">AUD</span> = </span>
           <input type="number" id="fxRateInput" step="0.01" value="23.0" class="w-14 bg-white border border-stone-300 rounded px-1 py-0.5 font-mono text-center font-bold text-stone-800 focus:outline-none" onchange="updateFxRate(this.value)">
@@ -50,13 +47,11 @@
           <button type="button" onclick="fetchLiveFxRate(true)" title="從即時牌價更新匯率" class="ml-1.5 text-stone-400 hover:text-amber-800 cursor-pointer">🔄</button>
         </div>
 
-        <!-- 雲端同步 -->
         <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg p-1 text-xs">
           <input type="text" id="syncKeyDirect" placeholder="自訂同步密碼" class="bg-white border border-stone-300 rounded px-2 py-1 w-28 sm:w-32 text-stone-800 focus:outline-none font-mono">
           <button type="button" onclick="connectDirectSync()" id="syncDirectBtn" class="ml-1 px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded font-semibold transition cursor-pointer">連線同步</button>
         </div>
 
-        <!-- 看板設定齒輪 -->
         <button type="button" onclick="openSettingsModal()" class="p-1.5 px-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="自訂看板設定">
           <span>⚙️</span>
           <span class="hidden sm:inline">看板設定</span>
@@ -93,46 +88,33 @@
       <div id="smartReminderList" class="mt-3 space-y-1.5 text-xs"></div>
     </div>
 
-    <!-- TAB 0: 避坑指南 & 備忘手冊 -->
+    <!-- TAB 0: 避坑指南 -->
     <div id="content-guide" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-2">
           <span class="text-xs font-bold text-amber-800 tracking-wider uppercase block">澳洲法定工資底線 (Fair Work)</span>
           <p class="text-2xl font-black text-amber-950">$33.05 <span class="text-xs font-normal">AUD/hr (Casual)</span></p>
-          <p class="text-[11px] text-amber-900 leading-relaxed">
-            Full-time/Part-time 最低為 <strong>$26.44/hr</strong>。Casual 臨時工依法必須加上 25% Loading，低於 $33.05 的白工 Casual 皆屬違法。
-          </p>
+          <p class="text-[11px] text-amber-900 leading-relaxed">Full-time/Part-time 最低為 <strong>$26.44/hr</strong>。Casual 臨時工依法必須加上 25% Loading，低於 $33.05 的白工 Casual 皆屬違法。</p>
         </div>
-
         <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 space-y-2">
           <span class="text-xs font-bold text-emerald-800 tracking-wider uppercase block">法定 Super 退休金</span>
           <p class="text-2xl font-black text-emerald-950">12.0% <span class="text-xs font-normal">(雇主額外負擔)</span></p>
-          <p class="text-[11px] text-emerald-900 leading-relaxed">
-            雇主須額外提撥 12% 至 Super 帳戶。離澳時可透過 DASP 申請領回，扣除 65% 重稅後實得約 <strong>35%</strong>。
-          </p>
+          <p class="text-[11px] text-emerald-900 leading-relaxed">雇主須額外提撥 12% 至 Super 帳戶。離澳時可透過 DASP 申請領回，扣除 65% 重稅後實得約 <strong>35%</strong>。</p>
         </div>
-
         <div class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 space-y-2">
           <span class="text-xs font-bold text-blue-800 tracking-wider uppercase block">WHV 背包客稅率 (417/462)</span>
           <p class="text-2xl font-black text-blue-950">15% <span class="text-xs font-normal">($0 ~ $45,000 AUD)</span></p>
-          <p class="text-[11px] text-blue-900 leading-relaxed">
-            年收入 45,000 澳幣以內依法固定扣 15% 所得稅；超過部分進入 30% 稅率級距。
-          </p>
+          <p class="text-[11px] text-blue-900 leading-relaxed">年收入 45,000 澳幣以內依法固定扣 15% 所得稅；超過部分進入 30% 稅率級距。</p>
         </div>
       </div>
 
-      <!-- 點擊展開的避雷手冊 -->
       <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-3">
         <div class="flex items-center justify-between pb-2 border-b border-stone-100">
           <div>
-            <h3 class="text-sm font-bold text-stone-900 flex items-center gap-2">
-              🚨 澳洲找工與生活避雷手冊：常見話術與高風險陷阱
-            </h3>
+            <h3 class="text-sm font-bold text-stone-900 flex items-center gap-2">🚨 澳洲找工與生活避雷手冊：常見話術與高風險陷阱</h3>
             <p class="text-xs text-stone-500 mt-0.5">點擊各項話術卡片即可展開/收合詳細解析與應對策略。</p>
           </div>
-          <button type="button" onclick="openSettingsModal()" class="text-xs text-amber-800 hover:text-amber-900 font-bold cursor-pointer">
-            前往設定目標 ➔
-          </button>
+          <button type="button" onclick="openSettingsModal()" class="text-xs text-amber-800 hover:text-amber-900 font-bold cursor-pointer">前往設定目標 ➔</button>
         </div>
 
         <div class="space-y-2.5 text-xs pt-1">
@@ -145,7 +127,6 @@
               <strong>真相揭密</strong>：ABN 是自僱承包商。雇主叫你開 ABN 只是為了逃避工傷保險（WorkCover）、退休金與超時加班費，稅金須全額自負且無賠償保障！
             </div>
           </div>
-
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip2')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
               <span>❌ 話術 2：「前面先試工 (Trial) 2～3 天，表現好才給薪」</span>
@@ -155,7 +136,6 @@
               <strong>真相揭密</strong>：合法無薪試工僅限於展示技能的極短時間（通常 1～2 小時）。超過半天全更工作依法必須給付全額工資。
             </div>
           </div>
-
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip3')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
               <span>❌ 話術 3：「時薪 $30 包含退休金 (Inclusive of Super)」</span>
@@ -165,7 +145,6 @@
               <strong>真相揭密</strong>：應徵時務必確認是 <strong>Base + Super</strong>。若對方說含 Super，換算底薪只有 $30 ÷ 1.12 = $26.78，遠低於 Casual 法定底薪。
             </div>
           </div>
-
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip4')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
               <span>❌ 話術 4：「綁定仲介指定住宿，保證每週 40 小時工時」</span>
@@ -175,59 +154,16 @@
               <strong>真相揭密</strong>：許多黑心工頭靠高於市價的房租賺錢，抵達後可能因砍班每週只工 10 小時，賺的錢甚至不夠付房租。
             </div>
           </div>
-
-          <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
-            <button type="button" onclick="toggleAccordion('tip5')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
-              <span>❌ 話術 5：「農場是計件制 (Piecework)，手腳慢賺得少是自己的問題」</span>
-              <span id="tip5-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
-            </button>
-            <div id="tip5" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：Fair Work 設有最低時薪保底條款。計件工作結算後的時薪，絕對不能低於法定 Casual 最低時薪底線！
-            </div>
-          </div>
-
-          <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
-            <button type="button" onclick="toggleAccordion('tip6')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
-              <span>❌ 話術 6：「不用去偏遠地區工作，花錢買二簽/三簽天數最輕鬆」</span>
-              <span id="tip6-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
-            </button>
-            <div id="tip6" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：移民局與稅務局全面聯網審查銀行帳戶與 Payslip。偽造二簽將面臨直接遣返並三年禁止入境澳洲（PIC 4020 詐欺條款）！
-            </div>
-          </div>
-
-          <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
-            <button type="button" onclick="toggleAccordion('tip7')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
-              <span>❌ 話術 7：「這間市區好房搶手，人在台灣請先匯 2 週押金保留房間」</span>
-              <span id="tip7-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
-            </button>
-            <div id="tip7" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：原則：抵達當地前只預訂可退訂的短租青旅，未現場看到房間鑰匙並核實房東身分前絕不轉帳押金！
-            </div>
-          </div>
-
-          <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
-            <button type="button" onclick="toggleAccordion('tip8')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
-              <span>❌ 話術 8：「入職或住宿登記需要保管你的護照正本」</span>
-              <span id="tip8-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
-            </button>
-            <div id="tip8" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
-              <strong>真相揭密</strong>：在澳洲扣留他人護照正本屬聯邦刑事犯罪。雇主僅有權查驗身分或影印留存，絕不能扣留正本！
-            </div>
-          </div>
         </div>
       </div>
     </div>
 
     <!-- TAB 1: 雙幣財務 & 圓餅圖分析 -->
     <div id="content-finance" class="space-y-6 hidden">
-      <!-- 總目標進度卡 -->
       <div class="bg-stone-900 rounded-2xl p-6 text-white shadow-lg">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <span id="targetBadgeText" class="px-2 py-0.5 text-[11px] font-semibold bg-amber-600/40 text-amber-300 rounded border border-amber-500/30">
-              儲蓄目標：NT$ 400,000
-            </span>
+            <span id="targetBadgeText" class="px-2 py-0.5 text-[11px] font-semibold bg-amber-600/40 text-amber-300 rounded border border-amber-500/30">儲蓄目標：NT$ 400,000</span>
             <div class="mt-2 flex items-baseline gap-2">
               <h2 id="totalSavingsNTD" class="text-3xl sm:text-4xl font-extrabold">NT$ 0</h2>
               <span id="totalSavingsPrimary" class="text-sm font-medium text-stone-400">折合約 $0 AUD</span>
@@ -259,7 +195,6 @@
         </div>
       </div>
 
-      <!-- 資金池餘額卡 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
           <span id="primaryPoolTitle" class="text-xs font-medium text-stone-500 uppercase">主要外幣資金池 (AUD)</span>
@@ -284,10 +219,8 @@
       <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
           <div>
-            <h3 class="text-sm font-bold text-stone-900 flex items-center gap-1.5">
-              <span>📊</span> 收支類別圓餅圖分析
-            </h3>
-            <p class="text-xs text-stone-500 mt-0.5">統計雙幣主要收支佔比 (少數獨立第三幣別不列入計算以保純淨)。</p>
+            <h3 class="text-sm font-bold text-stone-900 flex items-center gap-1.5"><span>📊</span> 收支類別圓餅圖分析</h3>
+            <p class="text-xs text-stone-500 mt-0.5">統計雙幣主要收支佔比 (電匯中轉手續費可單獨列為金融規費)。</p>
           </div>
           
           <div class="flex flex-wrap items-center gap-2">
@@ -317,7 +250,7 @@
       <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800 flex justify-between items-center">
           <span>收支紀錄明細</span>
-          <span class="text-xs text-stone-400 font-normal">標註「獨立幣別」之款項未列入雙幣主資金池</span>
+          <span class="text-xs text-stone-400 font-normal">若包含手續費，可於細項中清楚標示扣除金額</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
@@ -327,7 +260,7 @@
                 <th class="py-2.5 px-3">類型</th>
                 <th class="py-2.5 px-3">幣別</th>
                 <th class="py-2.5 px-3">大分類</th>
-                <th class="py-2.5 px-4">細項說明</th>
+                <th class="py-2.5 px-4">細項說明 (含手續費備忘)</th>
                 <th class="py-2.5 px-4 text-right">金額</th>
                 <th class="py-2.5 px-3 text-center">操作</th>
               </tr>
@@ -374,7 +307,6 @@
     <!-- TAB 3: 出發裝備清單 -->
     <div id="content-gear" class="space-y-6 hidden">
       <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm space-y-4">
-        
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
           <div>
             <h2 class="text-base font-bold text-stone-900">生活必備裝備清單</h2>
@@ -392,18 +324,15 @@
         </div>
 
         <div id="gearItemsContainer" class="space-y-2 pt-2"></div>
-
       </div>
     </div>
   </main>
 
-  <!-- MODAL: 個人化看板設定 (支援幣別自訂) -->
+  <!-- MODAL: 個人化看板設定 -->
   <div id="settingsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
-        <h3 class="text-base font-bold text-stone-900 flex items-center gap-1.5">
-          <span>⚙️</span> 個人化看板設定
-        </h3>
+        <h3 class="text-base font-bold text-stone-900 flex items-center gap-1.5"><span>⚙️</span> 個人化看板設定</h3>
         <button type="button" onclick="closeModal('settingsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
       </div>
 
@@ -418,12 +347,8 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" onclick="triggerAvatarUpload()" class="px-2.5 py-1.5 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-stone-700 font-bold cursor-pointer shadow-xs">
-            選擇圖片
-          </button>
-          <button type="button" onclick="resetAvatarToDefault()" class="px-2 py-1.5 bg-stone-200 hover:bg-stone-300 rounded-lg text-stone-600 font-medium cursor-pointer">
-            重設
-          </button>
+          <button type="button" onclick="triggerAvatarUpload()" class="px-2.5 py-1.5 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-stone-700 font-bold cursor-pointer shadow-xs">選擇圖片</button>
+          <button type="button" onclick="resetAvatarToDefault()" class="px-2 py-1.5 bg-stone-200 hover:bg-stone-300 rounded-lg text-stone-600 font-medium cursor-pointer">重設</button>
         </div>
       </div>
 
@@ -436,8 +361,6 @@
           <label class="block font-semibold text-stone-700 mb-1">頭像文字縮寫 (未上傳圖片時顯示)</label>
           <input type="text" id="settingAvatarInitials" maxlength="4" placeholder="例如: AU, ME, 2026" class="w-full p-2 border border-stone-200 rounded-lg font-bold font-mono uppercase">
         </div>
-
-        <!-- 幣別設定核心 -->
         <div>
           <label class="block font-semibold text-stone-700 mb-1">主要幣別 (Primary Currency)</label>
           <select id="settingPrimaryCurrency" class="w-full p-2 border border-stone-200 rounded-lg font-bold">
@@ -459,7 +382,6 @@
             <option value="USD">USD (美元)</option>
           </select>
         </div>
-
         <div>
           <label class="block font-semibold text-stone-700 mb-1">副標題說明</label>
           <input type="text" id="settingSubTitle" class="w-full p-2 border border-stone-200 rounded-lg">
@@ -495,7 +417,6 @@
         <h3 class="text-base font-bold text-stone-900">🏷️ 管理自訂標籤</h3>
         <button type="button" onclick="closeModal('manageTagsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
       </div>
-      
       <div class="space-y-2">
         <label class="block font-semibold text-xs text-stone-700">＋ 新增標籤</label>
         <div class="flex gap-1.5">
@@ -513,19 +434,17 @@
           <button type="button" onclick="handleAddNewTag()" class="px-3 py-1.5 bg-amber-800 text-white rounded-lg text-xs font-bold cursor-pointer">新增</button>
         </div>
       </div>
-
       <div class="pt-2">
         <span class="block font-semibold text-xs text-stone-600 mb-2">現有標籤清單：</span>
         <div id="tagsListContainer" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
       </div>
-
       <div class="pt-2 flex justify-end border-t border-stone-100">
         <button type="button" onclick="closeModal('manageTagsModal')" class="px-4 py-1.5 bg-stone-100 text-stone-800 rounded-lg text-xs font-bold cursor-pointer">完成</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 -->
+  <!-- MODAL: 新增/編輯日曆事項 (新增 Optional 時間欄位) -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -536,7 +455,7 @@
         <input type="hidden" id="eventId">
         <div>
           <label class="block font-semibold mb-1">事項名稱</label>
-          <input type="text" id="eventTitle" required placeholder="輸入待辦或行程名稱" class="w-full p-2 border rounded">
+          <input type="text" id="eventTitle" required placeholder="例如：德協面談、肉廠報到、飛機起飛" class="w-full p-2 border rounded">
         </div>
         <div>
           <div class="flex justify-between items-center mb-1">
@@ -545,18 +464,25 @@
           </div>
           <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
         </div>
-        <div>
-          <label class="block font-semibold mb-1">日期</label>
-          <input type="date" id="eventDate" required class="w-full p-2 border rounded">
-        </div>
         
+        <!-- 日期與可選時間 (Optional Time) -->
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">日期 (必填)</label>
+            <input type="date" id="eventDate" required class="w-full p-2 border rounded">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">開始時間 <span class="text-stone-400 font-normal">(選填)</span></label>
+            <input type="time" id="eventStartTime" class="w-full p-2 border rounded">
+          </div>
+        </div>
+
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="font-semibold text-stone-800">📍 地點位置 (地標名稱 或 網址)</label>
             <button type="button" onclick="previewLocationSearch()" class="text-[11px] text-blue-600 hover:underline font-bold cursor-pointer">🔍 測試搜尋預覽</button>
           </div>
           <input type="text" id="eventLocationInput" placeholder="例如：烏魯魯渡假村、雪梨歌劇院，或貼上 Maps 網址" class="w-full p-2 border rounded border-amber-300 bg-amber-50/40 text-stone-800">
-          <p class="text-[10px] text-stone-400 mt-1">💡 可直接打地標/地址，系統會自動轉換為 Google Maps 導航連結。</p>
         </div>
 
         <div>
@@ -589,7 +515,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 記帳 (支援主幣別、本國幣別與彈性自訂第三幣別) -->
+  <!-- MODAL: 記帳 (支援電匯手續費拆解與提示) -->
   <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
@@ -599,13 +525,12 @@
           <label class="block font-semibold mb-1">幣別與日期</label>
           <div class="grid grid-cols-2 gap-2">
             <select id="txCurrency" class="p-2 border rounded font-bold" onchange="handleTxCurrencyChange()">
-              <!-- 動態填充主幣別、本國幣別與自訂第三幣別選項 -->
             </select>
             <input type="date" id="txDate" required class="p-2 border rounded">
           </div>
         </div>
 
-        <!-- 第三幣別專屬設定輸入區 (預設隱藏) -->
+        <!-- 第三幣別專屬設定輸入區 -->
         <div id="thirdCurrencyArea" class="p-2.5 bg-blue-50 border border-blue-200 rounded-lg space-y-2 hidden">
           <span class="block font-bold text-blue-900 text-[11px]">💡 少數第三幣別 (獨立紀錄，不併入主雙幣儲蓄統計)</span>
           <div class="grid grid-cols-2 gap-2">
@@ -626,14 +551,14 @@
         </div>
 
         <div>
-          <label class="block font-semibold mb-1">大類別 (選擇現有或直接輸入自訂)</label>
+          <label class="block font-semibold mb-1">大分類 (選擇現有或直接輸入自訂)</label>
           <select id="txCategorySelect" class="w-full p-2 border rounded mb-1.5 font-medium" onchange="document.getElementById('txCategoryCustom').value = this.value"></select>
-          <input type="text" id="txCategoryCustom" required placeholder="自訂類別 (例如: 薪資、飲食、玩樂、房租)" class="w-full p-2 border border-amber-300 bg-amber-50/40 rounded font-semibold text-amber-900">
+          <input type="text" id="txCategoryCustom" required placeholder="自訂類別 (例如: 金融規費、薪資、飲食、房租)" class="w-full p-2 border border-amber-300 bg-amber-50/40 rounded font-semibold text-amber-900">
         </div>
 
         <div>
-          <label class="block font-semibold mb-1">細項名稱 (具體說明)</label>
-          <input type="text" id="txNote" required placeholder="例如：超市買菜、第 3 週薪水、週末露營..." class="w-full p-2 border rounded">
+          <label class="block font-semibold mb-1">細項名稱 / 備註說明 (含手續費與中轉扣抵)</label>
+          <input type="text" id="txNote" required placeholder="例如：電匯手續費(中轉扣$25)、超市採買..." class="w-full p-2 border rounded">
         </div>
 
         <div id="txSuperOption" class="p-2.5 bg-amber-50 rounded-lg border border-amber-200 hidden">
@@ -712,11 +637,11 @@
     ];
 
     const DEFAULT_EVENTS = [
-      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "工作結束交接 & 下一站啟程", tagId: "t_2", date: "2027-06-30", location: "Ayers Rock Resort", desc: "完成交接，領取相關退稅結算單據。" }
+      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", time: "14:00", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
+      { id: "ev2", title: "工作結束交接 & 下一站啟程", tagId: "t_2", date: "2027-06-30", time: "", location: "Ayers Rock Resort", desc: "完成交接，領取相關退稅結算單據。" }
     ];
 
-    const DEFAULT_EXPENSE_CATS = ["飲食餐飲", "玩樂休閒", "住宿房租", "生活採買", "機票交通", "簽證規費", "其他雜項"];
+    const DEFAULT_EXPENSE_CATS = ["金融規費", "飲食餐飲", "玩樂休閒", "住宿房租", "生活採買", "機票交通", "其他雜項"];
     const DEFAULT_INCOME_CATS = ["薪資收入", "兼職副業", "政府退稅", "利息投資", "其他收入"];
 
     let appState = {
@@ -724,11 +649,8 @@
       subTitle: "雙幣資產管理 • 儲蓄進度視覺化",
       avatarInitials: "AU",
       avatarImage: "",
-
-      // 幣別設定
-      primaryCurrency: "AUD", // 預設主要外幣
-      homeCurrency: "TWD",    // 預設本國幣別
-
+      primaryCurrency: "AUD",
+      homeCurrency: "TWD",
       targetNTD: 400000,
       targetEndDate: "2027-06-30",
       audPoolTitle: "主要外幣資金池 (AUD)",
@@ -752,12 +674,8 @@
     let syncUnsubscribe = null;
     let isRemoteUpdate = false;
 
-    const CHART_PALETTE = [
-      '#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', 
-      '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'
-    ];
+    const CHART_PALETTE = ['#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'];
 
-    // --- 自動抓取即時匯率 API ---
     async function fetchLiveFxRate(isUserTriggered = false) {
       const pCurr = appState.primaryCurrency || "AUD";
       const hCurr = appState.homeCurrency || "TWD";
@@ -773,15 +691,10 @@
           saveState();
           renderFinance();
           renderPieChart();
-          if (isUserTriggered) {
-            alert(`已更新最新牌價參考匯率：1 ${pCurr} = ${liveRate} ${hCurr}`);
-          }
+          if (isUserTriggered) alert(`已更新最新即時匯率：1 ${pCurr} = ${liveRate} ${hCurr}`);
         }
       } catch (err) {
-        console.warn("無法取得線上匯率，維持手動或快取值:", err);
-        if (isUserTriggered) {
-          alert("無法連線至匯率伺服器，請手動輸入匯率。");
-        }
+        if (isUserTriggered) alert("暫時無法連線至即時匯率伺服器，可直接手動輸入。");
       }
     }
 
@@ -801,18 +714,13 @@
     function buildGoogleMapsUrl(input) {
       if (!input || !input.trim()) return "";
       const trimmed = input.trim();
-      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-        return trimmed;
-      }
+      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
     }
 
     window.previewLocationSearch = function() {
       const input = document.getElementById("eventLocationInput").value.trim();
-      if (!input) {
-        alert("請先輸入地點名稱、地址或 Maps 連結！");
-        return;
-      }
+      if (!input) { alert("請先輸入地點名稱、地址或 Maps 連結！"); return; }
       window.open(buildGoogleMapsUrl(input), "_blank");
     };
 
@@ -823,7 +731,6 @@
 
       const now = new Date();
       now.setHours(0,0,0,0);
-
       const upcoming = [];
 
       (appState.events || []).forEach(ev => {
@@ -831,12 +738,8 @@
         const [y, m, d] = ev.date.split("-").map(Number);
         const evDate = new Date(y, m - 1, d);
         evDate.setHours(0,0,0,0);
-
         const diffDays = Math.round((evDate - now) / (1000 * 60 * 60 * 24));
-
-        if (diffDays >= 0 && diffDays <= 3) {
-          upcoming.push({ ...ev, diffDays });
-        }
+        if (diffDays >= 0 && diffDays <= 3) upcoming.push({ ...ev, diffDays });
       });
 
       if (upcoming.length === 0) {
@@ -845,70 +748,83 @@
       }
 
       upcoming.sort((a, b) => a.diffDays - b.diffDays);
-
       listEl.innerHTML = upcoming.map(item => {
         let dayBadge = "";
-        if (item.diffDays === 0) {
-          dayBadge = `<span class="px-1.5 py-0.5 rounded bg-rose-600 text-white font-bold text-[10px] animate-pulse">今日到期</span>`;
-        } else if (item.diffDays === 1) {
-          dayBadge = `<span class="px-1.5 py-0.5 rounded bg-amber-500 text-stone-900 font-bold text-[10px]">明天</span>`;
-        } else {
-          dayBadge = `<span class="px-1.5 py-0.5 rounded bg-stone-700 text-stone-300 font-semibold text-[10px]">${item.diffDays} 天後</span>`;
-        }
+        if (item.diffDays === 0) dayBadge = `<span class="px-1.5 py-0.5 rounded bg-rose-600 text-white font-bold text-[10px] animate-pulse">今日</span>`;
+        else if (item.diffDays === 1) dayBadge = `<span class="px-1.5 py-0.5 rounded bg-amber-500 text-stone-900 font-bold text-[10px]">明天</span>`;
+        else dayBadge = `<span class="px-1.5 py-0.5 rounded bg-stone-700 text-stone-300 font-semibold text-[10px]">${item.diffDays} 天後</span>`;
 
         const loc = item.location || item.mapUrl || "";
+        const timeText = item.time ? ` ⏰ ${item.time}` : '';
         return `
           <div class="flex items-center justify-between p-2 rounded-lg bg-stone-800/80 border border-stone-700">
             <div class="flex items-center gap-2 overflow-hidden">
               ${dayBadge}
-              <span class="font-bold text-stone-100 truncate">${item.title}</span>
+              <span class="font-bold text-stone-100 truncate">${item.title}${timeText}</span>
               ${loc ? `<span class="text-stone-400 text-[11px] truncate hidden sm:inline">📍 ${loc}</span>` : ''}
             </div>
-            <button type="button" onclick="openEditEvent('${item.id}', event); switchTab('calendar');" class="text-amber-400 hover:text-amber-300 text-[11px] font-bold whitespace-nowrap ml-2 cursor-pointer">
-              查看 ➔
-            </button>
+            <button type="button" onclick="openEditEvent('${item.id}', event); switchTab('calendar');" class="text-amber-400 hover:text-amber-300 text-[11px] font-bold whitespace-nowrap ml-2 cursor-pointer">查看 ➔</button>
           </div>
         `;
       }).join('');
-
       banner.classList.remove("hidden");
     }
 
+    // --- Google 日曆：精準支援時間帶入 ---
     window.addToGoogleCalendarFromModal = function() {
       const title = document.getElementById("eventTitle").value.trim();
-      const dateStr = document.getElementById("eventDate").value;
+      const dateStr = document.getElementById("eventDate").value; // YYYY-MM-DD
+      const timeStr = document.getElementById("eventStartTime").value; // HH:MM 或空
       const loc = document.getElementById("eventLocationInput").value.trim();
       const desc = document.getElementById("eventDesc").value.trim();
 
-      if (!title || !dateStr) {
-        alert("請確認已填寫事項名稱與日期！");
-        return;
-      }
+      if (!title || !dateStr) { alert("請填寫事項名稱與日期！"); return; }
 
       const cleanDate = dateStr.replace(/-/g, "");
-      const datesParam = `${cleanDate}/${cleanDate}`;
+      let datesParam = "";
+
+      if (timeStr) {
+        // 指定時間 (預設持續 1 小時)
+        const [h, m] = timeStr.split(":").map(Number);
+        const startH = String(h).padStart(2, '0');
+        const startM = String(m).padStart(2, '0');
+        const endH = String((h + 1) % 24).padStart(2, '0');
+        datesParam = `${cleanDate}T${startH}${startM}00/${cleanDate}T${endH}${startM}00`;
+      } else {
+        // 全天行程
+        datesParam = `${cleanDate}/${cleanDate}`;
+      }
 
       let details = desc || "";
-      if (loc) {
-        details += `\n地點導航：${buildGoogleMapsUrl(loc)}`;
-      }
+      if (loc) details += `\n地點導航：${buildGoogleMapsUrl(loc)}`;
 
       const gUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${datesParam}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(loc)}`;
       window.open(gUrl, "_blank");
     };
 
+    // --- 手機原生日曆 ICS 匯出 (支援時間) ---
     window.downloadIcsFileFromModal = function() {
       const title = document.getElementById("eventTitle").value.trim();
       const dateStr = document.getElementById("eventDate").value;
+      const timeStr = document.getElementById("eventStartTime").value;
       const loc = document.getElementById("eventLocationInput").value.trim();
       const desc = document.getElementById("eventDesc").value.trim();
 
-      if (!title || !dateStr) {
-        alert("請確認已填寫事項名稱與日期！");
-        return;
-      }
+      if (!title || !dateStr) { alert("請填寫事項名稱與日期！"); return; }
 
       const cleanDate = dateStr.replace(/-/g, "");
+      let dtStartLine = `DTSTART;VALUE=DATE:${cleanDate}`;
+      let dtEndLine = `DTEND;VALUE=DATE:${cleanDate}`;
+
+      if (timeStr) {
+        const [h, m] = timeStr.split(":").map(Number);
+        const startH = String(h).padStart(2, '0');
+        const startM = String(m).padStart(2, '0');
+        const endH = String((h + 1) % 24).padStart(2, '0');
+        dtStartLine = `DTSTART:${cleanDate}T${startH}${startM}00`;
+        dtEndLine = `DTEND:${cleanDate}T${endH}${startM}00`;
+      }
+
       const icsData = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -916,8 +832,8 @@
         "BEGIN:VEVENT",
         `UID:${Date.now()}@whv-tracker`,
         `DTSTAMP:${cleanDate}T000000Z`,
-        `DTSTART;VALUE=DATE:${cleanDate}`,
-        `DTEND;VALUE=DATE:${cleanDate}`,
+        dtStartLine,
+        dtEndLine,
         `SUMMARY:${title}`,
         `DESCRIPTION:${desc} ${loc ? '\\n導航: ' + buildGoogleMapsUrl(loc) : ''}`,
         `LOCATION:${loc}`,
@@ -934,18 +850,11 @@
       document.body.removeChild(link);
     };
 
-    window.triggerAvatarUpload = function() {
-      document.getElementById('avatarFileInput').click();
-    };
+    window.triggerAvatarUpload = function() { document.getElementById('avatarFileInput').click(); };
 
     window.handleAvatarFileSelect = function(e) {
       const file = e.target.files[0];
-      if (!file) return;
-
-      if (!file.type.startsWith('image/')) {
-        alert("請選擇圖片格式檔案！");
-        return;
-      }
+      if (!file || !file.type.startsWith('image/')) return;
 
       const reader = new FileReader();
       reader.onload = function(event) {
@@ -954,18 +863,11 @@
           const canvas = document.createElement('canvas');
           const maxDim = 120;
           let w = img.width, h = img.height;
-          if (w > h) {
-            if (w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
-          } else {
-            if (h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; }
-          }
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-          appState.avatarImage = compressedBase64;
+          if (w > h) { if (w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; } }
+          else { if (h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; } }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          appState.avatarImage = canvas.toDataURL('image/jpeg', 0.85);
           saveState();
           renderAvatar();
         };
@@ -1022,9 +924,7 @@
           }
         }
       });
-      if (tabId === 'finance') {
-        renderPieChart();
-      }
+      if (tabId === 'finance') renderPieChart();
     };
 
     function init() {
@@ -1045,8 +945,6 @@
 
       applyTitlesAndSettings();
       renderAll();
-
-      // 初次啟動自動嘗試更新即時匯率
       fetchLiveFxRate(false);
 
       const savedKey = localStorage.getItem("au_sync_key");
@@ -1072,7 +970,6 @@
 
       if (getEl("headerPrimaryCurrencyLabel")) getEl("headerPrimaryCurrencyLabel").textContent = pCurr;
       if (getEl("headerHomeCurrencyLabel")) getEl("headerHomeCurrencyLabel").textContent = hCurr;
-
       document.querySelectorAll(".primaryCurrText").forEach(el => el.textContent = pCurr);
 
       if (getEl("settingMainTitle")) getEl("settingMainTitle").value = appState.mainTitle;
@@ -1110,10 +1007,7 @@
       applyTitlesAndSettings();
       saveState();
 
-      // 若幣別改變，自動向 API 抓取新幣別匯率
-      if (oldPCurr !== newPCurr) {
-        fetchLiveFxRate(false);
-      }
+      if (oldPCurr !== newPCurr) fetchLiveFxRate(false);
 
       renderFinance();
       closeModal("settingsModal");
@@ -1160,7 +1054,6 @@
 
       (appState.transactions || []).forEach(t => {
         const amt = parseFloat(t.amount) || 0;
-        // 只統計主幣別與本國幣別；自訂第三外幣暫不併入雙幣主池
         if (t.currency === pCurr) {
           if (t.type === "income") {
             pInc += amt;
@@ -1232,15 +1125,11 @@
       const hCurr = appState.homeCurrency || "TWD";
       const now = new Date();
 
-      // 篩選：只統計主要雙幣，排除獨立第三幣別
       const filtered = (appState.transactions || []).filter(t => {
-        if (t.type !== chartType) return false;
-        if (t.isCustomThird) return false; // 排除獨立第三幣別
-
+        if (t.type !== chartType || t.isCustomThird) return false;
         const tDate = new Date(t.date);
         if (chartPeriod === 'week') {
-          const diffTime = Math.abs(now - tDate);
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          const diffDays = Math.ceil(Math.abs(now - tDate) / (1000 * 60 * 60 * 24));
           return diffDays <= 7;
         } else if (chartPeriod === 'month') {
           return tDate.getFullYear() === now.getFullYear() && tDate.getMonth() === now.getMonth();
@@ -1263,10 +1152,7 @@
       const dataValues = Object.values(catTotals);
 
       if (labels.length === 0 || totalAmountHome === 0) {
-        if (pieChartInstance) {
-          pieChartInstance.destroy();
-          pieChartInstance = null;
-        }
+        if (pieChartInstance) { pieChartInstance.destroy(); pieChartInstance = null; }
         canvas.classList.add('hidden');
         noDataEl.classList.remove('hidden');
         legendListEl.innerHTML = `<p class="text-stone-400 py-6 text-center">該區間無雙幣${chartType === 'expense' ? '支出' : '收入'}記錄</p>`;
@@ -1275,24 +1161,16 @@
 
       canvas.classList.remove('hidden');
       noDataEl.classList.add('hidden');
-
       const bgColors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
 
-      if (pieChartInstance) {
-        pieChartInstance.destroy();
-      }
+      if (pieChartInstance) pieChartInstance.destroy();
 
       const ctx = canvas.getContext('2d');
       pieChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: labels,
-          datasets: [{
-            data: dataValues,
-            backgroundColor: bgColors,
-            borderWidth: 2,
-            borderColor: '#ffffff'
-          }]
+          datasets: [{ data: dataValues, backgroundColor: bgColors, borderWidth: 2, borderColor: '#ffffff' }]
         },
         options: {
           responsive: true,
@@ -1368,7 +1246,6 @@
       }).join('');
     }
 
-    // --- 記帳彈窗處理 (含幣別動態選項) ---
     window.openTxModal = function(type) {
       document.getElementById("txType").value = type;
       document.getElementById("txDate").value = new Date().toISOString().split('T')[0];
@@ -1379,7 +1256,6 @@
       const pCurr = appState.primaryCurrency || "AUD";
       const hCurr = appState.homeCurrency || "TWD";
 
-      // 幣別選單填充
       const currSelect = document.getElementById("txCurrency");
       currSelect.innerHTML = `
         <option value="${pCurr}">${pCurr} (主要外幣)</option>
@@ -1387,20 +1263,17 @@
         <option value="CUSTOM_THIRD">＋ 自訂第三幣別 (獨立紀錄)</option>
       `;
       currSelect.value = pCurr;
-
       document.getElementById("txCustomCurrencyCode").value = "";
       document.getElementById("txCustomCurrencyRate").value = "";
 
       handleTxCurrencyChange();
 
-      // 分類填充
       const cats = type === 'income' 
         ? (appState.incomeCategories || DEFAULT_INCOME_CATS) 
         : (appState.expenseCategories || DEFAULT_EXPENSE_CATS);
       
       const selectEl = document.getElementById("txCategorySelect");
       selectEl.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-      
       const defaultCat = cats[0] || (type === 'income' ? '薪資收入' : '生活採買');
       selectEl.value = defaultCat;
       document.getElementById("txCategoryCustom").value = defaultCat;
@@ -1414,14 +1287,9 @@
       const superBox = document.getElementById("txSuperOption");
       const pCurr = appState.primaryCurrency || "AUD";
 
-      // 是否顯示第三外幣設定框
-      if (val === "CUSTOM_THIRD") {
-        thirdArea.classList.remove("hidden");
-      } else {
-        thirdArea.classList.add("hidden");
-      }
+      if (val === "CUSTOM_THIRD") thirdArea.classList.remove("hidden");
+      else thirdArea.classList.add("hidden");
 
-      // 只有在主要幣別為 AUD 且為收入時，才顯示 Super 選項
       const isAudInc = (val === "AUD" || (val === pCurr && pCurr === "AUD")) && document.getElementById("txType").value === "income";
       if (superBox) superBox.classList.toggle("hidden", !isAudInc);
     };
@@ -1485,9 +1353,7 @@
       const container = document.getElementById("tagsListContainer");
       container.innerHTML = (appState.tags || []).map(tag => `
         <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50">
-          <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${getColorBadgeClass(tag.color)}">
-            ● ${tag.name}
-          </span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${getColorBadgeClass(tag.color)}">● ${tag.name}</span>
           <button type="button" onclick="deleteTag('${tag.id}')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer">刪除</button>
         </div>
       `).join('');
@@ -1498,14 +1364,8 @@
       const name = document.getElementById("newTagName").value.trim();
       const color = document.getElementById("newTagColor").value;
       if (!name) return;
-
       if (!appState.tags) appState.tags = [];
-      appState.tags.push({
-        id: "t_" + Date.now(),
-        name: name,
-        color: color
-      });
-
+      appState.tags.push({ id: "t_" + Date.now(), name, color });
       saveState();
       document.getElementById("newTagName").value = "";
       openManageTagsModal();
@@ -1521,6 +1381,7 @@
       }
     };
 
+    // --- 日曆渲染 (顯示 Optional 時間與地標) ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -1533,9 +1394,7 @@
       const legendEl = document.getElementById("eventCategoryLegend");
       if (legendEl) {
         legendEl.innerHTML = (appState.tags || []).map(t => `
-          <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${getColorBadgeClass(t.color)}">
-            ● ${t.name}
-          </span>
+          <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${getColorBadgeClass(t.color)}">● ${t.name}</span>
         `).join('');
       }
 
@@ -1558,9 +1417,10 @@
                 const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
                 const locVal = e.location || e.mapUrl || "";
                 const hasLocation = Boolean(locVal && locVal.trim());
+                const timeStr = e.time ? `<span class="opacity-80 mr-0.5 font-mono text-[9px]">${e.time}</span>` : '';
                 return `
                   <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium flex items-center justify-between gap-1 ${getColorBadgeClass(tag.color)}">
-                    <span class="truncate"><span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
+                    <span class="truncate">${timeStr}<span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
                     ${hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含 Google Maps 地點">📍</span>' : ''}
                   </div>
                 `;
@@ -1582,6 +1442,7 @@
       document.getElementById("eventId").value = "";
       document.getElementById("eventTitle").value = "";
       document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
+      document.getElementById("eventStartTime").value = "";
       document.getElementById("eventLocationInput").value = "";
       document.getElementById("eventDesc").value = "";
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
@@ -1590,7 +1451,6 @@
 
       const tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}">● ${t.name}</option>`).join('');
-
       document.getElementById("eventModal").classList.remove("hidden");
     };
 
@@ -1607,6 +1467,7 @@
       document.getElementById("eventId").value = ev.id;
       document.getElementById("eventTitle").value = ev.title;
       document.getElementById("eventDate").value = ev.date;
+      document.getElementById("eventStartTime").value = ev.time || "";
       
       const locVal = ev.location || ev.mapUrl || "";
       document.getElementById("eventLocationInput").value = locVal;
@@ -1621,8 +1482,7 @@
       actionsArea.classList.remove("hidden");
 
       if (locVal && locVal.trim()) {
-        const fullMapsUrl = buildGoogleMapsUrl(locVal);
-        mapBtn.href = fullMapsUrl;
+        mapBtn.href = buildGoogleMapsUrl(locVal);
         mapBtnText.textContent = locVal.startsWith("http") ? "🗺️ 開啟 Google Maps 連結 ↗" : `🗺️ 前往導航：「${locVal.substring(0, 16)}...」↗`;
         mapBtn.classList.remove("hidden");
       } else {
@@ -1644,6 +1504,7 @@
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
         date: document.getElementById("eventDate").value,
+        time: document.getElementById("eventStartTime").value, // Optional 時間
         location: loc,
         mapUrl: loc,
         desc: document.getElementById("eventDesc").value
@@ -1673,6 +1534,7 @@
       }
     };
 
+    // --- 裝備清單 ---
     function renderGear() {
       const tabsContainer = document.getElementById("gearCategoryTabs");
       const itemsContainer = document.getElementById("gearItemsContainer");
@@ -1791,10 +1653,7 @@
 
     window.connectDirectSync = function() {
       const key = document.getElementById("syncKeyDirect").value.trim();
-      if (!key) {
-        alert("請輸入一組自訂的同步密碼！");
-        return;
-      }
+      if (!key) { alert("請輸入一組自訂的同步密碼！"); return; }
 
       try {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
