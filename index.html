@@ -283,7 +283,7 @@
         <h3 class="text-base font-bold text-stone-900 flex items-center gap-1.5">
           <span>⚙️</span> 個人化看板設定
         </h3>
-        <button type="button" onclick="closeModal('settingsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold">✕</button>
+        <button type="button" onclick="closeModal('settingsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
         <div>
@@ -322,14 +322,14 @@
   <div id="manageTagsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
-        <h3 class="text-base font-bold text-stone-900">🏷️ 管理與自訂標籤</h3>
-        <button type="button" onclick="closeModal('manageTagsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold">✕</button>
+        <h3 class="text-base font-bold text-stone-900">🏷️ 管理自訂標籤</h3>
+        <button type="button" onclick="closeModal('manageTagsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
       </div>
       
       <div class="space-y-2">
-        <label class="block font-semibold text-xs text-stone-700">＋ 新增自訂標籤</label>
+        <label class="block font-semibold text-xs text-stone-700">＋ 新增標籤</label>
         <div class="flex gap-1.5">
-          <input type="text" id="newTagName" placeholder="標籤名稱 (如: 語言課、面試)" class="flex-1 p-2 text-xs border rounded-lg">
+          <input type="text" id="newTagName" placeholder="標籤名稱" class="flex-1 p-2 text-xs border rounded-lg">
           <select id="newTagColor" class="p-2 text-xs border rounded-lg font-bold">
             <option value="rose">🔴 紅色</option>
             <option value="blue">🔵 藍色</option>
@@ -368,7 +368,7 @@
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="font-semibold">選擇標籤分類</label>
-            <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[11px] font-bold">＋ 管理/新增標籤</button>
+            <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[11px] font-bold cursor-pointer">＋ 管理/新增標籤</button>
           </div>
           <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
         </div>
@@ -485,7 +485,6 @@
       { id: "g11", label: "防蠅面罩 (Fly Net)", sublines: ["黑色細網束口款 × 2 個 (烏魯魯沙漠戶外防蠅保命神物)"], category: "戶外與極端氣候", checked: false }
     ];
 
-    // 預設純淨可自訂標籤
     const DEFAULT_TAGS = [
       { id: "t_1", name: "重要截止", color: "rose" },
       { id: "t_2", name: "澳打時程", color: "amber" },
@@ -519,7 +518,6 @@
     let syncUnsubscribe = null;
     let isRemoteUpdate = false;
 
-    // 顏色樣式對照表
     function getColorBadgeClass(color) {
       switch (color) {
         case 'rose': return 'bg-rose-100 text-rose-800 border-rose-300';
@@ -769,7 +767,6 @@
       }
     }
 
-    // --- 日曆自訂標籤管理 ---
     function openManageTagsModal() {
       const container = document.getElementById("tagsListContainer");
       container.innerHTML = (appState.tags || []).map(tag => `
@@ -810,7 +807,6 @@
       }
     }
 
-    // --- 日曆渲染 ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -820,7 +816,6 @@
       if (!grid) return;
       grid.innerHTML = "";
 
-      // 標籤圖例
       const legendEl = document.getElementById("eventCategoryLegend");
       if (legendEl) {
         legendEl.innerHTML = (appState.tags || []).map(t => `
@@ -874,7 +869,6 @@
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
       document.getElementById("eventDeleteBtn").classList.add("hidden");
 
-      // 填充標籤選單
       const tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}">● ${t.name}</option>`).join('');
 
@@ -937,7 +931,6 @@
       }
     }
 
-    // --- 裝備清單 ---
     function renderGear() {
       const container = document.getElementById("gearListContainer");
       if (!container) return;
@@ -1035,7 +1028,6 @@
       }
     }
 
-    // --- Firebase 直連同步 ---
     function connectDirectSync() {
       const key = document.getElementById("syncKeyDirect").value.trim();
       if (!key) {
