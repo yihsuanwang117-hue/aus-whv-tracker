@@ -43,7 +43,7 @@
 
     <!-- 頁籤選單 -->
     <div class="max-w-5xl mx-auto px-4 flex flex-wrap gap-x-6 text-sm">
-      <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🎯 目標自訂 & 澳打避坑指南</button>
+      <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🎯 目標自訂 & 澳打指南</button>
       <button type="button" onclick="switchTab('finance')" id="tab-finance" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">雙幣財務 & 自保金</button>
       <button type="button" onclick="switchTab('calendar')" id="tab-calendar" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">重要時程日曆</button>
       <button type="button" onclick="switchTab('gear')" id="tab-gear" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">出發裝備清單</button>
@@ -58,13 +58,13 @@
       
       <!-- 個人看板目標自訂 -->
       <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-100 gap-3">
           <div>
             <h2 class="text-base font-bold text-stone-900">⚙️ 個人化看板設定</h2>
-            <p class="text-xs text-stone-500">修改下方的標題、儲蓄金額與日期，點擊儲存後立即反映在所有儀表板上。</p>
+            <p class="text-xs text-stone-500">修改下方的標題、儲蓄金額與日期，點擊儲存後將自動套用並前往財務頁籤。</p>
           </div>
           <button type="button" onclick="saveCustomSettings()" class="px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold rounded-xl transition shadow cursor-pointer">
-            儲存所有設定
+            儲存所有設定並前往下一步 ➔
           </button>
         </div>
 
@@ -123,40 +123,59 @@
         </div>
       </div>
 
-      <!-- 雇主與仲介話術破解手冊 -->
-      <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
-        <h3 class="text-sm font-bold text-stone-900 flex items-center gap-2">
-          🚨 澳洲找工防坑指南：常見黑心雇主與仲介話術破解
-        </h3>
+      <!-- 點擊展開的注意事項（黑心話術避坑手冊） -->
+      <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-stone-900 flex items-center gap-2">
+            🚨 澳洲找工防坑指南：常見雇主與仲介話術破解
+          </h3>
+          <span class="text-[11px] text-stone-400">（點擊各項目可展開/收合詳細說明）</span>
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div class="space-y-2.5 text-xs pt-1">
           
-          <div class="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-1.5">
-            <span class="font-bold text-rose-700 block">❌ 話術 1：「用 ABN 報稅可以退更多稅、時薪更高」</span>
-            <p class="text-stone-600 leading-relaxed">
-              <strong>真相揭密</strong>：ABN 是自僱獨立承包商（Contractor）。雇主叫你開 ABN 只是為了<strong>逃避幫你保工傷保險（WorkCover）、逃避提撥 12% 退休金、逃避超時加班費</strong>。年底報稅時所有稅金必須自己倒貼申報，極度不划算！
-            </p>
+          <!-- 項目 1 -->
+          <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
+            <button type="button" onclick="toggleAccordion('tip1')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
+              <span>❌ 話術 1：「用 ABN 報稅可以退更多稅、時薪更高」</span>
+              <span id="tip1-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
+            </button>
+            <div id="tip1" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
+              <strong>真相揭密</strong>：ABN 是自僱獨立承包商（Contractor）。雇主叫你開 ABN 只是為了<strong>逃避幫你保工傷保險（WorkCover）、逃避提撥 12% 退休金、逃避超時加班費</strong>。年底報稅時所有稅金必須自己倒貼申報，受傷亦無賠償，極度不划算！
+            </div>
           </div>
 
-          <div class="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-1.5">
-            <span class="font-bold text-rose-700 block">❌ 話術 2：「前面先試工 (Trial) 2～3 天，表現好才給薪」</span>
-            <p class="text-stone-600 leading-relaxed">
+          <!-- 項目 2 -->
+          <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
+            <button type="button" onclick="toggleAccordion('tip2')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
+              <span>❌ 話術 2：「前面先試工 (Trial) 2～3 天，表現好才給薪」</span>
+              <span id="tip2-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
+            </button>
+            <div id="tip2" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
               <strong>真相揭密</strong>：依澳洲 Fair Work 規定，合法無薪試工僅限於「展示技能所需的極短時間」（通常 1～2 小時觀察沖咖啡、端盤子等基本操作）。<strong>超過半天的全更工作依法必須給付全額工資</strong>，否則即為免費勞力剝削。
-            </p>
+            </div>
           </div>
 
-          <div class="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-1.5">
-            <span class="font-bold text-rose-700 block">❌ 話術 3：「時薪 $30 包含退休金 (Inclusive of Super)」</span>
-            <p class="text-stone-600 leading-relaxed">
+          <!-- 項目 3 -->
+          <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
+            <button type="button" onclick="toggleAccordion('tip3')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
+              <span>❌ 話術 3：「時薪 $30 包含退休金 (Inclusive of Super)」</span>
+              <span id="tip3-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
+            </button>
+            <div id="tip3" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
               <strong>真相揭密</strong>：一般基層打工應徵講的都是「時薪 + 退休金（Plus Super）」。若對方說含 Super，換算底薪其實只有 $30 ÷ 1.12 = $26.78，甚至低於 Casual 法定底薪 $33.05。應徵時務必確認是 <strong>Base + Super</strong>。
-            </p>
+            </div>
           </div>
 
-          <div class="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-1.5">
-            <span class="font-bold text-rose-700 block">❌ 話術 4：「綁定仲介指定住宿，保證每週 40 小時工時」</span>
-            <p class="text-stone-600 leading-relaxed">
+          <!-- 項目 4 -->
+          <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
+            <button type="button" onclick="toggleAccordion('tip4')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
+              <span>❌ 話術 4：「綁定仲介指定住宿，保證每週 40 小時工時」</span>
+              <span id="tip4-icon" class="text-stone-400 font-bold ml-2">＋ 展開</span>
+            </button>
+            <div id="tip4" class="hidden p-3.5 pt-0 text-stone-600 border-t border-stone-200 bg-white leading-relaxed">
               <strong>真相揭密</strong>：很多黑心工頭靠高於市價的「床位房租」與「高額車資」賺錢。抵達農場或肉廠後往往遭遇天氣不好或砍班，每週只做 10 小時，賺的錢甚至不夠付他的房租，直接淪為白做工。
-            </p>
+            </div>
           </div>
 
         </div>
@@ -423,13 +442,13 @@
 
     const DEFAULT_EVENTS = [
       { id: "ev1", title: "儲蓄目標/自保金電匯截止", date: "2027-05-15", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "農場/肉廠/工作交接 & 離澳", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" },
+      { id: "ev2", title: "工作結束 & 離澳準備", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" },
       { id: "ev3", title: "重要簽證送件/下一站啟程", date: "2027-07-15", desc: "備齊相關證件與文件。" }
     ];
 
     let appState = {
       mainTitle: "澳洲打工度假 × 德國碩士自保金",
-      subTitle: "AU 烏魯魯旅程 • DE 2027 留學自保金 (40萬 NTD)",
+      subTitle: "AU 旅程儲蓄 • 留學自保金目標追蹤",
       targetNTD: 400000,
       targetEndDate: "2027-06-30",
       audPoolTitle: "澳洲資金池 (AUD)",
@@ -447,6 +466,22 @@
     let syncUnsubscribe = null;
     let isRemoteUpdate = false;
 
+    // 手風琴切換
+    function toggleAccordion(id) {
+      const el = document.getElementById(id);
+      const icon = document.getElementById(id + "-icon");
+      if (el) {
+        if (el.classList.contains("hidden")) {
+          el.classList.remove("hidden");
+          if (icon) icon.textContent = "▲ 收合";
+        } else {
+          el.classList.add("hidden");
+          if (icon) icon.textContent = "＋ 展開";
+        }
+      }
+    }
+
+    // 頁籤切換
     function switchTab(tabId) {
       ['guide', 'finance', 'calendar', 'gear'].forEach(t => {
         const c = document.getElementById('content-' + t);
@@ -486,20 +521,22 @@
     window.onload = init;
 
     function applyTitlesAndSettings() {
-      document.getElementById("headerMainTitle").textContent = appState.mainTitle;
-      document.getElementById("headerSubTitle").textContent = appState.subTitle;
-      document.getElementById("audPoolTitle").textContent = appState.audPoolTitle;
-      document.getElementById("twdPoolTitle").textContent = appState.twdPoolTitle;
-      document.getElementById("cardTargetDate").textContent = appState.targetEndDate;
+      const getEl = id => document.getElementById(id);
+      if (getEl("headerMainTitle")) getEl("headerMainTitle").textContent = appState.mainTitle;
+      if (getEl("headerSubTitle")) getEl("headerSubTitle").textContent = appState.subTitle;
+      if (getEl("audPoolTitle")) getEl("audPoolTitle").textContent = appState.audPoolTitle;
+      if (getEl("twdPoolTitle")) getEl("twdPoolTitle").textContent = appState.twdPoolTitle;
+      if (getEl("cardTargetDate")) getEl("cardTargetDate").textContent = appState.targetEndDate;
 
-      document.getElementById("settingMainTitle").value = appState.mainTitle;
-      document.getElementById("settingSubTitle").value = appState.subTitle;
-      document.getElementById("settingTargetNTD").value = appState.targetNTD;
-      document.getElementById("settingTargetDate").value = appState.targetEndDate;
-      document.getElementById("settingAudPoolTitle").value = appState.audPoolTitle;
-      document.getElementById("settingTwdPoolTitle").value = appState.twdPoolTitle;
+      if (getEl("settingMainTitle")) getEl("settingMainTitle").value = appState.mainTitle;
+      if (getEl("settingSubTitle")) getEl("settingSubTitle").value = appState.subTitle;
+      if (getEl("settingTargetNTD")) getEl("settingTargetNTD").value = appState.targetNTD;
+      if (getEl("settingTargetDate")) getEl("settingTargetDate").value = appState.targetEndDate;
+      if (getEl("settingAudPoolTitle")) getEl("settingAudPoolTitle").value = appState.audPoolTitle;
+      if (getEl("settingTwdPoolTitle")) getEl("settingTwdPoolTitle").value = appState.twdPoolTitle;
     }
 
+    // 儲存並直接切換至財務頁籤
     function saveCustomSettings() {
       appState.mainTitle = document.getElementById("settingMainTitle").value || "個人旅程儲蓄追蹤";
       appState.subTitle = document.getElementById("settingSubTitle").value || "目標追蹤看板";
@@ -511,7 +548,9 @@
       applyTitlesAndSettings();
       saveState();
       renderFinance();
-      alert("✅ 個人化設定已儲存並生效！");
+
+      // 自動引導切換到第二頁雙幣財務
+      switchTab('finance');
     }
 
     function saveState() {
@@ -550,7 +589,6 @@
         if (t.currency === "AUD") {
           if (t.type === "income") {
             audInc += amt;
-            // Super 12% 提撥，離澳退稅實拿約 35%
             if (t.includeSuper) superRefund += (amt * 0.12 * 0.35);
           } else audExp += amt;
         } else {
@@ -569,25 +607,27 @@
       const weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - new Date()) / (1000 * 60 * 60 * 24 * 7)));
       const weeklyNeedAUD = gapNTD > 0 ? Math.round((gapNTD / fx) / weeksLeft) : 0;
 
-      document.getElementById("targetBadgeText").textContent = `儲蓄目標：NT$ ${targetNTD.toLocaleString()} (約 $${Math.round(targetNTD/fx).toLocaleString()} AUD)`;
-      document.getElementById("totalSavingsNTD").textContent = `NT$ ${totalSavingsNTD.toLocaleString()}`;
-      document.getElementById("totalSavingsAUD").textContent = `折合約 $${Math.round(totalSavingsNTD / fx).toLocaleString()} AUD`;
-      document.getElementById("remainingGapText").textContent = gapNTD > 0 ? `距離達成目標還差 NT$ ${gapNTD.toLocaleString()}` : "🎉 恭喜達成儲蓄目標！";
-      document.getElementById("progressPercent").textContent = `${pct}%`;
-      document.getElementById("progressBar").style.width = `${pct}%`;
-      document.getElementById("weeksLeftText").textContent = `${weeksLeft} 週`;
-      document.getElementById("weeklyNeedAUD").textContent = `$${weeklyNeedAUD.toLocaleString()} AUD`;
-      document.getElementById("superRefundEst").textContent = `$${Math.round(superRefund).toLocaleString()} AUD`;
-      document.getElementById("audBalance").textContent = `$${audNet.toLocaleString()} AUD`;
-      document.getElementById("audIncome").textContent = `+$${audInc.toLocaleString()}`;
-      document.getElementById("audExpense").textContent = `-$${audExp.toLocaleString()}`;
-      document.getElementById("twdBalance").textContent = `NT$ ${twdNet.toLocaleString()}`;
-      document.getElementById("twdIncome").textContent = `+NT$ ${twdInc.toLocaleString()}`;
-      document.getElementById("twdExpense").textContent = `-NT$ ${twdExp.toLocaleString()}`;
+      const getEl = id => document.getElementById(id);
+      if (getEl("targetBadgeText")) getEl("targetBadgeText").textContent = `儲蓄目標：NT$ ${targetNTD.toLocaleString()} (約 $${Math.round(targetNTD/fx).toLocaleString()} AUD)`;
+      if (getEl("totalSavingsNTD")) getEl("totalSavingsNTD").textContent = `NT$ ${totalSavingsNTD.toLocaleString()}`;
+      if (getEl("totalSavingsAUD")) getEl("totalSavingsAUD").textContent = `折合約 $${Math.round(totalSavingsNTD / fx).toLocaleString()} AUD`;
+      if (getEl("remainingGapText")) getEl("remainingGapText").textContent = gapNTD > 0 ? `距離達成目標還差 NT$ ${gapNTD.toLocaleString()}` : "🎉 恭喜達成儲蓄目標！";
+      if (getEl("progressPercent")) getEl("progressPercent").textContent = `${pct}%`;
+      if (getEl("progressBar")) getEl("progressBar").style.width = `${pct}%`;
+      if (getEl("weeksLeftText")) getEl("weeksLeftText").textContent = `${weeksLeft} 週`;
+      if (getEl("weeklyNeedAUD")) getEl("weeklyNeedAUD").textContent = `$${weeklyNeedAUD.toLocaleString()} AUD`;
+      if (getEl("superRefundEst")) getEl("superRefundEst").textContent = `$${Math.round(superRefund).toLocaleString()} AUD`;
+      if (getEl("audBalance")) getEl("audBalance").textContent = `$${audNet.toLocaleString()} AUD`;
+      if (getEl("audIncome")) getEl("audIncome").textContent = `+$${audInc.toLocaleString()}`;
+      if (getEl("audExpense")) getEl("audExpense").textContent = `-$${audExp.toLocaleString()}`;
+      if (getEl("twdBalance")) getEl("twdBalance").textContent = `NT$ ${twdNet.toLocaleString()}`;
+      if (getEl("twdIncome")) getEl("twdIncome").textContent = `+NT$ ${twdInc.toLocaleString()}`;
+      if (getEl("twdExpense")) getEl("twdExpense").textContent = `-NT$ ${twdExp.toLocaleString()}`;
     }
 
     function renderTransactions() {
       const tbody = document.getElementById("transactionTableBody");
+      if (!tbody) return;
       const list = (appState.transactions || []).slice().reverse();
       if (list.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-stone-400">目前尚無收支紀錄</td></tr>`;
@@ -662,8 +702,10 @@
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
-      document.getElementById("calendarMonthTitle").textContent = `${year} 年 ${month + 1} 月`;
+      const titleEl = document.getElementById("calendarMonthTitle");
+      if (titleEl) titleEl.textContent = `${year} 年 ${month + 1} 月`;
       const grid = document.getElementById("calendarGrid");
+      if (!grid) return;
       grid.innerHTML = "";
 
       const firstDay = new Date(year, month, 1).getDay();
@@ -762,6 +804,7 @@
 
     function renderGear() {
       const container = document.getElementById("gearListContainer");
+      if (!container) return;
       const groups = {};
       const gearList = appState.gear || DEFAULT_GEAR;
 
@@ -773,7 +816,8 @@
       const total = gearList.length;
       const done = gearList.filter(g => g.checked).length;
       const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-      document.getElementById("gearProgressText").textContent = `完成度：${done} / ${total} (${pct}%)`;
+      const progressText = document.getElementById("gearProgressText");
+      if (progressText) progressText.textContent = `完成度：${done} / ${total} (${pct}%)`;
 
       let html = "";
       for (const [cat, items] of Object.entries(groups)) {
