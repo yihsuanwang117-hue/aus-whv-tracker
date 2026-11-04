@@ -26,20 +26,17 @@
       
       <!-- 頂部功能區 -->
       <div class="flex flex-wrap items-center gap-2">
-        <!-- 匯率 -->
-        <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-xs text-stone-600">
+        <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-stone-600">
           <span class="mr-1 text-stone-400">1 AUD = </span>
           <input type="number" id="fxRateInput" step="0.1" value="23.0" class="w-12 bg-white border border-stone-300 rounded px-1 py-0.5 font-mono text-center font-bold text-stone-800 focus:outline-none" onchange="updateFxRate(this.value)">
           <span class="ml-1 text-stone-500 font-medium">TWD</span>
         </div>
 
-        <!-- 雲端同步 -->
         <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg p-1 text-xs">
           <input type="text" id="syncKeyDirect" placeholder="自訂同步密碼" class="bg-white border border-stone-300 rounded px-2 py-1 w-28 sm:w-32 text-stone-800 focus:outline-none font-mono">
           <button type="button" onclick="connectDirectSync()" id="syncDirectBtn" class="ml-1 px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded font-semibold transition cursor-pointer">連線同步</button>
         </div>
 
-        <!-- 個人看板設定齒輪按鈕 -->
         <button type="button" onclick="openSettingsModal()" class="p-1.5 px-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="自訂看板設定">
           <span>⚙️</span>
           <span class="hidden sm:inline">看板設定</span>
@@ -63,14 +60,12 @@
 
     <!-- TAB 0: 澳打避坑 & 稅務指南 -->
     <div id="content-guide" class="space-y-6">
-      
-      <!-- 市場行情行情與法規重點 -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-2">
           <span class="text-xs font-bold text-amber-800 tracking-wider uppercase block">澳洲法定工資底線 (Fair Work)</span>
           <p class="text-2xl font-black text-amber-950">$33.05 <span class="text-xs font-normal">AUD/hr (Casual)</span></p>
           <p class="text-[11px] text-amber-900 leading-relaxed">
-            Full-time/Part-time 法定最低為 <strong>$26.44/hr</strong>。Casual 臨時工依法必須加上 25% Casual Loading，任何低於 $33.05 的白工 Casual 皆屬違法。
+            Full-time/Part-time 最低為 <strong>$26.44/hr</strong>。Casual 臨時工依法必須加上 25% Loading，低於 $33.05 的白工 Casual 皆屬違法。
           </p>
         </div>
 
@@ -78,7 +73,7 @@
           <span class="text-xs font-bold text-emerald-800 tracking-wider uppercase block">法定 Super 退休金</span>
           <p class="text-2xl font-black text-emerald-950">12.0% <span class="text-xs font-normal">(雇主額外負擔)</span></p>
           <p class="text-[11px] text-emerald-900 leading-relaxed">
-            依法雇主須在薪資外額外提撥 12% 至你的 Super 帳戶。離澳時可透過 DASP 申請領回，扣除 65% 重稅後實得約 <strong>35%</strong>。
+            雇主須額外提撥 12% 至 Super 帳戶。離澳時可透過 DASP 申請領回，扣除 65% 重稅後實得約 <strong>35%</strong>。
           </p>
         </div>
 
@@ -86,7 +81,7 @@
           <span class="text-xs font-bold text-blue-800 tracking-wider uppercase block">WHV 背包客稅率 (417/462)</span>
           <p class="text-2xl font-black text-blue-950">15% <span class="text-xs font-normal">($0 ~ $45,000 AUD)</span></p>
           <p class="text-[11px] text-blue-900 leading-relaxed">
-            年收入在 45,000 澳幣內依法固定扣 15% 所得稅；超過 45,000 元部分才會進入 30% 稅率級距。
+            年收入 45,000 澳幣以內依法固定扣 15% 所得稅；超過部分進入 30% 稅率級距。
           </p>
         </div>
       </div>
@@ -106,7 +101,6 @@
         </div>
 
         <div class="space-y-2.5 text-xs pt-1">
-          <!-- 項目 1 -->
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip1')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
               <span>❌ 話術 1：「用 ABN 報稅可以退更多稅、時薪更高」</span>
@@ -117,7 +111,6 @@
             </div>
           </div>
 
-          <!-- 項目 2 -->
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip2')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
               <span>❌ 話術 2：「前面先試工 (Trial) 2～3 天，表現好才給薪」</span>
@@ -128,7 +121,6 @@
             </div>
           </div>
 
-          <!-- 項目 3 -->
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip3')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
               <span>❌ 話術 3：「時薪 $30 包含退休金 (Inclusive of Super)」</span>
@@ -139,7 +131,6 @@
             </div>
           </div>
 
-          <!-- 項目 4 -->
           <div class="border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
             <button type="button" onclick="toggleAccordion('tip4')" class="w-full text-left p-3.5 flex justify-between items-center font-bold text-rose-700 hover:bg-stone-100 transition cursor-pointer">
               <span>❌ 話術 4：「綁定仲介指定住宿，保證每週 40 小時工時」</span>
@@ -151,12 +142,10 @@
           </div>
         </div>
       </div>
-
     </div>
 
     <!-- TAB 1: 財務與自保金 -->
     <div id="content-finance" class="space-y-6 hidden">
-      <!-- 總卡片 -->
       <div class="bg-stone-900 rounded-2xl p-6 text-white shadow-lg">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -194,7 +183,6 @@
         </div>
       </div>
 
-      <!-- 資金池 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
           <span id="audPoolTitle" class="text-xs font-medium text-stone-500 uppercase">澳洲資金池 (AUD)</span>
@@ -215,7 +203,6 @@
         </div>
       </div>
 
-      <!-- 表格 -->
       <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800">收支紀錄明細</div>
         <div class="overflow-x-auto">
@@ -248,7 +235,10 @@
               <button type="button" onclick="changeMonth(1)" class="px-2.5 py-1 text-xs hover:bg-stone-100 text-stone-600 cursor-pointer">下月</button>
             </div>
           </div>
-          <button type="button" onclick="openAddEventModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增待辦事項</button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="openManageTagsModal()" class="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-semibold cursor-pointer">🏷️ 管理標籤</button>
+            <button type="button" onclick="openAddEventModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增待辦事項</button>
+          </div>
         </div>
 
         <!-- 類別顏色圖例 -->
@@ -286,7 +276,7 @@
     </div>
   </main>
 
-  <!-- MODAL: 個人化看板設定 (齒輪彈窗) -->
+  <!-- MODAL: 個人化看板設定 -->
   <div id="settingsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -325,6 +315,79 @@
         <button type="button" onclick="closeModal('settingsModal')" class="px-3 py-1.5 bg-stone-100 text-stone-700 rounded-lg text-xs font-semibold cursor-pointer">取消</button>
         <button type="button" onclick="saveCustomSettings()" class="px-4 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold cursor-pointer">儲存設定並前往財務 ➔</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: 管理/自訂日曆標籤 -->
+  <div id="manageTagsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+        <h3 class="text-base font-bold text-stone-900">🏷️ 管理與自訂標籤</h3>
+        <button type="button" onclick="closeModal('manageTagsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold">✕</button>
+      </div>
+      
+      <div class="space-y-2">
+        <label class="block font-semibold text-xs text-stone-700">＋ 新增自訂標籤</label>
+        <div class="flex gap-1.5">
+          <input type="text" id="newTagName" placeholder="標籤名稱 (如: 語言課、面試)" class="flex-1 p-2 text-xs border rounded-lg">
+          <select id="newTagColor" class="p-2 text-xs border rounded-lg font-bold">
+            <option value="rose">🔴 紅色</option>
+            <option value="blue">🔵 藍色</option>
+            <option value="emerald">🟢 綠色</option>
+            <option value="amber">🟠 橘色</option>
+            <option value="purple">🟣 紫色</option>
+            <option value="pink">🌸 粉色</option>
+            <option value="cyan">🌊 青色</option>
+            <option value="stone">⚪ 灰色</option>
+          </select>
+          <button type="button" onclick="handleAddNewTag()" class="px-3 py-1.5 bg-amber-800 text-white rounded-lg text-xs font-bold cursor-pointer">新增</button>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <span class="block font-semibold text-xs text-stone-600 mb-2">現有標籤清單：</span>
+        <div id="tagsListContainer" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+      </div>
+
+      <div class="pt-2 flex justify-end border-t border-stone-100">
+        <button type="button" onclick="closeModal('manageTagsModal')" class="px-4 py-1.5 bg-stone-100 text-stone-800 rounded-lg text-xs font-bold cursor-pointer">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: 新增/編輯日曆事項 -->
+  <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+      <h3 id="eventModalTitle" class="text-base font-bold text-stone-900 mb-3">待辦事項</h3>
+      <form onsubmit="handleSaveEvent(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="eventId">
+        <div>
+          <label class="block font-semibold mb-1">事項名稱</label>
+          <input type="text" id="eventTitle" required placeholder="輸入待辦或行程名稱" class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-semibold">選擇標籤分類</label>
+            <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[11px] font-bold">＋ 管理/新增標籤</button>
+          </div>
+          <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">日期</label>
+          <input type="date" id="eventDate" required class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">備註說明 (選填)</label>
+          <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
+        </div>
+        <div class="pt-2 flex justify-between items-center">
+          <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-2.5 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 cursor-pointer hidden">刪除</button>
+          <div class="flex gap-2 ml-auto">
+            <button type="button" onclick="closeModal('eventModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
+            <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">儲存事項</button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -370,53 +433,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 (含類別與顏色) -->
-  <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 id="eventModalTitle" class="text-base font-bold text-stone-900 mb-3">待辦事項</h3>
-      <form onsubmit="handleSaveEvent(event)" class="space-y-3 text-xs">
-        <input type="hidden" id="eventId">
-        <div>
-          <label class="block font-semibold mb-1">事項名稱</label>
-          <input type="text" id="eventTitle" required placeholder="例如：工作面試、德協面談..." class="w-full p-2 border rounded">
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">自訂類別 (例如: 工作面試、朋友出遊、線上教學)</label>
-          <input type="text" id="eventCategory" required placeholder="輸入自訂類別名稱" class="w-full p-2 border rounded font-semibold">
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold mb-1">日期</label>
-            <input type="date" id="eventDate" required class="w-full p-2 border rounded">
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">標籤顯示顏色</label>
-            <select id="eventColor" class="w-full p-2 border rounded font-bold">
-              <option value="rose">🔴 玫瑰紅 (面試/急件)</option>
-              <option value="blue">🔵 晴朗藍 (朋友出遊/旅行)</option>
-              <option value="emerald">🟢 綠意 (線上教學/工作)</option>
-              <option value="amber">🟠 琥珀橘 (財務/退稅)</option>
-              <option value="purple">🟣 留學紫 (簽證/文件)</option>
-              <option value="stone">⚪ 灰色 (生活日常)</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">備註 (選填)</label>
-          <input type="text" id="eventDesc" placeholder="相關細節、準備資料..." class="w-full p-2 border rounded">
-        </div>
-        <div class="pt-2 flex justify-between items-center">
-          <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-2.5 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 cursor-pointer hidden">刪除</button>
-          <div class="flex gap-2 ml-auto">
-            <button type="button" onclick="closeModal('eventModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
-            <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">儲存事項</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: 裝備項目 (可選現有或自訂全新類別) -->
+  <!-- MODAL: 裝備項目 -->
   <div id="gearModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 class="text-base font-bold text-stone-900 mb-3">新增裝備物品</h3>
@@ -426,11 +443,9 @@
           <input type="text" id="gearLabel" required placeholder="例如：萬國轉接頭、睡袋..." class="w-full p-2 border rounded">
         </div>
         <div>
-          <label class="block font-semibold mb-1">選擇現有分類，或直接在下方自訂</label>
-          <select id="gearCategorySelect" class="w-full p-2 border rounded mb-1.5" onchange="document.getElementById('gearCustomCategory').value = this.value">
-            <!-- 動態填充現有分類 -->
-          </select>
-          <input type="text" id="gearCustomCategory" required placeholder="自訂新分類名稱 (例如: 電子3C配件、廚具料理)" class="w-full p-2 border border-amber-300 bg-amber-50/40 rounded font-semibold text-amber-900">
+          <label class="block font-semibold mb-1">選擇現有分類，或在下方自訂新分類</label>
+          <select id="gearCategorySelect" class="w-full p-2 border rounded mb-1.5" onchange="document.getElementById('gearCustomCategory').value = this.value"></select>
+          <input type="text" id="gearCustomCategory" required placeholder="自訂新分類名稱" class="w-full p-2 border border-amber-300 bg-amber-50/40 rounded font-semibold text-amber-900">
         </div>
         <div>
           <label class="block font-semibold mb-1">規格或注意事項 (選填)</label>
@@ -444,7 +459,7 @@
     </div>
   </div>
 
-  <!-- 核心邏輯 -->
+  <!-- 核心邏輯腳本 -->
   <script>
     const FIREBASE_CONFIG = {
       apiKey: "AIzaSyAKM55FbwK-kOP7Jl9a1QPOtn0f2WHnrZ8",
@@ -470,10 +485,18 @@
       { id: "g11", label: "防蠅面罩 (Fly Net)", sublines: ["黑色細網束口款 × 2 個 (烏魯魯沙漠戶外防蠅保命神物)"], category: "戶外與極端氣候", checked: false }
     ];
 
+    // 預設純淨可自訂標籤
+    const DEFAULT_TAGS = [
+      { id: "t_1", name: "重要截止", color: "rose" },
+      { id: "t_2", name: "澳打時程", color: "amber" },
+      { id: "t_3", name: "簽證文件", color: "purple" },
+      { id: "t_4", name: "工作排班", color: "emerald" },
+      { id: "t_5", name: "生活休閒", color: "blue" }
+    ];
+
     const DEFAULT_EVENTS = [
-      { id: "ev1", title: "德國自保金電匯截止", category: "自保金匯款", color: "purple", date: "2027-05-15", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "工作結束交接 & 離澳", category: "澳打時程", color: "amber", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" },
-      { id: "ev3", title: "簽證面試與最後送件", category: "簽證文件", color: "rose", date: "2027-07-15", desc: "備齊相關證件與文件。" }
+      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", desc: "完成目標資金匯出或結算。" },
+      { id: "ev2", title: "工作結束交接 & 離澳", tagId: "t_2", date: "2027-06-30", desc: "完成交接，領取 Super 退稅單據。" }
     ];
 
     let appState = {
@@ -483,9 +506,9 @@
       targetEndDate: "2027-06-30",
       audPoolTitle: "澳洲資金池 (AUD)",
       twdPoolTitle: "台灣資金池 (TWD)",
-
       fxRate: 23.0,
       transactions: [],
+      tags: DEFAULT_TAGS,
       events: DEFAULT_EVENTS,
       gear: DEFAULT_GEAR
     };
@@ -496,7 +519,7 @@
     let syncUnsubscribe = null;
     let isRemoteUpdate = false;
 
-    // 顏色樣式映射
+    // 顏色樣式對照表
     function getColorBadgeClass(color) {
       switch (color) {
         case 'rose': return 'bg-rose-100 text-rose-800 border-rose-300';
@@ -504,11 +527,12 @@
         case 'emerald': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
         case 'purple': return 'bg-purple-100 text-purple-800 border-purple-300';
         case 'amber': return 'bg-amber-100 text-amber-900 border-amber-300';
+        case 'pink': return 'bg-pink-100 text-pink-800 border-pink-300';
+        case 'cyan': return 'bg-cyan-100 text-cyan-800 border-cyan-300';
         default: return 'bg-stone-100 text-stone-800 border-stone-300';
       }
     }
 
-    // 展開/收合
     function toggleAccordion(id) {
       const el = document.getElementById(id);
       const icon = document.getElementById(id + "-icon");
@@ -523,7 +547,6 @@
       }
     }
 
-    // 頁籤切換
     function switchTab(tabId) {
       ['guide', 'finance', 'calendar', 'gear'].forEach(t => {
         const c = document.getElementById('content-' + t);
@@ -545,6 +568,8 @@
         const local = localStorage.getItem("au_de_tracker_data");
         if (local) appState = Object.assign({}, appState, JSON.parse(local));
       } catch (e) {}
+
+      if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
 
       const fxInput = document.getElementById("fxRateInput");
       if (fxInput) fxInput.value = appState.fxRate || 23.0;
@@ -744,7 +769,48 @@
       }
     }
 
-    // --- 日曆與自訂類別顏色 ---
+    // --- 日曆自訂標籤管理 ---
+    function openManageTagsModal() {
+      const container = document.getElementById("tagsListContainer");
+      container.innerHTML = (appState.tags || []).map(tag => `
+        <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${getColorBadgeClass(tag.color)}">
+            ● ${tag.name}
+          </span>
+          <button type="button" onclick="deleteTag('${tag.id}')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer">刪除</button>
+        </div>
+      `).join('');
+      document.getElementById("manageTagsModal").classList.remove("hidden");
+    }
+
+    function handleAddNewTag() {
+      const name = document.getElementById("newTagName").value.trim();
+      const color = document.getElementById("newTagColor").value;
+      if (!name) return;
+
+      if (!appState.tags) appState.tags = [];
+      appState.tags.push({
+        id: "t_" + Date.now(),
+        name: name,
+        color: color
+      });
+
+      saveState();
+      document.getElementById("newTagName").value = "";
+      openManageTagsModal();
+      renderCalendar();
+    }
+
+    function deleteTag(tagId) {
+      if (confirm("確定要刪除此標籤嗎？")) {
+        appState.tags = appState.tags.filter(t => t.id !== tagId);
+        saveState();
+        openManageTagsModal();
+        renderCalendar();
+      }
+    }
+
+    // --- 日曆渲染 ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -754,18 +820,14 @@
       if (!grid) return;
       grid.innerHTML = "";
 
-      // 提取目前所有事件的類別建立圖例
-      const legendMap = {};
-      (appState.events || []).forEach(e => {
-        if (e.category) legendMap[e.category] = e.color || 'stone';
-      });
+      // 標籤圖例
       const legendEl = document.getElementById("eventCategoryLegend");
       if (legendEl) {
-        legendEl.innerHTML = Object.entries(legendMap).map(([cat, col]) => `
-          <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${getColorBadgeClass(col)}">
-            ● ${cat}
+        legendEl.innerHTML = (appState.tags || []).map(t => `
+          <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${getColorBadgeClass(t.color)}">
+            ● ${t.name}
           </span>
-        `).join('') || '<span class="text-stone-400 text-[10px]">尚無特定類別，點擊新增待辦設定類別與色彩</span>';
+        `).join('');
       }
 
       const firstDay = new Date(year, month, 1).getDay();
@@ -783,11 +845,14 @@
           <div onclick="openAddEventForDate('${dStr}')" class="bg-white min-h-[85px] p-1.5 hover:bg-stone-50 transition cursor-pointer">
             <span class="font-mono text-xs font-semibold text-stone-700">${day}</span>
             <div class="mt-1 space-y-1">
-              ${evs.map(e => `
-                <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${getColorBadgeClass(e.color)}">
-                  <span class="font-bold mr-0.5">[${e.category || '待辦'}]</span>${e.title}
-                </div>
-              `).join('')}
+              ${evs.map(e => {
+                const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
+                return `
+                  <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${getColorBadgeClass(tag.color)}">
+                    <span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
         `;
@@ -804,12 +869,15 @@
       currentEditingEventId = null;
       document.getElementById("eventId").value = "";
       document.getElementById("eventTitle").value = "";
-      document.getElementById("eventCategory").value = "";
       document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
-      document.getElementById("eventColor").value = "blue";
       document.getElementById("eventDesc").value = "";
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
       document.getElementById("eventDeleteBtn").classList.add("hidden");
+
+      // 填充標籤選單
+      const tagSelect = document.getElementById("eventTagSelect");
+      tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}">● ${t.name}</option>`).join('');
+
       document.getElementById("eventModal").classList.remove("hidden");
     }
 
@@ -825,12 +893,14 @@
       if (!ev) return;
       document.getElementById("eventId").value = ev.id;
       document.getElementById("eventTitle").value = ev.title;
-      document.getElementById("eventCategory").value = ev.category || "自訂待辦";
       document.getElementById("eventDate").value = ev.date;
-      document.getElementById("eventColor").value = ev.color || "stone";
       document.getElementById("eventDesc").value = ev.desc || "";
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
+
+      const tagSelect = document.getElementById("eventTagSelect");
+      tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}" ${t.id === ev.tagId ? 'selected' : ''}>● ${t.name}</option>`).join('');
+
       document.getElementById("eventModal").classList.remove("hidden");
     }
 
@@ -840,8 +910,7 @@
       const newEv = {
         id: id || "ev_" + Date.now(),
         title: document.getElementById("eventTitle").value,
-        category: document.getElementById("eventCategory").value || "一般行程",
-        color: document.getElementById("eventColor").value || "stone",
+        tagId: document.getElementById("eventTagSelect").value,
         date: document.getElementById("eventDate").value,
         desc: document.getElementById("eventDesc").value
       };
@@ -868,7 +937,7 @@
       }
     }
 
-    // --- 裝備清單與自訂分類類別 ---
+    // --- 裝備清單 ---
     function renderGear() {
       const container = document.getElementById("gearListContainer");
       if (!container) return;
@@ -931,7 +1000,6 @@
       document.getElementById("gearLabel").value = "";
       document.getElementById("gearSubline").value = "";
 
-      // 提取目前所有現有分類供下拉選取
       const existingCats = Array.from(new Set((appState.gear || DEFAULT_GEAR).map(g => g.category)));
       const selectEl = document.getElementById("gearCategorySelect");
       selectEl.innerHTML = existingCats.map(c => `<option value="${c}">${c}</option>`).join('') + `<option value="自訂全新分類">＋ 自訂全新分類名稱</option>`;
