@@ -4,13 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>澳洲打工度假生活必備 & 德國碩士自保金進度追蹤</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <style>
-    .tab-active { border-bottom: 2px solid #8C3B07; color: #8C3B07; font-weight: 600; }
+    .tab-active {
+      border-bottom: 2px solid #8C3B07;
+      color: #8C3B07;
+      font-weight: 600;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
   </style>
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans min-h-screen pb-12">
@@ -30,31 +47,35 @@
         </div>
       </div>
       
-      <!-- 頂部直接連線控制區 -->
+      <!-- 頂部即時控制與連線區 -->
       <div class="flex flex-wrap items-center gap-2">
-        <!-- 匯率 -->
-        <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-xs text-stone-600">
-          <span class="text-stone-400 mr-1">1 AUD = </span>
-          <input type="number" id="fxRateInput" step="0.1" value="23.0" class="w-12 bg-white border border-stone-300 rounded px-1 text-center font-bold" onchange="updateFxRate(this.value)">
-          <span class="ml-1 text-stone-500">TWD</span>
+        <!-- 匯率設置 -->
+        <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-stone-600 shadow-sm">
+          <span class="mr-1 text-stone-400">匯率 1 AUD = </span>
+          <input type="number" id="fxRateInput" step="0.1" value="23.0" class="w-14 bg-white border border-stone-300 rounded px-1.5 py-0.5 font-mono text-center font-bold text-stone-800 focus:outline-none" onchange="updateFxRate(this.value)">
+          <span class="ml-1 text-stone-500 font-medium">TWD</span>
         </div>
 
-        <!-- 雲端同步密碼輸入框 (免點開彈窗，直接在此輸入連線) -->
-        <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg p-1 text-xs">
+        <!-- 雲端同步直連輸入框 -->
+        <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg p-1 text-xs shadow-sm">
           <input type="text" id="syncKeyDirect" placeholder="輸入同步密碼 (如: yihsuan)" class="bg-white border border-stone-300 rounded px-2 py-1 w-36 text-stone-800 focus:outline-none">
-          <button onclick="connectDirectSync()" id="syncDirectBtn" class="ml-1.5 px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded font-semibold transition">
+          <button onclick="connectDirectSync()" id="syncDirectBtn" class="ml-1.5 px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded font-semibold transition cursor-pointer">
             連線同步
           </button>
         </div>
 
-        <!-- 備份下載 -->
-        <button onclick="exportData()" class="p-1.5 text-stone-500 hover:text-stone-800 rounded-lg" title="下載備份">
+        <!-- 備份還原 -->
+        <button onclick="exportData()" class="p-1.5 text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition cursor-pointer" title="備份資料 (JSON)">
           <i data-lucide="download" class="w-4 h-4"></i>
         </button>
+        <label class="p-1.5 text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition cursor-pointer" title="還原資料 (JSON)">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importData(event)">
+        </label>
       </div>
     </div>
 
-    <!-- 頁籤分頁 -->
+    <!-- Navigation Tabs -->
     <div class="max-w-5xl mx-auto px-4 flex space-x-8 text-sm">
       <button onclick="switchTab('finance')" id="tab-finance" class="py-2.5 tab-active flex items-center space-x-2">
         <i data-lucide="wallet" class="w-4 h-4"></i>
@@ -71,18 +92,21 @@
     </div>
   </header>
 
-  <!-- 主內容區 -->
+  <!-- Main Container -->
   <main class="max-w-5xl mx-auto px-4 mt-6">
 
     <!-- TAB 1: 財務與自保金 -->
     <div id="content-finance" class="space-y-6">
-      <!-- 總卡片 -->
-      <div class="bg-gradient-to-br from-stone-900 to-stone-800 rounded-2xl p-6 text-white shadow-lg">
+      
+      <!-- 自保金進度總卡片 -->
+      <div class="bg-gradient-to-br from-stone-900 to-stone-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <span class="px-2 py-0.5 text-[11px] font-semibold bg-amber-600/40 text-amber-300 rounded border border-amber-500/30">
-              2027 德國碩士自保金目標：NT$ 400,000 (約 $17,391 AUD)
-            </span>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[11px] font-semibold bg-amber-600/40 text-amber-300 rounded border border-amber-500/30">
+                2027 德國碩士自保金目標：NT$ 400,000 (約 $17,391 AUD)
+              </span>
+            </div>
             <div class="mt-2 flex items-baseline gap-2">
               <h2 id="totalSavingsNTD" class="text-3xl sm:text-4xl font-extrabold tracking-tight">NT$ 0</h2>
               <span id="totalSavingsAUD" class="text-sm font-medium text-stone-400">折合約 $0 AUD</span>
@@ -91,11 +115,11 @@
           </div>
 
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button onclick="openTxModal('income')" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold shadow-md">
+            <button onclick="openTransactionModal('income')" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition shadow-md">
               <i data-lucide="plus-circle" class="w-4 h-4"></i>
               <span>記一筆收入</span>
             </button>
-            <button onclick="openTxModal('expense')" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold shadow-md">
+            <button onclick="openTransactionModal('expense')" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold transition shadow-md">
               <i data-lucide="minus-circle" class="w-4 h-4"></i>
               <span>記一筆支出</span>
             </button>
@@ -113,48 +137,124 @@
           </div>
         </div>
 
+        <!-- 倒數里程碑指標 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-stone-700/60 text-xs">
-          <div><span class="text-stone-400 block">離澳目標日</span><span class="font-semibold text-stone-200 mt-0.5 block">2027-06-30</span></div>
-          <div><span class="text-stone-400 block">距今剩餘時間</span><span id="weeksLeftText" class="font-semibold text-stone-200 mt-0.5 block">-- 週</span></div>
-          <div><span class="text-stone-400 block">每週需淨存 (AUD)</span><span id="weeklyNeedAUD" class="font-bold text-amber-400 mt-0.5 block">$0 AUD</span></div>
-          <div><span class="text-stone-400 block">Super 估算可拿回 (35%)</span><span id="superRefundEst" class="font-semibold text-emerald-400 mt-0.5 block">$0 AUD</span></div>
+          <div>
+            <span class="text-stone-400 block">離澳目標日</span>
+            <span class="font-semibold text-stone-200 mt-0.5 block">2027-06-30</span>
+          </div>
+          <div>
+            <span class="text-stone-400 block">距今剩餘時間</span>
+            <span id="weeksLeftText" class="font-semibold text-stone-200 mt-0.5 block">-- 週</span>
+          </div>
+          <div>
+            <span class="text-stone-400 block">每週需淨存 (AUD)</span>
+            <span id="weeklyNeedAUD" class="font-bold text-amber-400 mt-0.5 block">$0 AUD</span>
+          </div>
+          <div>
+            <span class="text-stone-400 block">Super 估算可拿回 (35%)</span>
+            <span id="superRefundEst" class="font-semibold text-emerald-400 mt-0.5 block">$0 AUD</span>
+          </div>
         </div>
       </div>
 
-      <!-- 資金池卡片 -->
+      <!-- 雙幣資金池卡片 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 澳洲 AUD 資金池 -->
         <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-          <span class="text-xs font-medium text-stone-500 uppercase">澳洲資金池 (AUD)</span>
-          <h3 id="audBalance" class="text-2xl font-bold text-stone-900 mt-1">$0 AUD</h3>
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">澳洲資金池 (AUD)</span>
+              <h3 id="audBalance" class="text-2xl font-bold text-stone-900 mt-1">$0 AUD</h3>
+            </div>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <i data-lucide="badge-dollar-sign" class="w-5 h-5"></i>
+            </div>
+          </div>
           <div class="mt-4 pt-3 border-t border-stone-100 grid grid-cols-2 gap-2 text-xs">
-            <div><span class="text-stone-400">稅後收入</span><p id="audIncome" class="font-semibold text-stone-700 mt-0.5">+$0</p></div>
-            <div><span class="text-stone-400">累計支出</span><p id="audExpense" class="font-semibold text-stone-700 mt-0.5">-$0</p></div>
+            <div>
+              <span class="text-stone-400">稅後收入</span>
+              <p id="audIncome" class="font-semibold text-stone-700 mt-0.5">+$0</p>
+            </div>
+            <div>
+              <span class="text-stone-400">累計支出</span>
+              <p id="audExpense" class="font-semibold text-stone-700 mt-0.5">-$0</p>
+            </div>
           </div>
         </div>
 
+        <!-- 台灣 TWD 資金池 -->
         <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-          <span class="text-xs font-medium text-stone-500 uppercase">台灣資金池 (TWD)</span>
-          <h3 id="twdBalance" class="text-2xl font-bold text-stone-900 mt-1">NT$ 0</h3>
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">台灣資金池 (TWD)</span>
+              <h3 id="twdBalance" class="text-2xl font-bold text-stone-900 mt-1">NT$ 0</h3>
+            </div>
+            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <i data-lucide="credit-card" class="w-5 h-5"></i>
+            </div>
+          </div>
           <div class="mt-4 pt-3 border-t border-stone-100 grid grid-cols-2 gap-2 text-xs">
-            <div><span class="text-stone-400">兼職/其他收入</span><p id="twdIncome" class="font-semibold text-stone-700 mt-0.5">+NT$ 0</p></div>
-            <div><span class="text-stone-400">前期規費支出</span><p id="twdExpense" class="font-semibold text-stone-700 mt-0.5">-NT$ 0</p></div>
+            <div>
+              <span class="text-stone-400">協商/兼職收入</span>
+              <p id="twdIncome" class="font-semibold text-stone-700 mt-0.5">+NT$ 0</p>
+            </div>
+            <div>
+              <span class="text-stone-400">簽證/前期支出</span>
+              <p id="twdExpense" class="font-semibold text-stone-700 mt-0.5">-NT$ 0</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 收支表格 -->
+      <!-- 分類支出比例 -->
+      <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-sm font-bold text-stone-800 flex items-center gap-1.5">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-amber-700"></i>
+            支出分類佔比 (換算 NTD 統計)
+          </h3>
+          <button onclick="openCategoryManageModal()" class="text-xs text-amber-800 hover:text-amber-900 font-medium flex items-center gap-1">
+            <i data-lucide="settings-2" class="w-3.5 h-3.5"></i>
+            自訂分類名稱
+          </button>
+        </div>
+        <div id="categoryBars" class="space-y-3">
+          <p class="text-xs text-stone-400 py-3 text-center">尚無任何支出記錄</p>
+        </div>
+      </div>
+
+      <!-- 明細列表 -->
       <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800">收支紀錄明細</div>
+        <div class="p-4 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
+          <h3 class="text-sm font-bold text-stone-800 flex items-center gap-1.5">
+            <i data-lucide="list" class="w-4 h-4 text-stone-600"></i>
+            收支紀錄明細
+          </h3>
+          <div class="flex items-center gap-2">
+            <select id="filterCurrency" onchange="renderTransactions()" class="text-xs bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-stone-700">
+              <option value="ALL">全部幣別</option>
+              <option value="AUD">僅 AUD</option>
+              <option value="TWD">僅 TWD</option>
+            </select>
+            <select id="filterType" onchange="renderTransactions()" class="text-xs bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-stone-700">
+              <option value="ALL">全部收支</option>
+              <option value="income">僅收入</option>
+              <option value="expense">僅支出</option>
+            </select>
+          </div>
+        </div>
+
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-stone-50 text-stone-500 border-b border-stone-200">
-                <th class="py-2.5 px-4">日期</th>
-                <th class="py-2.5 px-3">類型</th>
-                <th class="py-2.5 px-3">分類</th>
-                <th class="py-2.5 px-4">備註</th>
-                <th class="py-2.5 px-4 text-right">金額</th>
-                <th class="py-2.5 px-3 text-center">刪除</th>
+                <th class="py-2.5 px-4 font-semibold">日期</th>
+                <th class="py-2.5 px-3 font-semibold">類型</th>
+                <th class="py-2.5 px-3 font-semibold">分類</th>
+                <th class="py-2.5 px-4 font-semibold">備註說明</th>
+                <th class="py-2.5 px-4 font-semibold text-right">金額</th>
+                <th class="py-2.5 px-3 font-semibold text-center">操作</th>
               </tr>
             </thead>
             <tbody id="transactionTableBody" class="divide-y divide-stone-100 text-stone-700"></tbody>
@@ -163,357 +263,120 @@
       </div>
     </div>
 
-    <!-- TAB 2: 日曆 -->
+    <!-- TAB 2: 重要時程日曆 -->
     <div id="content-calendar" class="space-y-6 hidden">
       <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-        <div class="flex justify-between items-center mb-4">
-          <h2 id="calendarMonthTitle" class="text-base font-bold text-stone-800">2026 年 11 月</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div class="flex items-center gap-2">
-            <button onclick="changeMonth(-1)" class="px-2 py-1 bg-stone-100 rounded text-xs">上個月</button>
-            <button onclick="changeMonth(0)" class="px-2 py-1 bg-stone-100 rounded text-xs font-bold">今天</button>
-            <button onclick="changeMonth(1)" class="px-2 py-1 bg-stone-100 rounded text-xs">下個月</button>
+            <h2 id="calendarMonthTitle" class="text-base font-bold text-stone-800">2026 年 11 月</h2>
+            <div class="flex items-center border border-stone-200 rounded-lg overflow-hidden ml-2 shadow-sm">
+              <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-stone-100 text-stone-600 transition"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+              <button onclick="changeMonth(0)" class="px-2.5 py-1 text-xs font-semibold hover:bg-stone-100 text-stone-700 border-x border-stone-200 transition">今天</button>
+              <button onclick="changeMonth(1)" class="p-1.5 hover:bg-stone-100 text-stone-600 transition"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openManageLabelsModal()" class="px-3 py-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 rounded-lg text-xs font-medium flex items-center gap-1 transition">
+              <i data-lucide="tag" class="w-3.5 h-3.5 text-amber-700"></i>
+              管理標籤
+            </button>
+            <button onclick="openAddEventModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              新增待辦事項
+            </button>
           </div>
         </div>
-        <div id="calendarGrid" class="grid grid-cols-7 gap-px bg-stone-200 border border-stone-200 rounded-lg overflow-hidden text-xs"></div>
+
+        <div id="labelLegendContainer" class="flex flex-wrap gap-1.5 mb-3 pt-2 border-t border-stone-100 text-[11px]"></div>
+
+        <div class="grid grid-cols-7 gap-px bg-stone-200 border border-stone-200 rounded-lg overflow-hidden text-xs">
+          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週日</div>
+          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週一</div>
+          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週二</div>
+          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週三</div>
+          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週四</div>
+          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週五</div>
+          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週六</div>
+          <div id="calendarGrid" class="contents"></div>
+        </div>
       </div>
     </div>
 
-    <!-- TAB 3: 裝備清單 -->
+    <!-- TAB 3: 出發裝備清單 -->
     <div id="content-gear" class="space-y-6 hidden">
       <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-base font-bold text-stone-900">必備裝備清單</h2>
-          <span id="gearProgressText" class="text-xs font-bold text-stone-700">完成度：0%</span>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-stone-900 flex items-center gap-2">
+              <i data-lucide="package-check" class="w-5 h-5 text-amber-800"></i>
+              打工度假生活必備裝備與五金小物
+            </h2>
+            <p class="text-xs text-stone-500 mt-0.5">點擊核取方塊標記已備妥物品，進度隨時保存。</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="gearProgressText" class="text-xs font-bold text-stone-700">完成度：0 / 0 (0%)</span>
+            <button onclick="openAddGearModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              新增自訂物品
+            </button>
+          </div>
         </div>
-        <div id="gearListContainer" class="space-y-4"></div>
+
+        <div id="gearListContainer" class="space-y-5"></div>
       </div>
     </div>
   </main>
 
-  <!-- 簡易記帳 Modal -->
-  <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
-      <form onsubmit="handleSaveTx(event)" class="space-y-3 text-xs">
+  <!-- MODAL: 記帳彈窗 -->
+  <div id="txModal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-stone-200">
+      <div class="flex justify-between items-center pb-3 border-b border-stone-100">
+        <h3 id="txModalTitle" class="text-base font-bold text-stone-900">記一筆帳</h3>
+        <button onclick="closeModal('txModal')" class="text-stone-400 hover:text-stone-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3.5 mt-4 text-xs">
         <input type="hidden" id="txType">
-        <div>
-          <label class="block font-semibold mb-1">幣別與日期</label>
-          <div class="grid grid-cols-2 gap-2">
-            <select id="txCurrency" class="p-2 border rounded font-bold" onchange="toggleSuper()">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-stone-600 mb-1">幣別</label>
+            <select id="txCurrency" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 font-bold text-stone-800" onchange="toggleSuperOption()">
               <option value="AUD">AUD (澳幣)</option>
-              <option value="TWD">TWD (台幣)</option>
+              <option value="TWD">TWD (新台幣)</option>
             </select>
-            <input type="date" id="txDate" required class="p-2 border rounded">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-600 mb-1">日期</label>
+            <input type="date" id="txDate" required class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-stone-800">
           </div>
         </div>
         <div>
-          <label class="block font-semibold mb-1">金額</label>
-          <input type="number" id="txAmount" step="0.01" required placeholder="0.00" class="w-full p-2.5 text-base font-bold border rounded font-mono">
+          <label class="block font-semibold text-stone-600 mb-1">金額</label>
+          <input type="number" id="txAmount" step="0.01" min="0.01" required placeholder="0.00" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-base font-bold text-stone-900 font-mono">
         </div>
         <div>
-          <label class="block font-semibold mb-1">分類</label>
-          <input type="text" id="txCategory" required placeholder="例如：生活採買、薪資、房租..." class="w-full p-2 border rounded">
+          <label class="block font-semibold text-stone-600 mb-1">分類類別</label>
+          <select id="txCategory" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-stone-800"></select>
         </div>
         <div>
-          <label class="block font-semibold mb-1">備註 (選填)</label>
-          <input type="text" id="txNote" class="w-full p-2 border rounded">
+          <label class="block font-semibold text-stone-600 mb-1">備註說明 (選填)</label>
+          <input type="text" id="txNote" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-stone-800">
         </div>
-        <div id="txSuperOption" class="p-2 bg-amber-50 rounded border border-amber-200 hidden">
-          <label class="flex items-center gap-2">
-            <input type="checkbox" id="txIncludeSuper">
-            <span class="font-bold text-amber-900 text-xs">含 Super (11.5%) 離澳拿回 35%</span>
+        <div id="txSuperOption" class="p-3 bg-amber-50 border border-amber-200 rounded-xl hidden">
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input type="checkbox" id="txIncludeSuper" class="mt-0.5 rounded text-amber-700">
+            <div>
+              <span class="font-bold text-amber-900 block text-xs">計入澳洲退休金 (Super 11.5%)</span>
+              <span class="text-[11px] text-amber-700 block">扣除離澳 65% 重稅後實得約 35% 記入存款指標。</span>
+            </div>
           </label>
         </div>
         <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeModal('txModal')" class="px-3 py-1.5 bg-stone-100 rounded">取消</button>
-          <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold">儲存</button>
+          <button type="button" onclick="closeModal('txModal')" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-medium">取消</button>
+          <button type="submit" class="px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white rounded-lg font-semibold">儲存紀錄</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script>
-    // 內建專屬 Firebase 配置[cite: 3]
-    const FIREBASE_CONFIG = {
-      apiKey: "AIzaSyAKM55FbwK-kOP7Jl9a1QPOtn0f2WHnrZ8",
-      authDomain: "aus-2026whv.firebaseapp.com",
-      projectId: "aus-2026whv",
-      storageBucket: "aus-2026whv.firebasestorage.app",
-      messagingSenderId: "141943124719",
-      appId: "1:141943124719:web:deb5a3bf531a40b16ea11a",
-      measurementId: "G-XFP80TVSLZ"
-    };
-
-    const DEFAULT_GEAR = [
-      { id: "g1", label: "布基大力膠帶 (Duct Tape)", category: "修繕小物", checked: false },
-      { id: "g2", label: "3M VHB 雙面膠貼片", category: "修繕小物", checked: false },
-      { id: "g3", label: "釹鐵硼強磁掛勾", category: "修繕小物", checked: false },
-      { id: "g4", label: "密碼鎖 × 2 個", category: "青旅防盜", checked: false },
-      { id: "g5", label: "防蠅面罩 (烏魯魯必備)", category: "戶外必備", checked: false }
-    ];
-
-    let appState = {
-      fxRate: 23.0,
-      targetNTD: 400000,
-      targetEndDate: "2027-06-30",
-      transactions: [],
-      events: [
-        { title: "自保金電匯截止", date: "2027-05-15" },
-        { title: "離澳返台準備", date: "2027-06-30" },
-        { title: "德協面試高峰", date: "2027-07-15" }
-      ],
-      gear: DEFAULT_GEAR
-    };
-
-    let db = null;
-    let syncUnsubscribe = null;
-    let isRemoteUpdate = false;
-    let calendarDate = new Date();
-
-    window.addEventListener("load", () => {
-      // 讀取本地快取
-      const local = localStorage.getItem("au_de_tracker_data");
-      if (local) {
-        try { appState = { ...appState, ...JSON.parse(local) }; } catch(e){}
-      }
-      renderAll();
-
-      // 自動讀取上次的同步密碼並嘗試連線
-      const savedKey = localStorage.getItem("au_sync_key");
-      if (savedKey) {
-        document.getElementById("syncKeyDirect").value = savedKey;
-        connectDirectSync();
-      }
-    });
-
-    function renderAll() {
-      renderFinance();
-      renderTransactions();
-      renderCalendar();
-      renderGear();
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function saveState() {
-      localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
-      const syncKey = localStorage.getItem("au_sync_key");
-      if (db && syncKey && !isRemoteUpdate) {
-        db.collection("sync_data").doc(syncKey).set({
-          data: appState,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(e => console.error(e));
-      }
-    }
-
-    function connectDirectSync() {
-      const key = document.getElementById("syncKeyDirect").value.trim();
-      if (!key) {
-        alert("請輸入一組個人專屬的同步密碼！");
-        return;
-      }
-
-      try {
-        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-        db = firebase.firestore();
-
-        localStorage.setItem("au_sync_key", key);
-        const btn = document.getElementById("syncDirectBtn");
-        btn.textContent = "連線中...";
-        btn.className = "ml-1.5 px-2.5 py-1 bg-amber-600 text-white rounded font-semibold text-xs";
-
-        if (syncUnsubscribe) syncUnsubscribe();
-
-        syncUnsubscribe = db.collection("sync_data").doc(key).onSnapshot(doc => {
-          btn.textContent = "🟢 同步中";
-          btn.className = "ml-1.5 px-2.5 py-1 bg-emerald-600 text-white rounded font-semibold text-xs";
-          if (doc.exists) {
-            const remote = doc.data().data;
-            if (remote) {
-              isRemoteUpdate = true;
-              appState = { ...appState, ...remote };
-              localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
-              renderAll();
-              isRemoteUpdate = false;
-            }
-          } else {
-            // 雲端尚無資料，直接推送本地資料
-            saveState();
-          }
-        }, err => {
-          alert("同步失敗：" + err.message);
-          btn.textContent = "連線失敗";
-          btn.className = "ml-1.5 px-2.5 py-1 bg-rose-600 text-white rounded font-semibold text-xs";
-        });
-      } catch (err) {
-        alert("Firebase 連線錯誤: " + err.message);
-      }
-    }
-
-    function switchTab(t) {
-      ['finance', 'calendar', 'gear'].forEach(tab => {
-        document.getElementById(`content-${tab}`).classList.toggle('hidden', tab !== t);
-        document.getElementById(`tab-${tab}`).className = tab === t ? "py-2.5 tab-active flex items-center space-x-2" : "py-2.5 text-stone-500 hover:text-stone-800 flex items-center space-x-2";
-      });
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function updateFxRate(val) {
-      const r = parseFloat(val);
-      if (r > 0) {
-        appState.fxRate = r;
-        saveState();
-        renderFinance();
-      }
-    }
-
-    function renderFinance() {
-      const fx = appState.fxRate || 23.0;
-      let audInc = 0, audExp = 0, twdInc = 0, twdExp = 0, superRefund = 0;
-
-      appState.transactions.forEach(t => {
-        const amt = parseFloat(t.amount) || 0;
-        if (t.currency === "AUD") {
-          if (t.type === "income") {
-            audInc += amt;
-            if (t.includeSuper) superRefund += (amt * 0.115 * 0.35);
-          } else audExp += amt;
-        } else {
-          if (t.type === "income") twdInc += amt;
-          else twdExp += amt;
-        }
-      });
-
-      const audNet = audInc - audExp;
-      const twdNet = twdInc - twdExp;
-      const totalSavingsNTD = Math.round((audNet * fx) + (superRefund * fx) + twdNet);
-      const targetNTD = 400000;
-      const gapNTD = targetNTD - totalSavingsNTD;
-      const pct = Math.min(100, Math.max(0, Math.round((totalSavingsNTD / targetNTD) * 100)));
-
-      const weeksLeft = Math.max(1, Math.ceil((new Date("2027-06-30") - new Date()) / (1000 * 60 * 60 * 24 * 7)));
-      const weeklyNeedAUD = gapNTD > 0 ? Math.round((gapNTD / fx) / weeksLeft) : 0;
-
-      document.getElementById("totalSavingsNTD").textContent = `NT$ ${totalSavingsNTD.toLocaleString()}`;
-      document.getElementById("totalSavingsAUD").textContent = `折合約 $${Math.round(totalSavingsNTD / fx).toLocaleString()} AUD`;
-      document.getElementById("remainingGapText").textContent = gapNTD > 0 ? `距離達成目標還差 NT$ ${gapNTD.toLocaleString()}` : "已達成 40 萬目標！";
-      document.getElementById("progressPercent").textContent = `${pct}%`;
-      document.getElementById("progressBar").style.width = `${pct}%`;
-      document.getElementById("weeksLeftText").textContent = `${weeksLeft} 週`;
-      document.getElementById("weeklyNeedAUD").textContent = `$${weeklyNeedAUD.toLocaleString()} AUD`;
-      document.getElementById("superRefundEst").textContent = `$${Math.round(superRefund).toLocaleString()} AUD`;
-      document.getElementById("audBalance").textContent = `$${audNet.toLocaleString()} AUD`;
-      document.getElementById("audIncome").textContent = `+$${audInc.toLocaleString()}`;
-      document.getElementById("audExpense").textContent = `-$${audExp.toLocaleString()}`;
-      document.getElementById("twdBalance").textContent = `NT$ ${twdNet.toLocaleString()}`;
-      document.getElementById("twdIncome").textContent = `+NT$ ${twdInc.toLocaleString()}`;
-      document.getElementById("twdExpense").textContent = `-NT$ ${twdExp.toLocaleString()}`;
-    }
-
-    function renderTransactions() {
-      const tbody = document.getElementById("transactionTableBody");
-      tbody.innerHTML = appState.transactions.slice().reverse().map(t => `
-        <tr class="hover:bg-stone-50">
-          <td class="py-2.5 px-4 font-mono">${t.date}</td>
-          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">${t.type === 'income' ? '收入' : '支出'}</span></td>
-          <td class="py-2.5 px-3 font-medium">${t.category}</td>
-          <td class="py-2.5 px-4 text-stone-500">${t.note || '-'}</td>
-          <td class="py-2.5 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-900'}">${t.type === 'income' ? '+' : '-'}${t.currency === 'AUD' ? '$' : 'NT$ '} ${t.amount}</td>
-          <td class="py-2.5 px-3 text-center"><button onclick="delTx('${t.id}')" class="text-stone-400 hover:text-rose-600">✕</button></td>
-        </tr>
-      `).join('');
-    }
-
-    function openTxModal(type) {
-      document.getElementById("txType").value = type;
-      document.getElementById("txDate").value = new Date().toISOString().split('T')[0];
-      document.getElementById("txModalTitle").textContent = type === "income" ? "記一筆收入" : "記一筆支出";
-      toggleSuper();
-      document.getElementById("txModal").classList.remove("hidden");
-    }
-
-    function toggleSuper() {
-      const isAudInc = document.getElementById("txType").value === "income" && document.getElementById("txCurrency").value === "AUD";
-      document.getElementById("txSuperOption").classList.toggle("hidden", !isAudInc);
-    }
-
-    function handleSaveTx(e) {
-      e.preventDefault();
-      appState.transactions.push({
-        id: "tx_" + Date.now(),
-        type: document.getElementById("txType").value,
-        currency: document.getElementById("txCurrency").value,
-        date: document.getElementById("txDate").value,
-        amount: parseFloat(document.getElementById("txAmount").value),
-        category: document.getElementById("txCategory").value,
-        note: document.getElementById("txNote").value,
-        includeSuper: document.getElementById("txIncludeSuper").checked
-      });
-      saveState();
-      closeModal("txModal");
-      renderFinance();
-      renderTransactions();
-    }
-
-    function delTx(id) {
-      if (confirm("確定刪除？")) {
-        appState.transactions = appState.transactions.filter(t => t.id !== id);
-        saveState();
-        renderFinance();
-        renderTransactions();
-      }
-    }
-
-    function renderCalendar() {
-      const year = calendarDate.getFullYear(), month = calendarDate.getMonth();
-      document.getElementById("calendarMonthTitle").textContent = `${year} 年 ${month + 1} 月`;
-      const grid = document.getElementById("calendarGrid");
-      grid.innerHTML = "";
-      const totalDays = new Date(year, month + 1, 0).getDate();
-      for (let day = 1; day <= totalDays; day++) {
-        const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const evs = appState.events.filter(e => e.date === dStr);
-        grid.innerHTML += `
-          <div class="bg-white min-h-[70px] p-1 border-t border-stone-100">
-            <span class="font-bold text-stone-700">${day}</span>
-            ${evs.map(e => `<div class="mt-1 p-1 bg-amber-50 text-amber-800 rounded text-[10px] truncate">${e.title}</div>`).join('')}
-          </div>
-        `;
-      }
-    }
-
-    function changeMonth(d) {
-      if (d === 0) calendarDate = new Date();
-      else calendarDate.setMonth(calendarDate.getMonth() + d);
-      renderCalendar();
-    }
-
-    function renderGear() {
-      const c = document.getElementById("gearListContainer");
-      const done = appState.gear.filter(g => g.checked).length;
-      document.getElementById("gearProgressText").textContent = `完成度：${done} / ${appState.gear.length}`;
-      c.innerHTML = appState.gear.map(g => `
-        <label class="flex items-center gap-2 p-2 bg-stone-50 rounded border border-stone-200 cursor-pointer">
-          <input type="checkbox" onchange="toggleGear('${g.id}', this.checked)" ${g.checked ? 'checked' : ''} class="w-4 h-4">
-          <span class="text-xs ${g.checked ? 'line-through text-stone-400' : 'text-stone-800'} font-medium">${g.label}</span>
-        </label>
-      `).join('');
-    }
-
-    function toggleGear(id, chk) {
-      const item = appState.gear.find(g => g.id === id);
-      if (item) { item.checked = chk; saveState(); renderGear(); }
-    }
-
-    function exportData() {
-      const a = document.createElement('a');
-      a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState));
-      a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.add("hidden");
-    }
-  </script>
-</body>
-</html>
+  <!-- MODAL: 新增/編輯日曆事項 -->
+  <div
