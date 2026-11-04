@@ -41,9 +41,9 @@
       </div>
     </div>
 
-    <!-- 頁籤選單（目標設定置於最前） -->
+    <!-- 頁籤選單 -->
     <div class="max-w-5xl mx-auto px-4 flex flex-wrap gap-x-6 text-sm">
-      <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🎯 目標設定 & 稅務指南</button>
+      <button type="button" onclick="switchTab('guide')" id="tab-guide" class="py-2.5 tab-active cursor-pointer">🎯 目標自訂 & 澳打避坑指南</button>
       <button type="button" onclick="switchTab('finance')" id="tab-finance" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">雙幣財務 & 自保金</button>
       <button type="button" onclick="switchTab('calendar')" id="tab-calendar" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">重要時程日曆</button>
       <button type="button" onclick="switchTab('gear')" id="tab-gear" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">出發裝備清單</button>
@@ -53,7 +53,7 @@
   <!-- 主內容區 -->
   <main class="max-w-5xl mx-auto px-4 mt-6">
 
-    <!-- TAB 0: 目標設定 & 澳打稅務指南 -->
+    <!-- TAB 0: 目標設定 & 避坑指南 -->
     <div id="content-guide" class="space-y-6">
       
       <!-- 個人看板目標自訂 -->
@@ -61,7 +61,7 @@
         <div class="flex items-center justify-between pb-3 border-b border-stone-100">
           <div>
             <h2 class="text-base font-bold text-stone-900">⚙️ 個人化看板設定</h2>
-            <p class="text-xs text-stone-500">自訂專屬於你的旅程名稱、目標金額與欄位標題，點擊儲存後立即生效並自動同步。</p>
+            <p class="text-xs text-stone-500">修改下方的標題、儲蓄金額與日期，點擊儲存後立即反映在所有儀表板上。</p>
           </div>
           <button type="button" onclick="saveCustomSettings()" class="px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold rounded-xl transition shadow cursor-pointer">
             儲存所有設定
@@ -96,177 +96,31 @@
         </div>
       </div>
 
-      <!-- 澳洲打工稅務與退休金指南 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        
-        <!-- Super 退休金注意事項 -->
-        <div class="bg-amber-50/60 border border-amber-200 rounded-2xl p-5 space-y-3">
-          <div class="flex items-center gap-2 text-amber-900">
-            <span class="w-7 h-7 rounded-lg bg-amber-700 text-white flex items-center justify-center font-bold text-sm">S</span>
-            <h3 class="font-bold text-sm">澳洲退休金 (Superannuation) 必知重點</h3>
-          </div>
-          <ul class="text-xs text-amber-950 space-y-2 leading-relaxed">
-            <li>• <strong>雇主額外法定提撥</strong>：目前澳洲法定退休金為薪資的 <strong>11.5%</strong>，此金額是雇主額外給付，<strong>絕不能從你的底薪扣除</strong>。</li>
-            <li>• <strong>開立單一退休金帳戶</strong>：換工作時務必使用同一家退休金帳戶（如 Hostplus、Rest 等），否則會因每家收取管理費與保險費而被嚴重蠶食。</li>
-            <li>• <strong>離澳提撥 (DASP) 重稅 65%</strong>：持有打工度假簽 (417/462) 離境時申請退回退休金，澳洲政府會課徵 <strong>65% 的 DASP 稅率</strong>。本工具財務看板已自動幫你按 <strong>35% 實拿金額</strong> 納入存款指標估算。</li>
-          </ul>
+      <!-- 市場行情行情與法規重點 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-2">
+          <span class="text-xs font-bold text-amber-800 tracking-wider uppercase block">澳洲法定工資底線 (Fair Work)</span>
+          <p class="text-2xl font-black text-amber-950">$33.05 <span class="text-xs font-normal">AUD/hr (Casual)</span></p>
+          <p class="text-[11px] text-amber-900 leading-relaxed">
+            Full-time/Part-time 法定最低為 <strong>$26.44/hr</strong>。Casual 臨時工依法必須加上 25% Casual Loading，任何低於 $33.05 的白工 Casual 皆屬違法。
+          </p>
         </div>
 
-        <!-- WHV 工作型態與工時稅率 -->
-        <div class="bg-stone-50 border border-stone-200 rounded-2xl p-5 space-y-3">
-          <div class="flex items-center gap-2 text-stone-900">
-            <span class="w-7 h-7 rounded-lg bg-stone-700 text-white flex items-center justify-center font-bold text-sm">T</span>
-            <h3 class="font-bold text-sm">WHV 稅率與工作型態 (Casual / PT / FT)</h3>
-          </div>
-          <ul class="text-xs text-stone-700 space-y-2 leading-relaxed">
-            <li>• <strong>WHV 背包客稅率 (15%)</strong>：年收入 <strong>$0 ～ $45,000 AUD 課徵固定 15% 稅率</strong>；超過 $45,001 則落入 30% 級距。報稅時務必確認雇主將你登記為 Working Holiday Maker。</li>
-            <li>• <strong>Casual (臨時工)</strong>：無保證工時、無帶薪病假與年假，但享有 <strong>25% Casual Loading</strong>（法定基本時薪額外 +25%）。淡季可能被砍班，旺季則能賺取極高週薪。</li>
-            <li>• <strong>Part-Time / Full-Time (兼職與正職)</strong>：時薪雖無 25% loading，但每週有固定保證工時，享有 <strong>法定帶薪年假 (Annual Leave) 與病假 (Personal Leave)</strong>，離職時未休年假可折算現金拿回。</li>
-          </ul>
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 space-y-2">
+          <span class="text-xs font-bold text-emerald-800 tracking-wider uppercase block">法定 Super 退休金</span>
+          <p class="text-2xl font-black text-emerald-950">12.0% <span class="text-xs font-normal">(雇主額外負擔)</span></p>
+          <p class="text-[11px] text-emerald-900 leading-relaxed">
+            依法雇主須在薪資外額外提撥 12% 至你的 Super 帳戶。離澳時可透過 DASP 申請領回，扣除 65% 重稅後實得約 <strong>35%</strong>。
+          </p>
         </div>
 
-      </div>
-
-    </div>
-
-    <!-- TAB 1: 財務與自保金 -->
-    <div id="content-finance" class="space-y-6 hidden">
-      <!-- 總卡片 -->
-      <div class="bg-stone-900 rounded-2xl p-6 text-white shadow-lg">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <span id="targetBadgeText" class="px-2 py-0.5 text-[11px] font-semibold bg-amber-600/40 text-amber-300 rounded border border-amber-500/30">
-              儲蓄目標：NT$ 400,000 (約 $17,391 AUD)
-            </span>
-            <div class="mt-2 flex items-baseline gap-2">
-              <h2 id="totalSavingsNTD" class="text-3xl sm:text-4xl font-extrabold">NT$ 0</h2>
-              <span id="totalSavingsAUD" class="text-sm font-medium text-stone-400">折合約 $0 AUD</span>
-            </div>
-            <p id="remainingGapText" class="text-xs text-stone-400 mt-1">距離達成目標還差 NT$ 400,000</p>
-          </div>
-
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button type="button" onclick="openTxModal('income')" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition shadow-md cursor-pointer">＋ 記一筆收入</button>
-            <button type="button" onclick="openTxModal('expense')" class="flex-1 sm:flex-none px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold transition shadow-md cursor-pointer">－ 記一筆支出</button>
-          </div>
-        </div>
-
-        <div class="mt-5">
-          <div class="flex justify-between text-xs text-stone-400 mb-1.5">
-            <span>總儲蓄進度</span>
-            <span id="progressPercent" class="font-bold text-white">0%</span>
-          </div>
-          <div class="w-full h-3 bg-stone-700 rounded-full overflow-hidden p-0.5 border border-stone-600">
-            <div id="progressBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-300" style="width: 0%"></div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-stone-700/60 text-xs">
-          <div><span class="text-stone-400 block">離澳目標日</span><span id="cardTargetDate" class="font-semibold text-stone-200 mt-0.5 block">2027-06-30</span></div>
-          <div><span class="text-stone-400 block">距今剩餘時間</span><span id="weeksLeftText" class="font-semibold text-stone-200 mt-0.5 block">-- 週</span></div>
-          <div><span class="text-stone-400 block">每週需淨存 (AUD)</span><span id="weeklyNeedAUD" class="font-bold text-amber-400 mt-0.5 block">$0 AUD</span></div>
-          <div><span class="text-stone-400 block">Super 預估退回 (35%)</span><span id="superRefundEst" class="font-semibold text-emerald-400 mt-0.5 block">$0 AUD</span></div>
+        <div class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 space-y-2">
+          <span class="text-xs font-bold text-blue-800 tracking-wider uppercase block">WHV 背包客稅率 (417/462)</span>
+          <p class="text-2xl font-black text-blue-950">15% <span class="text-xs font-normal">($0 ~ $45,000 AUD)</span></p>
+          <p class="text-[11px] text-blue-900 leading-relaxed">
+            年收入在 45,000 澳幣內依法固定扣 15% 所得稅；超過 45,000 元部分才會進入 30% 稅率級距。
+          </p>
         </div>
       </div>
 
-      <!-- 資金池 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-          <span id="audPoolTitle" class="text-xs font-medium text-stone-500 uppercase">澳洲資金池 (AUD)</span>
-          <h3 id="audBalance" class="text-2xl font-bold text-stone-900 mt-1">$0 AUD</h3>
-          <div class="mt-4 pt-3 border-t border-stone-100 grid grid-cols-2 gap-2 text-xs">
-            <div><span class="text-stone-400">稅後收入</span><p id="audIncome" class="font-semibold text-stone-700 mt-0.5">+$0</p></div>
-            <div><span class="text-stone-400">累計支出</span><p id="audExpense" class="font-semibold text-stone-700 mt-0.5">-$0</p></div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-          <span id="twdPoolTitle" class="text-xs font-medium text-stone-500 uppercase">台灣資金池 (TWD)</span>
-          <h3 id="twdBalance" class="text-2xl font-bold text-stone-900 mt-1">NT$ 0</h3>
-          <div class="mt-4 pt-3 border-t border-stone-100 grid grid-cols-2 gap-2 text-xs">
-            <div><span class="text-stone-400">兼職/其他收入</span><p id="twdIncome" class="font-semibold text-stone-700 mt-0.5">+NT$ 0</p></div>
-            <div><span class="text-stone-400">前期規費支出</span><p id="twdExpense" class="font-semibold text-stone-700 mt-0.5">-NT$ 0</p></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 表格 -->
-      <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800">收支紀錄明細</div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="bg-stone-50 text-stone-500 border-b border-stone-200">
-                <th class="py-2.5 px-4">日期</th>
-                <th class="py-2.5 px-3">類型</th>
-                <th class="py-2.5 px-3">分類</th>
-                <th class="py-2.5 px-4">備註</th>
-                <th class="py-2.5 px-4 text-right">金額</th>
-                <th class="py-2.5 px-3 text-center">操作</th>
-              </tr>
-            </thead>
-            <tbody id="transactionTableBody" class="divide-y divide-stone-100 text-stone-700"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: 重要時程日曆 -->
-    <div id="content-calendar" class="space-y-6 hidden">
-      <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div class="flex items-center gap-2">
-            <h2 id="calendarMonthTitle" class="text-base font-bold text-stone-800">2026 年 11 月</h2>
-            <div class="flex items-center border border-stone-200 rounded-lg overflow-hidden ml-2">
-              <button type="button" onclick="changeMonth(-1)" class="px-2.5 py-1 text-xs hover:bg-stone-100 text-stone-600 cursor-pointer">上月</button>
-              <button type="button" onclick="changeMonth(0)" class="px-2.5 py-1 text-xs font-semibold hover:bg-stone-100 text-stone-700 border-x border-stone-200 cursor-pointer">今天</button>
-              <button type="button" onclick="changeMonth(1)" class="px-2.5 py-1 text-xs hover:bg-stone-100 text-stone-600 cursor-pointer">下月</button>
-            </div>
-          </div>
-          <button type="button" onclick="openAddEventModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增待辦事項</button>
-        </div>
-
-        <div class="grid grid-cols-7 gap-px bg-stone-200 border border-stone-200 rounded-lg overflow-hidden text-xs">
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週日</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週一</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週二</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週三</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週四</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週五</div>
-          <div class="bg-stone-100 py-2 text-center font-bold text-stone-500">週六</div>
-          <div id="calendarGrid" class="contents"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: 出發裝備清單 -->
-    <div id="content-gear" class="space-y-6 hidden">
-      <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-          <div>
-            <h2 class="text-base font-bold text-stone-900">打工度假生活必備裝備清單</h2>
-            <p class="text-xs text-stone-500 mt-0.5">點擊核取方塊標記已備妥物品，進度隨時保存。</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <span id="gearProgressText" class="text-xs font-bold text-stone-700">完成度：0 / 0</span>
-            <button type="button" onclick="openAddGearModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增物品</button>
-          </div>
-        </div>
-
-        <div id="gearListContainer" class="space-y-4"></div>
-      </div>
-    </div>
-  </main>
-
-  <!-- MODAL: 記帳 -->
-  <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
-      <form onsubmit="handleSaveTx(event)" class="space-y-3 text-xs">
-        <input type="hidden" id="txType">
-        <div>
-          <label class="block font-semibold mb-1">幣別與日期</label>
-          <div class="grid grid-cols-2 gap-2">
-            <select id="txCurrency" class="p-2 border rounded font-bold" onchange="toggleSuper()">
-              <option value="AUD">AUD (澳幣)</option>
-              <option value="TWD">TWD (新台
+      <!-- 雇
