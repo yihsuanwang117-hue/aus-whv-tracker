@@ -441,7 +441,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 (新增 Google Maps 地點連結) -->
+  <!-- MODAL: 新增/編輯日曆事項 (雙模 Google Maps：支援地標搜尋與貼網址) -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -466,10 +466,14 @@
           <input type="date" id="eventDate" required class="w-full p-2 border rounded">
         </div>
         
-        <!-- Google Maps 連結輸入區 -->
+        <!-- Google Maps 雙模輸入區：支援輸入地標名稱或貼上連結 -->
         <div>
-          <label class="block font-semibold mb-1">📍 Google Maps 地點連結 (選填)</label>
-          <input type="url" id="eventMapUrl" placeholder="貼上 Google Maps 網址 (https://maps.app.goo.gl/...)" class="w-full p-2 border rounded border-amber-300 bg-amber-50/40 text-stone-800">
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-semibold text-stone-800">📍 地點位置 (地標名稱 或 網址)</label>
+            <button type="button" onclick="previewLocationSearch()" class="text-[11px] text-blue-600 hover:underline font-bold cursor-pointer">🔍 測試搜尋預覽</button>
+          </div>
+          <input type="text" id="eventLocationInput" placeholder="例如：烏魯魯渡假村、雪梨歌劇院，或貼上 Maps 網址" class="w-full p-2 border rounded border-amber-300 bg-amber-50/40 text-stone-800">
+          <p class="text-[10px] text-stone-400 mt-1">💡 可直接打地標/地址，系統會自動轉換為 Google Maps 導航連結。</p>
         </div>
 
         <div>
@@ -477,9 +481,10 @@
           <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
         </div>
 
+        <!-- 一鍵導航跳轉按鈕 -->
         <div id="eventMapDirectLinkArea" class="pt-1 hidden">
           <a id="eventMapDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition">
-            <span>🗺️ 開啟 Google Maps 導航 ↗</span>
+            <span id="eventMapDirectLinkText">🗺️ 開啟 Google Maps 導航 ↗</span>
           </a>
         </div>
 
@@ -603,8 +608,8 @@
     ];
 
     const DEFAULT_EVENTS = [
-      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", mapUrl: "", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "工作結束交接 & 離澳", tagId: "t_2", date: "2027-06-30", mapUrl: "", desc: "完成交接，領取 Super 退稅單據。" }
+      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
+      { id: "ev2", title: "工作結束交接 & 離澳", tagId: "t_2", date: "2027-06-30", location: "Ayers Rock Resort", desc: "完成交接，領取 Super 退稅單據。" }
     ];
 
     const DEFAULT_EXPENSE_CATS = ["飲食餐飲", "玩樂休閒", "住宿房租", "生活採買", "機票交通", "簽證規費", "其他雜項"];
@@ -653,6 +658,25 @@
         default: return 'bg-stone-100 text-stone-800 border-stone-300';
       }
     }
+
+    // 格式化地點網址：如果是 URL 直接回傳，如果是名稱則包裝成 Google Maps 搜尋網址
+    function buildGoogleMapsUrl(input) {
+      if (!input || !input.trim()) return "";
+      const trimmed = input.trim();
+      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        return trimmed;
+      }
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+    }
+
+    window.previewLocationSearch = function() {
+      const input = document.getElementById("eventLocationInput").value.trim();
+      if (!input) {
+        alert("請先輸入地點名稱、地址或 Maps 連結！");
+        return;
+      }
+      window.open(buildGoogleMapsUrl(input), "_blank");
+    };
 
     window.toggleAccordion = function(id) {
       const el = document.getElementById(id);
@@ -1086,7 +1110,7 @@
       }
     };
 
-    // --- 日曆渲染 (含 Google Maps 地圖標籤與跳轉) ---
+    // --- 日曆渲染 (支援 Google Maps 連結與名稱自動轉跳) ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -1122,11 +1146,12 @@
             <div class="mt-1 space-y-1">
               ${evs.map(e => {
                 const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
-                const hasMap = Boolean(e.mapUrl && e.mapUrl.trim());
+                const locVal = e.location || e.mapUrl || "";
+                const hasLocation = Boolean(locVal && locVal.trim());
                 return `
                   <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium flex items-center justify-between gap-1 ${getColorBadgeClass(tag.color)}">
                     <span class="truncate"><span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
-                    ${hasMap ? '<span class="flex-shrink-0 text-[10px]" title="包含 Google Maps 地點">📍</span>' : ''}
+                    ${hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含 Google Maps 地點">📍</span>' : ''}
                   </div>
                 `;
               }).join('')}
@@ -1147,7 +1172,7 @@
       document.getElementById("eventId").value = "";
       document.getElementById("eventTitle").value = "";
       document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
-      document.getElementById("eventMapUrl").value = "";
+      document.getElementById("eventLocationInput").value = "";
       document.getElementById("eventDesc").value = "";
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程";
       document.getElementById("eventDeleteBtn").classList.add("hidden");
@@ -1172,16 +1197,22 @@
       document.getElementById("eventId").value = ev.id;
       document.getElementById("eventTitle").value = ev.title;
       document.getElementById("eventDate").value = ev.date;
-      document.getElementById("eventMapUrl").value = ev.mapUrl || "";
+      
+      const locVal = ev.location || ev.mapUrl || "";
+      document.getElementById("eventLocationInput").value = locVal;
       document.getElementById("eventDesc").value = ev.desc || "";
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
 
-      // 地圖連結按鈕
+      // 一鍵開啟導航按鈕處理
       const mapBtnArea = document.getElementById("eventMapDirectLinkArea");
       const mapBtn = document.getElementById("eventMapDirectLink");
-      if (ev.mapUrl && ev.mapUrl.trim()) {
-        mapBtn.href = ev.mapUrl.trim();
+      const mapBtnText = document.getElementById("eventMapDirectLinkText");
+
+      if (locVal && locVal.trim()) {
+        const fullMapsUrl = buildGoogleMapsUrl(locVal);
+        mapBtn.href = fullMapsUrl;
+        mapBtnText.textContent = locVal.startsWith("http") ? "🗺️ 開啟 Google Maps 連結 ↗" : `🗺️ 前往導航：「${locVal.substring(0, 16)}...」↗`;
         mapBtnArea.classList.remove("hidden");
       } else {
         mapBtnArea.classList.add("hidden");
@@ -1196,12 +1227,14 @@
     window.handleSaveEvent = function(e) {
       e.preventDefault();
       const id = document.getElementById("eventId").value;
+      const loc = document.getElementById("eventLocationInput").value.trim();
       const newEv = {
         id: id || "ev_" + Date.now(),
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
         date: document.getElementById("eventDate").value,
-        mapUrl: document.getElementById("eventMapUrl").value.trim(),
+        location: loc,
+        mapUrl: loc, // 兼容舊版命名
         desc: document.getElementById("eventDesc").value
       };
 
