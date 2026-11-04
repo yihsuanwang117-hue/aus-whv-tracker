@@ -24,7 +24,6 @@
   <header class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
-        <!-- 可點擊更換的個人頭像 -->
         <div onclick="triggerAvatarUpload()" class="relative group cursor-pointer" title="點擊更換個人圖片/頭像">
           <div id="headerAvatarContainer" class="w-10 h-10 rounded-full bg-amber-800 flex items-center justify-center text-white font-bold text-base shadow-inner overflow-hidden border border-amber-900/20">
             <span id="headerAvatarText">AU</span>
@@ -322,7 +321,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: 重要時程日曆 (支援澳洲各州與台灣/自訂UTC跨國授課時間換算) -->
+    <!-- TAB 2: 重要時程日曆 -->
     <div id="content-calendar" class="space-y-6 hidden">
       <div class="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -582,7 +581,6 @@
             <div id="customUtcInputGroup" class="hidden flex items-center gap-1">
               <span class="text-stone-500 font-mono text-[11px]">UTC</span>
               <select id="eventCustomUtcOffset" class="p-1 border rounded text-[11px] font-bold font-mono" onchange="updateEventTimePreview()">
-                <!-- 支援 -12 到 +14 -->
                 <option value="-12">-12</option><option value="-11">-11</option><option value="-10">-10</option>
                 <option value="-9">-09</option><option value="-8">-08</option><option value="-7">-07</option>
                 <option value="-6">-06</option><option value="-5">-05</option><option value="-4">-04</option>
@@ -927,31 +925,55 @@
       window.open(buildGoogleMapsUrl(input), "_blank");
     };
 
- // --- 跨國多時區時程換算核心 (已修復夏令時雙重偏移問題) ---
+    // ==========================================
+    // 徹底修復：時區解析純數學引擎 (完全規避瀏覽器本地時區干擾)
+    // ==========================================
+    function getTimeZoneOffsetMs(date, timeZone) {
+      // 利用 Intl API 解析目標時區在指定 UTC 時間點的真實年/月/日/時/分/秒
+      const inv = new Intl.DateTimeFormat('en-US', {
+        timeZone: timeZone,
+        year: 'numeric', month: 'numeric', day: 'numeric',
+        hour: 'numeric', minute: 'numeric', second: 'numeric',
+        hour12: false
+      }).formatToParts(date).reduce((acc, part) => {
+        acc[part.type] = parseInt(part.value, 10);
+        return acc;
+      }, {});
+
+      if (inv.hour === 24) inv.hour = 0;
+      const targetAsUtc = Date.UTC(inv.year, inv.month - 1, inv.day, inv.hour, inv.minute, inv.second);
+      return targetAsUtc - date.getTime();
+    }
+
     function getUtcDateFromZone(dateStr, timeStr, timeZoneOrOffset) {
       if (!timeStr) return null;
       const [y, m, d] = dateStr.split('-').map(Number);
       const [hh, mm] = timeStr.split(':').map(Number);
 
-      // 若為自訂數字 UTC 偏移量 (例如 +3, -5, +8)
+      // 自訂數字 UTC 偏移 (如 +3, -5)
       if (typeof timeZoneOrOffset === 'number' || (!isNaN(timeZoneOrOffset) && !String(timeZoneOrOffset).includes('/'))) {
         const offsetHours = parseFloat(timeZoneOrOffset);
-        const utcMs = Date.UTC(y, m - 1, d, hh, mm) - (offsetHours * 60 * 60 * 1000);
+        const utcMs = Date.UTC(y, m - 1, d, hh, mm, 0) - (offsetHours * 60 * 60 * 1000);
         return new Date(utcMs);
       }
 
-      // 標準時區：直接藉由當地 ISO 格式反推正確 UTC，避免瀏覽器誤加 Z
-      const targetIso = `${dateStr}T${timeStr}:00`;
-      const dateInTz = new Date(new Date(targetIso).toLocaleString('en-US', { timeZone: timeZoneOrOffset }));
-      const dateInUtc = new Date(new Date(targetIso).toLocaleString('en-US', { timeZone: 'UTC' }));
-      const diff = dateInUtc.getTime() - dateInTz.getTime();
-      return new Date(new Date(targetIso).getTime() + diff);
+      // 標準時區：先假設為 UTC，再精準減去時區真實 offset
+      const nominalUtc = Date.UTC(y, m - 1, d, hh, mm, 0);
+      let offset = getTimeZoneOffsetMs(new Date(nominalUtc), timeZoneOrOffset);
+      let utcMs = nominalUtc - offset;
+      
+      // 處理夏令時間邊界交替的二次校正
+      const secondOffset = getTimeZoneOffsetMs(new Date(utcMs), timeZoneOrOffset);
+      if (secondOffset !== offset) {
+        utcMs = nominalUtc - secondOffset;
+      }
+      return new Date(utcMs);
     }
 
     function formatTimeInZone(utcDate, timeZoneOrOffset) {
       if (!utcDate) return { time: '', date: '' };
 
-      if (typeof timeZoneOrOffset === 'number' || (!isNaN(timeZoneOrOffset) && !timeZoneOrOffset.includes('/'))) {
+      if (typeof timeZoneOrOffset === 'number' || (!isNaN(timeZoneOrOffset) && !String(timeZoneOrOffset).includes('/'))) {
         const offsetHours = parseFloat(timeZoneOrOffset);
         const localMs = utcDate.getTime() + (offsetHours * 60 * 60 * 1000);
         const d = new Date(localMs);
@@ -963,21 +985,18 @@
         return { time: `${hh}:${mm}`, date: `${yr}-${mo}-${da}` };
       }
 
-      const formatter = new Intl.DateTimeFormat('zh-TW', {
-        timeZone: timeZoneOrOffset,
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
-      const dateFormatter = new Intl.DateTimeFormat('en-CA', {
-        timeZone: timeZoneOrOffset,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
+      const offset = getTimeZoneOffsetMs(utcDate, timeZoneOrOffset);
+      const targetDate = new Date(utcDate.getTime() + offset);
+
+      const hh = String(targetDate.getUTCHours()).padStart(2, '0');
+      const mm = String(targetDate.getUTCMinutes()).padStart(2, '0');
+      const yr = targetDate.getUTCFullYear();
+      const mo = String(targetDate.getUTCMonth() + 1).padStart(2, '0');
+      const da = String(targetDate.getUTCDate()).padStart(2, '0');
+
       return {
-        time: formatter.format(utcDate),
-        date: dateFormatter.format(utcDate)
+        time: `${hh}:${mm}`,
+        date: `${yr}-${mo}-${da}`
       };
     }
 
@@ -1013,7 +1032,7 @@
       const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
       let actualBase = activeUserZone;
       let thirdLabel = "自訂時區";
-      let thirdZoneTarget = "3"; // 預設
+      let thirdZoneTarget = "3";
 
       if (baseZone === "Asia/Taipei") {
         actualBase = "Asia/Taipei";
@@ -1044,19 +1063,18 @@
       previewBox.classList.remove("hidden");
     };
 
-    // --- 行程複製與移動核心 ---
     window.duplicateEventQuick = function(daysToAdd) {
       if (!currentEditingEventId) return;
       const origin = (appState.events || []).find(e => e.id === currentEditingEventId);
       if (!origin) return;
 
       const [y, m, d] = origin.date.split('-').map(Number);
-      const originDate = new Date(y, m - 1, d);
-      originDate.setDate(originDate.getDate() + daysToAdd);
+      const originDate = new Date(Date.UTC(y, m - 1, d));
+      originDate.setUTCDate(originDate.getUTCDate() + daysToAdd);
 
-      const yr = originDate.getFullYear();
-      const mo = String(originDate.getMonth() + 1).padStart(2, '0');
-      const da = String(originDate.getDate()).padStart(2, '0');
+      const yr = originDate.getUTCFullYear();
+      const mo = String(originDate.getUTCMonth() + 1).padStart(2, '0');
+      const da = String(originDate.getUTCDate()).padStart(2, '0');
       const newDateStr = `${yr}-${mo}-${da}`;
 
       const cloned = Object.assign({}, origin, {
@@ -1947,7 +1965,7 @@
       }
     };
 
-    // --- 日曆渲染 (支援多時區滾動計算與三方對齊標籤) ---
+    // --- 日曆渲染 (已徹底修復 8 小時偏移問題) ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
