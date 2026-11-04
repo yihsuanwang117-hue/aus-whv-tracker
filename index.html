@@ -380,8 +380,9 @@
             <h2 class="text-base font-bold text-stone-900">生活必備裝備清單</h2>
             <p class="text-xs text-stone-500 mt-0.5">點選上方橫排分類快速聚焦，無需反覆上下滾動找品項。</p>
           </div>
-          <div class="flex items-center gap-3">
-            <span id="gearProgressText" class="text-xs font-bold text-stone-700">完成度：0 / 0</span>
+          <div class="flex items-center gap-2">
+            <span id="gearProgressText" class="text-xs font-bold text-stone-700 mr-2">完成度：0 / 0</span>
+            <button type="button" onclick="openManageGearCategoriesModal()" class="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 rounded-lg text-xs font-semibold cursor-pointer">🏷️ 管理裝備分類</button>
             <button type="button" onclick="openAddGearModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增物品</button>
           </div>
         </div>
@@ -395,6 +396,37 @@
       </div>
     </div>
   </main>
+
+  <!-- MODAL: 管理裝備分類 (支援重新命名與上下排序) -->
+  <div id="manageGearCategoriesModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+        <h3 class="text-base font-bold text-stone-900 flex items-center gap-1.5">
+          <span>🏷️</span> 管理與排序裝備分類
+        </h3>
+        <button type="button" onclick="closeModal('manageGearCategoriesModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block font-semibold text-xs text-stone-700">＋ 新增裝備分類</label>
+        <div class="flex gap-1.5">
+          <input type="text" id="newGearCategoryInput" placeholder="分類名稱 (如: 露營睡袋、3C周邊)" class="flex-1 p-2 text-xs border rounded-lg">
+          <button type="button" onclick="handleAddNewGearCategory()" class="px-3.5 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold cursor-pointer transition">新增</button>
+        </div>
+      </div>
+
+      <div class="pt-1">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-semibold text-xs text-stone-600">現有分類項目 (可改名或上下排序)：</span>
+        </div>
+        <div id="gearCategoriesListContainer" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
+      </div>
+
+      <div class="pt-2 flex justify-end border-t border-stone-100">
+        <button type="button" onclick="closeModal('manageGearCategoriesModal')" class="px-4 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-lg text-xs font-bold cursor-pointer">完成</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: 管理收支類別 (支援重新命名與上下排序) -->
   <div id="manageFinanceCategoriesModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
@@ -550,7 +582,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 (含跨日區間、行程複製與穩定時差對齊) -->
+  <!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -752,24 +784,29 @@
   <!-- MODAL: 裝備項目 -->
   <div id="gearModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 id="gearModalTitle" class="text-base font-bold text-stone-900 mb-3">新增裝備物品</h3>
-      <form onsubmit="handleSaveGearItem(event)" class="space-y-3 text-xs">
+      <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+        <h3 id="gearModalTitle" class="text-base font-bold text-stone-900">新增裝備物品</h3>
+        <button type="button" onclick="closeModal('gearModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
+      </div>
+      <form onsubmit="handleSaveGearItem(event)" class="space-y-3 text-xs mt-3">
         <div>
           <label class="block font-semibold mb-1">物品名稱</label>
           <input type="text" id="gearLabel" required placeholder="例如：萬國轉接頭、睡袋..." class="w-full p-2 border rounded">
         </div>
         <div>
-          <label class="block font-semibold mb-1">選擇現有分類，或在下方自訂新分類</label>
-          <select id="gearCategorySelect" class="w-full p-2 border rounded mb-1.5" onchange="document.getElementById('gearCustomCategory').value = this.value"></select>
-          <input type="text" id="gearCustomCategory" required placeholder="自訂新分類名稱" class="w-full p-2 border border-amber-300 bg-amber-50/40 rounded font-semibold text-amber-900">
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-semibold">選擇分類</label>
+            <button type="button" onclick="openManageGearCategoriesModal()" class="text-amber-800 hover:underline text-[11px] font-bold cursor-pointer">＋ 管理/排序分類</button>
+          </div>
+          <select id="gearCategorySelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
         </div>
         <div>
           <label class="block font-semibold mb-1">規格或注意事項 (選填)</label>
           <input type="text" id="gearSubline" placeholder="規格尺寸、購買備註..." class="w-full p-2 border rounded">
         </div>
-        <div class="pt-2 flex justify-end gap-2">
+        <div class="pt-2 flex justify-end gap-2 border-t border-stone-100">
           <button type="button" onclick="closeModal('gearModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
-          <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">新增</button>
+          <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">儲存物品</button>
         </div>
       </form>
     </div>
@@ -786,6 +823,13 @@
       appId: "1:141943124719:web:deb5a3bf531a40b16ea11a",
       measurementId: "G-XFP80TVSLZ"
     };
+
+    const DEFAULT_GEAR_CATEGORIES = [
+      "修繕自修與固定",
+      "青旅生活與防盜",
+      "個人衛生與洗沐",
+      "戶外與極端氣候"
+    ];
 
     const DEFAULT_GEAR = [
       { id: "g1", label: "布基大力膠帶 (Duct Tape)", sublines: ["規格：寬度 2.5 cm，長度 3m～5m，黑色或銀灰"], category: "修繕自修與固定", checked: false },
@@ -833,6 +877,7 @@
       transactions: [],
       expenseCategories: DEFAULT_EXPENSE_CATS,
       incomeCategories: DEFAULT_INCOME_CATS,
+      gearCategories: DEFAULT_GEAR_CATEGORIES,
       tags: DEFAULT_TAGS,
       events: DEFAULT_EVENTS,
       gear: DEFAULT_GEAR
@@ -851,22 +896,21 @@
 
     const CHART_PALETTE = ['#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'];
 
-    // --- 各州固定相對 UTC 偏移（排除系統時區干擾，確保絕對準確）---
+    // --- 各州固定相對 UTC 偏移 ---
     function getZoneOffsetHours(zoneKey) {
       switch (zoneKey) {
-        case "Australia/Sydney": return 11.0;   // 雪梨夏令時 UTC+11 (4月前)
-        case "Australia/Brisbane": return 10.0; // 昆州無夏令 UTC+10
-        case "Australia/Darwin": return 9.5;    // 北領地/烏魯魯 UTC+9.5
-        case "Australia/Adelaide": return 10.5; // 南澳夏令 UTC+10.5
-        case "Australia/Perth": return 8.0;     // 伯斯 UTC+8
-        case "Asia/Taipei": return 8.0;         // 台灣 UTC+8
+        case "Australia/Sydney": return 11.0;
+        case "Australia/Brisbane": return 10.0;
+        case "Australia/Darwin": return 9.5;
+        case "Australia/Adelaide": return 10.5;
+        case "Australia/Perth": return 8.0;
+        case "Asia/Taipei": return 8.0;
         default:
           if (!isNaN(zoneKey)) return parseFloat(zoneKey);
           return 10.0;
       }
     }
 
-    // 純時鐘加減法：保證你填什麼，當地就顯示什麼
     function addMinutesToTime(timeStr, diffMinutes) {
       if (!timeStr) return "";
       const [h, m] = timeStr.split(':').map(Number);
@@ -877,7 +921,6 @@
       return `${resH}:${resM}`;
     }
 
-    // 計算行程在指定時區所呈現的真實「當地時間」與「台灣時間」
     function calculateEventTimes(event, currentActiveZone) {
       if (!event.time) return { localTime: "", twTime: "" };
 
@@ -885,7 +928,6 @@
       const rawTime = event.time;
 
       if (baseZone === "LOCAL") {
-        // 以當前所在為主：填幾點就是幾點，絕不多跳 1 分鐘
         const localOffset = getZoneOffsetHours(currentActiveZone);
         const twOffset = 8.0;
         const diffMinutes = Math.round((twOffset - localOffset) * 60);
@@ -894,7 +936,6 @@
           twTime: addMinutesToTime(rawTime, diffMinutes)
         };
       } else if (baseZone === "Asia/Taipei") {
-        // 以台灣時間為主：台灣永遠鎖死在 rawTime，當地手錶時間自動推算
         const localOffset = getZoneOffsetHours(currentActiveZone);
         const twOffset = 8.0;
         const diffMinutes = Math.round((localOffset - twOffset) * 60);
@@ -903,7 +944,6 @@
           twTime: rawTime
         };
       } else if (baseZone === "CUSTOM_UTC") {
-        // 以自訂 UTC 學生時間為主
         const customOffset = parseFloat(event.customUtcOffset || "3");
         const localOffset = getZoneOffsetHours(currentActiveZone);
         const twOffset = 8.0;
@@ -1050,7 +1090,6 @@
         thirdTime = timeStr;
       } else {
         thirdLabel = "土耳其 (UTC+3)";
-        const trEv = { time: timeStr, baseZone: baseZone, customUtcOffset: "3" };
         const localOff = getZoneOffsetHours(activeUserZone);
         const diffTr = Math.round((3.0 - (baseZone === "Asia/Taipei" ? 8.0 : localOff)) * 60);
         thirdTime = addMinutesToTime(timeStr, diffTr);
@@ -1192,7 +1231,6 @@
       const cleanStart = dateStr.replace(/-/g, "");
 
       if (timeStr) {
-        // 全天/定時行程
         const [h, m] = times.localTime.split(':').map(Number);
         const endH = String((h + 1) % 24).padStart(2, '0');
         datesParam = `${cleanStart}T${times.localTime.replace(':', '')}00/${cleanStart}T${endH}${String(m).padStart(2, '0')}00`;
@@ -1535,6 +1573,108 @@
       }
     }
 
+    // --- 管理裝備分類模組 (支援重新命名與上下排序) ---
+    window.openManageGearCategoriesModal = function() {
+      renderGearCategoriesList();
+      document.getElementById("manageGearCategoriesModal").classList.remove("hidden");
+    };
+
+    function renderGearCategoriesList() {
+      const container = document.getElementById("gearCategoriesListContainer");
+      const list = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-stone-400 text-xs">目前尚無自訂裝備分類</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map((cat, idx) => `
+        <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50 hover:bg-stone-100 transition">
+          <span class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-800"></span>
+            ${cat}
+          </span>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="renameGearCategory('${cat}')" class="text-stone-500 hover:text-amber-800 text-xs px-1.5 py-0.5 rounded cursor-pointer font-medium" title="修改名稱">✏️ 改名</button>
+            <button type="button" onclick="moveGearCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▲</button>
+            <button type="button" onclick="moveGearCategoryOrder(${idx}, 1)" ${idx === list.length - 1 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▼</button>
+            <button type="button" onclick="deleteGearCategory('${cat}')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 rounded cursor-pointer ml-1">刪除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.handleAddNewGearCategory = function() {
+      const input = document.getElementById("newGearCategoryInput");
+      const val = input.value.trim();
+      if (!val) return;
+
+      if (!appState.gearCategories) appState.gearCategories = [...DEFAULT_GEAR_CATEGORIES];
+      if (!appState.gearCategories.includes(val)) {
+        appState.gearCategories.push(val);
+      }
+
+      input.value = "";
+      saveState();
+      renderGearCategoriesList();
+      renderGear();
+    };
+
+    window.renameGearCategory = function(oldCatName) {
+      const newName = prompt(`請輸入「${oldCatName}」的新分類名稱：`, oldCatName);
+      if (!newName || !newName.trim() || newName.trim() === oldCatName) return;
+      const finalNewName = newName.trim();
+
+      const idx = (appState.gearCategories || []).indexOf(oldCatName);
+      if (idx !== -1) appState.gearCategories[idx] = finalNewName;
+
+      // 同步更新現有裝備物品上的分類欄位
+      (appState.gear || []).forEach(item => {
+        if (item.category === oldCatName) {
+          item.category = finalNewName;
+        }
+      });
+
+      if (currentSelectedGearCategory === oldCatName) {
+        currentSelectedGearCategory = finalNewName;
+      }
+
+      saveState();
+      renderGearCategoriesList();
+      renderGear();
+    };
+
+    window.moveGearCategoryOrder = function(index, delta) {
+      const list = appState.gearCategories || [];
+      const targetIndex = index + delta;
+      if (targetIndex < 0 || targetIndex >= list.length) return;
+
+      const item = list.splice(index, 1)[0];
+      list.splice(targetIndex, 0, item);
+
+      appState.gearCategories = list;
+      saveState();
+      renderGearCategoriesList();
+      renderGear();
+    };
+
+    window.deleteGearCategory = function(catName) {
+      if (confirm(`確定刪除「${catName}」分類嗎？此分類下的物品將會變更為「未分類物品」。`)) {
+        appState.gearCategories = (appState.gearCategories || []).filter(c => c !== catName);
+        (appState.gear || []).forEach(item => {
+          if (item.category === catName) {
+            item.category = "未分類物品";
+          }
+        });
+        if (currentSelectedGearCategory === catName) {
+          currentSelectedGearCategory = "ALL";
+        }
+        saveState();
+        renderGearCategoriesList();
+        renderGear();
+      }
+    };
+
     window.toggleAccordion = function(id) {
       const el = document.getElementById(id);
       const icon = document.getElementById(id + "-icon");
@@ -1577,6 +1717,7 @@
       if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
       if (!appState.expenseCategories) appState.expenseCategories = DEFAULT_EXPENSE_CATS;
       if (!appState.incomeCategories) appState.incomeCategories = DEFAULT_INCOME_CATS;
+      if (!appState.gearCategories || appState.gearCategories.length === 0) appState.gearCategories = DEFAULT_GEAR_CATEGORIES;
       if (!appState.avatarInitials) appState.avatarInitials = "AU";
       if (!appState.primaryCurrency) appState.primaryCurrency = "AUD";
       if (!appState.homeCurrency) appState.homeCurrency = "TWD";
@@ -1987,7 +2128,7 @@
       }
     };
 
-    // --- 日曆渲染 (支援單日待辦 ＋ 跨日期間連續顯示 ＋ 固定時差絕對精準) ---
+    // --- 日曆渲染 ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -2021,7 +2162,6 @@
       for (let day = 1; day <= totalDays; day++) {
         const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
-        // 核心判斷：是否在單日或跨日區間 (date ~ endDate)
         const evs = (appState.events || []).filter(e => {
           if (e.endDate && e.endDate > e.date) {
             return dStr >= e.date && dStr <= e.endDate;
@@ -2215,10 +2355,10 @@
       const itemsContainer = document.getElementById("gearItemsContainer");
       if (!tabsContainer || !itemsContainer) return;
 
+      const categoriesList = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
       const gearList = appState.gear || DEFAULT_GEAR;
-      const existingCategories = Array.from(new Set(gearList.map(g => g.category || "未分類小物")));
 
-      if (currentSelectedGearCategory !== "ALL" && !existingCategories.includes(currentSelectedGearCategory)) {
+      if (currentSelectedGearCategory !== "ALL" && !categoriesList.includes(currentSelectedGearCategory)) {
         currentSelectedGearCategory = "ALL";
       }
 
@@ -2234,7 +2374,7 @@
         </button>
       `;
 
-      existingCategories.forEach(cat => {
+      categoriesList.forEach(cat => {
         const catItems = gearList.filter(g => g.category === cat);
         const catDone = catItems.filter(g => g.checked).length;
         const isActive = currentSelectedGearCategory === cat;
@@ -2290,31 +2430,33 @@
       document.getElementById("gearLabel").value = "";
       document.getElementById("gearSubline").value = "";
 
-      const existingCats = Array.from(new Set((appState.gear || DEFAULT_GEAR).map(g => g.category)));
+      const cats = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
       const selectEl = document.getElementById("gearCategorySelect");
-      selectEl.innerHTML = existingCats.map(c => `<option value="${c}">${c}</option>`).join('') + `<option value="自訂全新分類">＋ 自訂全新分類名稱</option>`;
+      selectEl.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
       
-      const defaultCat = currentSelectedGearCategory !== "ALL" ? currentSelectedGearCategory : (existingCats[0] || "修繕自修與固定");
-      selectEl.value = defaultCat;
-      document.getElementById("gearCustomCategory").value = defaultCat;
+      if (currentSelectedGearCategory !== "ALL" && cats.includes(currentSelectedGearCategory)) {
+        selectEl.value = currentSelectedGearCategory;
+      } else if (cats.length > 0) {
+        selectEl.value = cats[0];
+      }
 
       document.getElementById("gearModal").classList.remove("hidden");
     };
 
     window.handleSaveGearItem = function(e) {
       e.preventDefault();
-      const customCat = document.getElementById("gearCustomCategory").value.trim() || "自訂分類";
+      const cat = document.getElementById("gearCategorySelect").value || "修繕自修與固定";
       if (!appState.gear) appState.gear = [];
       appState.gear.push({
         id: "g_" + Date.now(),
-        label: document.getElementById("gearLabel").value,
-        category: customCat,
-        sublines: document.getElementById("gearSubline").value ? [document.getElementById("gearSubline").value] : [],
+        label: document.getElementById("gearLabel").value.trim(),
+        category: cat,
+        sublines: document.getElementById("gearSubline").value.trim() ? [document.getElementById("gearSubline").value.trim()] : [],
         checked: false
       });
       saveState();
       closeModal("gearModal");
-      currentSelectedGearCategory = customCat;
+      currentSelectedGearCategory = cat;
       renderGear();
     };
 
@@ -2326,7 +2468,7 @@
       }
     };
 
-  // --- 安全雙向同步防護機制 (防止空裝置覆蓋現有資料) ---
+    // --- 安全雙向同步機制 (防空資料覆蓋) ---
     window.connectDirectSync = function() {
       const key = document.getElementById("syncKeyDirect").value.trim();
       if (!key) { alert("請輸入一組自訂的同步密碼！"); return; }
@@ -2344,15 +2486,12 @@
         syncUnsubscribe = db.collection("sync_data").doc(key).onSnapshot(doc => {
           btn.textContent = "🟢 同步中";
           btn.className = "ml-1 px-2.5 py-1 bg-emerald-600 text-white rounded font-semibold text-xs cursor-pointer";
-
           if (doc.exists) {
             const remote = doc.data().data;
             if (remote) {
-              // 檢查雲端資料是否比本地多，避免空雲端覆蓋了有資料的本地
               const remoteEventCount = (remote.events || []).length;
               const localEventCount = (appState.events || []).length;
 
-              // 如果雲端完全沒行程，但本地已經建了很多行程，提示保護
               if (remoteEventCount === 0 && localEventCount > 0) {
                 console.warn("雲端為空但本地有資料，自動將本地完整資料推上雲端保護...");
                 saveState();
@@ -2368,7 +2507,6 @@
               isRemoteUpdate = false;
             }
           } else {
-            // 雲端文件完全不存在時：只有本地確實有實質資料才建立，絕不主動寫入空白覆蓋
             if ((appState.events || []).length > 0 || (appState.transactions || []).length > 0) {
               saveState();
             }
