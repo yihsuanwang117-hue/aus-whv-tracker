@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="AU 澳打生活">
   <meta name="theme-color" content="#8C3B07">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%238C3B07'/%3E%3Ccircle cx='90' cy='90' r='60' fill='%23B45309' opacity='0.3'/%3E%3Ctext x='90' y='115' font-size='70' text-anchor='middle' font-family='sans-serif'%3E🦘%3C/text%3E%3C/svg%3E">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%238C3B07'/%3E%3Ctext x='90' y='115' font-size='70' text-anchor='middle' font-family='sans-serif'%3E🦘%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%238C3B07'/%3E%3Ccircle cx='90' cy='90' r='60' fill='%23B45309' opacity='0.3'/%3E%3Ctext x='90' y='115' font-size='70' text-anchor='middle' font-family='sans-serif'%3E🦘%3C/text%3E%3C/svg%3E">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -982,7 +982,7 @@
           renderFinance();
           renderPieChart();
           calculateWireTransfer();
-          if (window.updatePlannerUI) window.updatePlannerUI();
+          if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
           if (isUserTriggered) alert(`已更新最新即時匯率：1 ${pCurr} = ${liveRate} ${hCurr}`);
         }
       } catch (err) {
@@ -1247,7 +1247,7 @@
           const cleanEnd = nextDay.toISOString().split('T')[0].replace(/-/g, "");
           datesParam = `${cleanStart}/${cleanEnd}`;
         } else {
-          datesParam = `${cleanStart}/${cleanStart}`;
+          datesParam = `${cleanStart}/${cleanEnd}`;
         }
       }
 
@@ -1711,7 +1711,7 @@
       if (tabId === 'finance') renderPieChart();
       if (tabId === 'calendar') renderCalendar();
       if (tabId === 'gear') renderGear();
-      if (tabId === 'planner' && window.renderPlanner) window.renderPlanner();
+      if (tabId === 'planner' && typeof window.renderPlanner === 'function') window.renderPlanner();
     };
 
     function init() {
@@ -1808,7 +1808,7 @@
 
       renderFinance();
       calculateWireTransfer();
-      if (window.updatePlannerUI) window.updatePlannerUI();
+      if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
       closeModal("settingsModal");
       switchTab('finance');
     };
@@ -1832,7 +1832,7 @@
       renderGear();
       renderPieChart();
       checkSmartReminders();
-      if (window.updatePlannerUI) window.updatePlannerUI();
+      if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
     }
 
     window.updateFxRate = function(val) {
@@ -1844,7 +1844,7 @@
         renderFinance();
         renderPieChart();
         calculateWireTransfer();
-        if (window.updatePlannerUI) window.updatePlannerUI();
+        if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
       }
     };
 
@@ -2125,7 +2125,7 @@
       renderFinance();
       renderTransactions();
       renderPieChart();
-      if (window.updatePlannerUI) window.updatePlannerUI();
+      if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
     };
 
     window.delTx = function(id) {
@@ -2135,7 +2135,7 @@
         renderFinance();
         renderTransactions();
         renderPieChart();
-        if (window.updatePlannerUI) window.updatePlannerUI();
+        if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
       }
     };
 
@@ -2715,7 +2715,8 @@
       }
 
       window.updatePlannerUI = function() {
-        if (!document.getElementById('content-planner').classList.contains('hidden')) {
+        const root = getRoot();
+        if (root && !root.classList.contains('hidden')) {
           updatePlanner();
         }
       };
@@ -2744,8 +2745,10 @@
       };
 
       const rootEl = getRoot();
-      rootEl.addEventListener('input', handlePlannerInput);
-      rootEl.addEventListener('change', handlePlannerInput);
+      if (rootEl) {
+        rootEl.addEventListener('input', handlePlannerInput);
+        rootEl.addEventListener('change', handlePlannerInput);
+      }
     })();
   </script>
 </body>
