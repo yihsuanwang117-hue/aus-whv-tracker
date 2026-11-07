@@ -2533,6 +2533,104 @@
       const el = document.getElementById(id);
       if (el) el.classList.add("hidden");
     };
+    <!-- ===== 工時規劃器 add-on：整段貼在原網頁的 </body> 之前 ===== -->
+<script>
+(function(){
+const fmt=n=>Math.round(n).toLocaleString();
+const PRE={casual:[1.2,1.4],pt:[1.25,1.5],ft:[1.25,1.5]};
+const defs=()=>({live:350,gap:4,other:0,ovr:'',rows:[
+ {n:'房務',t:'casual',r:33.85,wd:22.5,sa:0,su:0,sx:1.2,ux:1.4,wk:26},
+ {n:'飲料店',t:'casual',r:34.76,wd:0,sa:6,su:6,sx:1.2,ux:1.2,wk:26},
+ {n:'',t:'casual',r:0,wd:0,sa:0,su:0,sx:1.2,ux:1.4,wk:26}]});
+const P=()=>appState.planner||(appState.planner=defs());
+let timer;const save=()=>{clearTimeout(timer);timer=setTimeout(()=>saveState(),600)};
+document.getElementById('tab-gear').insertAdjacentHTML('afterend','<button type="button" onclick="switchTab(\'planner\')" id="tab-planner" class="py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer">🧮 工時規劃</button>');
+document.getElementById('content-gear').insertAdjacentHTML('afterend','<div id="content-planner" class="space-y-6 hidden"></div>');
+const root=document.getElementById('content-planner');
+const origSwitch=window.switchTab;
+window.switchTab=function(t){
+ origSwitch(t==='planner'?'__':t);
+ const b=document.getElementById('tab-planner');
+ if(t==='planner'){root.classList.remove('hidden');b.className='py-2.5 tab-active cursor-pointer';render();}
+ else{root.classList.add('hidden');b.className='py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer';}
+};
+function saved(){const a=appState,fx=+a.fxRate||22,p=a.primaryCurrency||'AUD',h=a.homeCurrency||'TWD';let pn=0,hn=0;
+ (a.transactions||[]).forEach(t=>{const m=+t.amount||0,s=t.type==='income'?1:-1;if(t.currency===p)pn+=s*m;else if(t.currency===h)hn+=s*m;});
+ return pn*fx+hn;}
+const tax=g=>.15*Math.min(g,45000)+.3*Math.max(0,g-45000);
+const inv=n=>n<=38250?n/.85:45000+(n-38250)/.7;
+const L='block text-[11px] text-stone-500 mb-0.5';
+const num=(k,v,i)=>`<input type="number" step="any" data-k="${k}" ${i!=null?`data-i="${i}"`:''} value="${v}" class="w-full p-1.5 border rounded font-mono">`;
+const rowHtml=(j,i)=>`<div class="p-3 rounded-xl border bg-stone-50 space-y-2 text-xs">
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+<div><label class="${L}">工作名稱</label><input type="text" data-k="n" data-i="${i}" value="${j.n}" class="w-full p-1.5 border rounded"></div>
+<div><label class="${L}">聘僱類型</label><select data-k="t" data-i="${i}" class="w-full p-1.5 border rounded font-bold">
+<option value="casual" ${j.t==='casual'?'selected':''}>Casual</option><option value="pt" ${j.t==='pt'?'selected':''}>Part-time</option><option value="ft" ${j.t==='ft'?'selected':''}>Full-time</option></select></div>
+<div><label class="${L}">平日時薪 (A$)</label>${num('r',j.r,i)}</div>
+<div><label class="${L}">預計做幾週</label>${num('wk',j.wk,i)}</div></div>
+<div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+<div><label class="${L}">平日時數/週</label>${num('wd',j.wd,i)}</div>
+<div><label class="${L}">週六時數/週</label>${num('sa',j.sa,i)}</div>
+<div><label class="${L}">週日時數/週</label>${num('su',j.su,i)}</div>
+<div><label class="${L}">週六倍率</label>${num('sx',j.sx,i)}</div>
+<div><label class="${L}">週日倍率</label>${num('ux',j.ux,i)}</div></div></div>`;
+function render(){
+ const p=P();
+ root.innerHTML=`<div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
+ <div><h3 class="text-sm font-bold text-stone-900">🧮 工時 & 工作組合規劃器</h3>
+ <p class="text-xs text-stone-500 mt-0.5">已存金額、匯率、目標與日期自動讀取「雙幣財務」頁。倍率是相對「平日時薪」：casual 週六 1.2、週日 1.4（飲料店 Fast Food 週日 1.2）；Part/Full-time 週六 1.25、週日 1.5。</p></div>
+ <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+ <div><label class="${L}">每週生活費 (A$)</label>${num('live',p.live)}</div>
+ <div><label class="${L}">預計空窗/無班週數</label>${num('gap',p.gap)}</div>
+ <div><label class="${L}">其他每週收入 (台幣，如線上課)</label>${num('other',p.other)}</div>
+ <div><label class="${L}">已存金額覆寫 (台幣，留空=自動)</label>${num('ovr',p.ovr)}</div></div>
+ <div class="space-y-2">${p.rows.map(rowHtml).join('')}</div></div><div id="pl-out"></div>`;
+ update();
+}
+function update(){
+ const a=appState,p=P(),fx=+a.fxRate||22,tgt=+a.targetNTD||400000,have=p.ovr===''?saved():+p.ovr;
+ const t0=new Date();t0.setHours(0,0,0,0);
+ const wl=Math.max(1,Math.ceil((new Date(a.targetEndDate)-t0)/6048e5)),eff=Math.max(1,wl-p.gap);
+ const otherA=p.other*eff/fx,need=Math.max(0,(tgt-have)/fx)+p.live*wl-otherA;
+ let G=0,hrs=0,best=0;const warn=[];
+ p.rows.forEach(j=>{const h=j.wd+j.sa+j.su;if(!(h>0&&j.r>0))return;const w=Math.min(j.wk,eff);
+  G+=j.r*(j.wd+j.sa*j.sx+j.su*j.ux)*w;hrs+=h*w/eff;best=Math.max(best,j.r);
+  if(j.wk>26)warn.push(`「${j.n||'工作'}」預計做 ${j.wk} 週，超過同一雇主 6 個月（約 26 週）上限，需換雇主、換分店或事先申請許可。`);});
+ const net=G-tax(G),proj=have+(net-p.live*wl)*fx+p.other*eff,diff=proj-tgt;
+ const Greq=inv(Math.max(0,need)),perWk=Greq/eff,adv=[];
+ if(diff>=0)adv.push(`✅ 這個組合預估可達標，目標日約多存 NT$ ${fmt(diff)}。`);
+ else{const addG=(Greq-G)/eff,r=best||34;
+  adv.push(`每週需再多賺稅前約 A$${fmt(addG)}，以 A$${r.toFixed(2)}/hr 計，約每週多排 ${(addG/r).toFixed(1)} 小時。`);
+  adv.push(`或把每週生活費降到約 A$${Math.max(0,Math.round(p.live+diff/fx/wl))}（主要是房租）。`);
+  adv.push('找工作時優先問「每週保障工時」與「是否有週末班」，週末倍率高，是補足缺口最有效的方式。');}
+ adv.push('Casual 時薪已含 25% loading 但無保障工時；Part/Full-time 時薪較低但工時穩定。建議一份選穩定工時，另一份補週末班。');
+ adv.push('每份工作最多做 6 個月，第二份工作建議在第 4～5 個月開始找，無縫接上。');
+ const card=(t,v,c)=>`<div class="bg-white rounded-xl p-4 border border-stone-200 shadow-sm"><span class="text-[11px] text-stone-500 block">${t}</span><span class="text-lg font-extrabold ${c||'text-stone-900'} block mt-1">${v}</span></div>`;
+ const rates=[28,30,33.05,34.76,38,42];
+ document.getElementById('pl-out').innerHTML=`<div class="space-y-4 mt-4">
+ <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+ ${card('目前已存',`NT$ ${fmt(have)}`)}${card('剩餘週數 / 有效工作週',`${wl} / ${eff} 週`)}
+ ${card('需淨賺 (含生活費)',`A$ ${fmt(need)}`)}${card('每週需稅前',`A$ ${fmt(perWk)}`,'text-amber-800')}</div>
+ <div class="rounded-2xl p-5 border ${diff>=0?'bg-emerald-50 border-emerald-200':'bg-rose-50 border-rose-200'} text-xs">
+ <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+ ${card('此組合平均每週工時',`${hrs.toFixed(1)} 小時`)}${card('預估稅前總收入',`A$ ${fmt(G)}`)}
+ ${card('預估目標日存款',`NT$ ${fmt(proj)}`)}${card(diff>=0?'超出目標':'距離目標還差',`NT$ ${fmt(Math.abs(diff))}`,diff>=0?'text-emerald-700':'text-rose-700')}</div>
+ <p class="mt-3 text-stone-500">稅以 15%（45,000 內）、超過 30% 簡化估算；Super 退稅離境後才能領，未計入。</p></div>
+ ${warn.map(w=>`<div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900">⚠️ ${w}</div>`).join('')}
+ <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs space-y-2"><h4 class="font-bold text-stone-900">💡 建議怎麼找工作與排工時</h4>
+ <ul class="list-disc pl-4 space-y-1 text-stone-700">${adv.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+ <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs"><h4 class="font-bold text-stone-900 mb-2">目標反推：單一時薪每週需要幾小時（未計週末加成）</h4>
+ <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">${rates.map(r=>`<div class="p-2 rounded-lg bg-stone-50 border"><span class="block font-mono font-bold">A$${r}</span><span class="text-stone-600">${(perWk/r).toFixed(1)} 小時</span></div>`).join('')}</div></div></div>`;
+}
+const h=e=>{const el=e.target,k=el.dataset.k;if(!k)return;const p=P();
+ let v=el.type==='number'?(el.value===''&&k==='ovr'?'':(+el.value||0)):el.value;
+ if(el.dataset.i!=null){const i=+el.dataset.i,j=p.rows[i];j[k]=v;
+  if(k==='t'){j.sx=PRE[v][0];j.ux=PRE[v][1];['sx','ux'].forEach(f=>root.querySelector(`[data-i="${i}"][data-k="${f}"]`).value=j[f]);}}
+ else p[k]=v;
+ save();update();};
+root.addEventListener('input',h);root.addEventListener('change',h);
+})();
+</script>
   </script>
 </body>
 </html>
