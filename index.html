@@ -1847,14 +1847,23 @@
       switchTab('finance');
     };
 
+  // 增加全域保護旗標
+    var isSyncReady = false; // 只有雲端確認載入完成後，才允許寫入雲端
+
     function saveState() {
-      try { localStorage.setItem("au_de_tracker_data", JSON.stringify(appState)); } catch (e) {}
+      // 1. 本地更新永遠安全儲存
+      try { 
+        appState.lastModified = Date.now(); // 記錄本地最後操作時間戳
+        localStorage.setItem("au_de_tracker_data", JSON.stringify(appState)); 
+      } catch (e) {}
+
+      // 2. 雲端防覆蓋保護：若尚未完成初次同步、或是正在接收遠端更新，嚴禁推送！
       var syncKey = localStorage.getItem("au_sync_key");
-      if (db && syncKey && !isRemoteUpdate) {
+      if (db && syncKey && !isRemoteUpdate && isSyncReady) {
         db.collection("sync_data").doc(syncKey).set({
           data: appState,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(function(err) { console.error(err); });
+        }).catch(function(err) { console.error("雲端備份失敗:", err); });
       }
     }
 
@@ -2594,7 +2603,7 @@
       }
     };
 
-    // --- 安全雙向同步機制 ---
+// --- 強化版雙向同步機制 (防空資料覆蓋、防時序覆蓋) ---
     window.connectDirectSync = function() {
       var key = document.getElementById("syncKeyDirect").value.trim();
       if (!key) { alert("請輸入一組自訂的同步密碼！"); return; }
@@ -2612,18 +2621,23 @@
         syncUnsubscribe = db.collection("sync_data").doc(key).onSnapshot(function(doc) {
           btn.textContent = "🟢 同步中";
           btn.className = "ml-1 px-2.5 py-1 bg-emerald-600 text-white rounded font-semibold text-xs cursor-pointer";
+
           if (doc.exists) {
             var remote = doc.data().data;
             if (remote) {
-              var remoteEventCount = (remote.events || []).length;
-              var localEventCount = (appState.events || []).length;
+              // 完整檢查：統計所有核心資料筆數
+              var remoteCount = (remote.transactions || []).length + (remote.events || []).length;
+              var localCount = (appState.transactions || []).length + (appState.events || []).length;
 
-              if (remoteEventCount === 0 && localEventCount > 0) {
-                console.warn("雲端為空但本地有資料，自動將本地完整資料推上雲端保護...");
+              // 【防線 1】：若遠端是空的，但本地有珍貴紀錄，保護性將本地推送上去
+              if (remoteCount === 0 && localCount > 0) {
+                console.warn("偵測到遠端為空，將本地資料保護性備份至雲端...");
+                isSyncReady = true;
                 saveState();
                 return;
               }
 
+              // 【防線 2】：若遠端有資料，且本地比遠端空，無條件以遠端為主
               isRemoteUpdate = true;
               appState = Object.assign({}, appState, remote);
               localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
@@ -2631,14 +2645,23 @@
               renderAll();
               calculateWireTransfer();
               isRemoteUpdate = false;
+              
+              // 成功拉取遠端後，解除上傳鎖定
+              isSyncReady = true;
+              console.log("雲端資料已安全同步至本地！");
             }
           } else {
-            if ((appState.events || []).length > 0 || (appState.transactions || []).length > 0) {
+            // 雲端是全新密碼（全新文件），且本地有舊紀錄，才上傳
+            var totalLocal = (appState.transactions || []).length + (appState.events || []).length;
+            if (totalLocal > 0) {
+              isSyncReady = true;
               saveState();
+            } else {
+              isSyncReady = true;
             }
           }
         }, function(err) {
-          console.error(err);
+          console.error("同步失敗:", err);
           btn.textContent = "連線失敗";
           btn.className = "ml-1 px-2.5 py-1 bg-rose-600 text-white rounded font-semibold text-xs cursor-pointer";
         });
