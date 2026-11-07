@@ -305,11 +305,11 @@
         </div>
       </div>
 
-      <!-- 收支表格 -->
+      <!-- 收支表格 (支援修改與刪除) -->
       <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800 flex justify-between items-center">
           <span>收支紀錄明細</span>
-          <span class="text-xs text-stone-400 font-normal">若包含手續費，可於細項中清楚標示扣除金額</span>
+          <span class="text-xs text-stone-400 font-normal">點擊「✏️」即可直接修改已登記紀錄</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
@@ -379,7 +379,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
           <div>
             <h2 class="text-base font-bold text-stone-900">生活必備裝備清單</h2>
-            <p class="text-xs text-stone-500 mt-0.5">點選上方橫排分類快速聚焦，無需反覆上下滾動找品項。</p>
+            <p class="text-xs text-stone-500 mt-0.5">點選上方分類標籤篩選；已登記物品可隨時點擊「✏️」修改名稱與規格。</p>
           </div>
           <div class="flex items-center gap-2">
             <span id="gearProgressText" class="text-xs font-bold text-stone-700 mr-2">完成度：0 / 0</span>
@@ -468,7 +468,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 管理自訂日曆標籤 -->
+  <!-- MODAL: 管理自訂日曆標籤 (移除灰色，保留取消專用) -->
   <div id="manageTagsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -481,13 +481,12 @@
           <input type="text" id="newTagName" placeholder="標籤名稱" class="flex-1 p-2 text-xs border rounded-lg">
           <select id="newTagColor" class="p-2 text-xs border rounded-lg font-bold">
             <option value="rose">🔴 紅色</option>
-            <option value="blue">🔵 藍色</option>
-            <option value="emerald">🟢 綠色</option>
-            <option value="amber">🟠 橘色</option>
+            <option value="amber">🟠 橘黃</option>
             <option value="purple">🟣 紫色</option>
+            <option value="emerald">🟢 綠色</option>
+            <option value="blue">🔵 藍色</option>
             <option value="pink">🌸 粉色</option>
             <option value="cyan">🌊 青色</option>
-            <option value="stone">⚪ 灰色</option>
           </select>
           <button type="button" onclick="handleAddNewTag()" class="px-3 py-1.5 bg-amber-800 text-white rounded-lg text-xs font-bold cursor-pointer">新增</button>
         </div>
@@ -586,7 +585,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 -->
+  <!-- MODAL: 新增/編輯日曆事項 (支援狀態與改期) -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -599,12 +598,30 @@
           <label class="block font-semibold mb-1">事項名稱</label>
           <input type="text" id="eventTitle" required placeholder="例如：德協面談、線上中文課、YHA 入住" class="w-full p-2 border rounded">
         </div>
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="font-semibold">選擇標籤分類</label>
-            <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[11px] font-bold cursor-pointer">＋ 管理/排序標籤</button>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">狀態</label>
+            <select id="eventStatus" class="w-full p-2 border rounded font-bold text-stone-800" onchange="handleEventStatusChange()">
+              <option value="pending">進行中 / 待辦</option>
+              <option value="completed">✅ 已完成</option>
+              <option value="cancelled">❌ 已取消 (劃線灰色)</option>
+              <option value="rescheduled">🔄 已改期</option>
+            </select>
           </div>
-          <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold">標籤類別</label>
+              <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[10px] font-bold cursor-pointer">＋管理</button>
+            </div>
+            <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
+          </div>
+        </div>
+
+        <!-- 改期選項 (選擇改期時顯示) -->
+        <div id="rescheduleGroup" class="p-2.5 bg-amber-50 border border-amber-300 rounded-lg space-y-1.5 hidden">
+          <label class="block font-bold text-amber-900">🗓️ 改期至新日期 (原日期將自動寫入備註)：</label>
+          <input type="date" id="eventRescheduleDate" class="w-full p-1.5 border rounded bg-white font-mono">
         </div>
         
         <!-- 日期區間與時間 -->
@@ -723,11 +740,12 @@
     </div>
   </div>
 
-  <!-- MODAL: 記帳 -->
+  <!-- MODAL: 記帳 (支援新增與修改) -->
   <div id="txModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
       <form onsubmit="handleSaveTx(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="txId">
         <input type="hidden" id="txType">
         <div>
           <label class="block font-semibold mb-1">幣別與日期</label>
@@ -785,14 +803,15 @@
     </div>
   </div>
 
-  <!-- MODAL: 裝備項目 -->
+  <!-- MODAL: 裝備項目 (支援新增與修改) -->
   <div id="gearModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
-        <h3 id="gearModalTitle" class="text-base font-bold text-stone-900">新增裝備物品</h3>
+        <h3 id="gearModalTitle" class="text-base font-bold text-stone-900">裝備物品</h3>
         <button type="button" onclick="closeModal('gearModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
       </div>
       <form onsubmit="handleSaveGearItem(event)" class="space-y-3 text-xs mt-3">
+        <input type="hidden" id="gearId">
         <div>
           <label class="block font-semibold mb-1">物品名稱</label>
           <input type="text" id="gearLabel" required placeholder="例如：萬國轉接頭、睡袋..." class="w-full p-2 border rounded">
@@ -849,6 +868,7 @@
       { id: "g11", label: "防蠅面罩 (Fly Net)", sublines: ["黑色細網束口款 × 2 個 (烏魯魯沙漠戶外防蠅保命神物)"], category: "戶外與極端氣候", checked: false }
     ];
 
+    // 標籤清單已移除灰色
     const DEFAULT_TAGS = [
       { id: "t_1", name: "重要截止", color: "rose" },
       { id: "t_2", name: "重要時程", color: "amber" },
@@ -858,11 +878,11 @@
     ];
 
     const DEFAULT_EVENTS = [
-      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", date: "2027-05-15", time: "14:00", baseZone: "LOCAL", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
-      { id: "ev2", title: "工作結束交接 & 下一站啟程", tagId: "t_2", date: "2027-06-30", time: "", baseZone: "LOCAL", location: "Ayers Rock Resort", desc: "完成交接，領取相關退稅結算單據。" }
+      { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", status: "pending", date: "2027-05-15", time: "14:00", baseZone: "LOCAL", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
+      { id: "ev2", title: "工作結束交接 & 下一站啟程", tagId: "t_2", status: "pending", date: "2027-06-30", time: "", baseZone: "LOCAL", location: "Ayers Rock Resort", desc: "完成交接，領取相關退稅結算單據。" }
     ];
 
-    const DEFAULT_EXPENSE_CATS = ["金融規費", "飲食餐飲", "玩樂休閒", "住宿房租", "生活採買", "機票交通", "其他雜項"];
+    const DEFAULT_EXPENSE_CATS = ["房租水電", "飲食餐飲", "玩樂休閒", "生活採買", "機票交通", "金融規費", "其他雜項"];
     const DEFAULT_INCOME_CATS = ["薪資收入", "兼職副業", "政府退稅", "利息投資", "其他收入"];
 
     let appState = {
@@ -982,7 +1002,7 @@
           renderFinance();
           renderPieChart();
           calculateWireTransfer();
-          if (window.updatePlannerUI) window.updatePlannerUI();
+          if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
           if (isUserTriggered) alert(`已更新最新即時匯率：1 ${pCurr} = ${liveRate} ${hCurr}`);
         }
       } catch (err) {
@@ -1030,10 +1050,10 @@
     function getColorBadgeClass(color) {
       switch (color) {
         case 'rose': return 'bg-rose-100 text-rose-800 border-rose-300';
-        case 'blue': return 'bg-blue-100 text-blue-800 border-blue-300';
-        case 'emerald': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-        case 'purple': return 'bg-purple-100 text-purple-800 border-purple-300';
         case 'amber': return 'bg-amber-100 text-amber-900 border-amber-300';
+        case 'purple': return 'bg-purple-100 text-purple-800 border-purple-300';
+        case 'emerald': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        case 'blue': return 'bg-blue-100 text-blue-800 border-blue-300';
         case 'pink': return 'bg-pink-100 text-pink-800 border-pink-300';
         case 'cyan': return 'bg-cyan-100 text-cyan-800 border-cyan-300';
         default: return 'bg-stone-100 text-stone-800 border-stone-300';
@@ -1108,6 +1128,16 @@
       previewBox.classList.remove("hidden");
     };
 
+    window.handleEventStatusChange = function() {
+      const st = document.getElementById("eventStatus").value;
+      const rGroup = document.getElementById("rescheduleGroup");
+      if (st === "rescheduled") {
+        rGroup.classList.remove("hidden");
+      } else {
+        rGroup.classList.add("hidden");
+      }
+    };
+
     window.duplicateEventQuick = function(daysToAdd) {
       if (!currentEditingEventId) return;
       const origin = (appState.events || []).find(e => e.id === currentEditingEventId);
@@ -1125,7 +1155,8 @@
       const cloned = Object.assign({}, origin, {
         id: "ev_" + Date.now(),
         date: newDateStr,
-        endDate: origin.endDate ? addDaysToStr(origin.endDate, daysToAdd) : ""
+        endDate: origin.endDate ? addDaysToStr(origin.endDate, daysToAdd) : "",
+        status: "pending"
       });
 
       appState.events.push(cloned);
@@ -1160,7 +1191,8 @@
       const cloned = Object.assign({}, origin, {
         id: "ev_" + Date.now(),
         date: targetDate,
-        endDate: ""
+        endDate: "",
+        status: "pending"
       });
 
       appState.events.push(cloned);
@@ -1181,7 +1213,7 @@
       const upcoming = [];
 
       (appState.events || []).forEach(ev => {
-        if (!ev.date) return;
+        if (!ev.date || ev.status === "cancelled" || ev.status === "completed") return;
         const [y, m, d] = ev.date.split("-").map(Number);
         const evDate = new Date(y, m - 1, d);
         evDate.setHours(0,0,0,0);
@@ -1721,6 +1753,10 @@
       } catch (e) {}
 
       if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
+      // 確保排除舊版灰色
+      appState.tags = appState.tags.filter(t => t.color !== 'stone');
+      if (appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
+
       if (!appState.expenseCategories) appState.expenseCategories = DEFAULT_EXPENSE_CATS;
       if (!appState.incomeCategories) appState.incomeCategories = DEFAULT_INCOME_CATS;
       if (!appState.gearCategories || appState.gearCategories.length === 0) appState.gearCategories = DEFAULT_GEAR_CATEGORIES;
@@ -1906,7 +1942,7 @@
       const incBtn = document.getElementById('chartTypeIncome');
       if (expBtn && incBtn) {
         expBtn.className = (t === 'expense') ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
-        incBtn.className = (t === 'income') ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
+        incBtn.className = (t === 'income') ? 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
       }
       renderPieChart();
     };
@@ -2007,6 +2043,7 @@
       }).join('');
     }
 
+    // --- 收支表格渲染 (新增編輯按鈕) ---
     function renderTransactions() {
       const tbody = document.getElementById("transactionTableBody");
       if (!tbody) return;
@@ -2035,20 +2072,26 @@
             <td class="py-2.5 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-900'}">
               ${t.type === 'income' ? '+' : '-'}${t.amount}
             </td>
-            <td class="py-2.5 px-3 text-center">
-              <button type="button" onclick="delTx('${t.id}')" class="text-stone-400 hover:text-rose-600 cursor-pointer">✕</button>
+            <td class="py-2.5 px-3 text-center whitespace-nowrap">
+              <button type="button" onclick="editTx('${t.id}')" class="text-stone-500 hover:text-amber-800 text-xs px-1 cursor-pointer font-medium" title="修改內容">✏️</button>
+              <button type="button" onclick="delTx('${t.id}')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer" title="刪除紀錄">✕</button>
             </td>
           </tr>
         `;
       }).join('');
     }
 
-    window.openTxModal = function(type) {
-      document.getElementById("txType").value = type;
-      document.getElementById("txDate").value = new Date().toISOString().split('T')[0];
-      document.getElementById("txAmount").value = "";
-      document.getElementById("txNote").value = "";
-      document.getElementById("txModalTitle").textContent = type === "income" ? "記一筆收入" : "記一筆支出";
+    window.openTxModal = function(type, existingTx = null) {
+      document.getElementById("txId").value = existingTx ? existingTx.id : "";
+      document.getElementById("txType").value = existingTx ? existingTx.type : type;
+      document.getElementById("txDate").value = existingTx ? existingTx.date : new Date().toISOString().split('T')[0];
+      document.getElementById("txAmount").value = existingTx ? existingTx.amount : "";
+      document.getElementById("txNote").value = existingTx ? existingTx.note : "";
+      
+      const effectiveType = existingTx ? existingTx.type : type;
+      document.getElementById("txModalTitle").textContent = existingTx 
+        ? `修改${effectiveType === 'income' ? '收入' : '支出'}紀錄` 
+        : (effectiveType === 'income' ? '記一筆收入' : '記一筆支出');
 
       const pCurr = appState.primaryCurrency || "AUD";
       const hCurr = appState.homeCurrency || "TWD";
@@ -2059,14 +2102,38 @@
         <option value="${hCurr}">${hCurr} (本國幣別)</option>
         <option value="CUSTOM_THIRD">＋ 自訂第三幣別 (獨立紀錄)</option>
       `;
-      currSelect.value = pCurr;
-      document.getElementById("txCustomCurrencyCode").value = "";
-      document.getElementById("txCustomCurrencyRate").value = "";
+
+      if (existingTx) {
+        if (existingTx.isCustomThird) {
+          currSelect.value = "CUSTOM_THIRD";
+          document.getElementById("txCustomCurrencyCode").value = existingTx.currency;
+          document.getElementById("txCustomCurrencyRate").value = existingTx.customRate || "";
+        } else {
+          currSelect.value = existingTx.currency;
+        }
+        document.getElementById("txIncludeSuper").checked = Boolean(existingTx.includeSuper);
+      } else {
+        currSelect.value = pCurr;
+        document.getElementById("txCustomCurrencyCode").value = "";
+        document.getElementById("txCustomCurrencyRate").value = "";
+        document.getElementById("txIncludeSuper").checked = false;
+      }
 
       handleTxCurrencyChange();
       refreshTxModalCategories();
 
+      if (existingTx) {
+        document.getElementById("txCategorySelect").value = existingTx.category;
+      }
+
       document.getElementById("txModal").classList.remove("hidden");
+    };
+
+    window.editTx = function(id) {
+      const tx = (appState.transactions || []).find(t => t.id === id);
+      if (tx) {
+        openTxModal(tx.type, tx);
+      }
     };
 
     window.handleTxCurrencyChange = function() {
@@ -2084,6 +2151,7 @@
 
     window.handleSaveTx = function(e) {
       e.preventDefault();
+      const id = document.getElementById("txId").value;
       const type = document.getElementById("txType").value;
       const currVal = document.getElementById("txCurrency").value;
       const finalCat = document.getElementById("txCategorySelect").value || (type === 'income' ? '其他收入' : '其他雜項');
@@ -2099,8 +2167,8 @@
         customRate = parseFloat(document.getElementById("txCustomCurrencyRate").value) || 1.0;
       }
 
-      const newTx = {
-        id: "tx_" + Date.now(),
+      const txData = {
+        id: id || ("tx_" + Date.now()),
         type: type,
         currency: finalCurrency,
         isCustomThird: isCustomThird,
@@ -2113,13 +2181,20 @@
       };
 
       if (!appState.transactions) appState.transactions = [];
-      appState.transactions.push(newTx);
+
+      if (id) {
+        const idx = appState.transactions.findIndex(t => t.id === id);
+        if (idx !== -1) appState.transactions[idx] = txData;
+      } else {
+        appState.transactions.push(txData);
+      }
+
       saveState();
       closeModal("txModal");
       renderFinance();
       renderTransactions();
       renderPieChart();
-      if (window.updatePlannerUI) window.updatePlannerUI();
+      if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
     };
 
     window.delTx = function(id) {
@@ -2129,11 +2204,11 @@
         renderFinance();
         renderTransactions();
         renderPieChart();
-        if (window.updatePlannerUI) window.updatePlannerUI();
+        if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
       }
     };
 
-    // --- 日曆渲染 ---
+    // --- 日曆渲染 (省略標籤文字，支援取消灰色劃線與改期) ---
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -2180,9 +2255,11 @@
               <span class="font-mono text-xs font-semibold text-stone-700">${day}</span>
               <div class="mt-1 space-y-1">
                 ${evs.map(e => {
-                  const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'stone' };
+                  const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'rose' };
                   const locVal = e.location || e.mapUrl || "";
                   const hasLocation = Boolean(locVal && locVal.trim());
+                  const isCancelled = e.status === "cancelled";
+                  const isCompleted = e.status === "completed";
 
                   let spanBadge = "";
                   if (e.endDate && e.endDate > e.date) {
@@ -2194,13 +2271,18 @@
                   let timeBadge = "";
                   if (e.time && (!e.endDate || e.endDate === e.date)) {
                     const times = calculateEventTimes(e, activeUserZone);
-                    timeBadge = `<span class="font-mono text-[9px] block text-stone-500 leading-tight">📍${times.localTime} (台${times.twTime})</span>`;
+                    timeBadge = `<span class="font-mono text-[9px] block ${isCancelled ? 'text-stone-400' : 'text-stone-500'} leading-tight">📍${times.localTime} (台${times.twTime})</span>`;
                   }
 
+                  // 若取消，顯示灰色與刪除線；否則依標籤顏色
+                  const styleClass = isCancelled 
+                    ? 'bg-stone-200 text-stone-400 border-stone-300 line-through' 
+                    : (isCompleted ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold' : getColorBadgeClass(tag.color));
+
                   return `
-                    <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${getColorBadgeClass(tag.color)}">
+                    <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${styleClass}">
                       <div class="flex items-center justify-between gap-1 truncate">
-                        <span class="truncate">${spanBadge}<span class="font-bold mr-0.5">[${tag.name}]</span>${e.title}</span>
+                        <span class="truncate">${spanBadge}${isCompleted ? '✓ ' : ''}${e.title}</span>
                         ${hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含地點">📍</span>' : ''}
                       </div>
                       ${timeBadge}
@@ -2231,6 +2313,9 @@
       currentEditingEventId = null;
       document.getElementById("eventId").value = "";
       document.getElementById("eventTitle").value = "";
+      document.getElementById("eventStatus").value = "pending";
+      document.getElementById("rescheduleGroup").classList.add("hidden");
+      document.getElementById("eventRescheduleDate").value = "";
       document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
       document.getElementById("eventEndDate").value = "";
       document.getElementById("eventStartTime").value = "";
@@ -2262,9 +2347,13 @@
       if (!ev) return;
       document.getElementById("eventId").value = ev.id;
       document.getElementById("eventTitle").value = ev.title;
+      document.getElementById("eventStatus").value = ev.status || "pending";
       document.getElementById("eventDate").value = ev.date;
       document.getElementById("eventEndDate").value = ev.endDate || "";
       document.getElementById("eventStartTime").value = ev.time || "";
+
+      document.getElementById("rescheduleGroup").classList.add("hidden");
+      document.getElementById("eventRescheduleDate").value = "";
 
       const bZone = ev.baseZone || "LOCAL";
       document.getElementById("eventBaseZone").value = bZone;
@@ -2298,6 +2387,7 @@
       const tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}" ${t.id === ev.tagId ? 'selected' : ''}>● ${t.name}</option>`).join('');
 
+      handleEventStatusChange();
       updateEventTimePreview();
       document.getElementById("eventModal").classList.remove("hidden");
     };
@@ -2308,17 +2398,32 @@
       const loc = document.getElementById("eventLocationInput").value.trim();
       const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
       const bZone = document.getElementById("eventBaseZone").value;
-      const startDate = document.getElementById("eventDate").value;
+      let startDate = document.getElementById("eventDate").value;
       let endDate = document.getElementById("eventEndDate").value;
+      const status = document.getElementById("eventStatus").value;
+      let desc = document.getElementById("eventDesc").value.trim();
+
+      // 改期邏輯
+      if (status === "rescheduled") {
+        const newDate = document.getElementById("eventRescheduleDate").value;
+        if (!newDate) {
+          alert("請選擇改期後的新日期！");
+          return;
+        }
+        desc = `[原定: ${startDate}] ${desc}`.trim();
+        startDate = newDate;
+        endDate = ""; // 改期後預設清除跨天或重設
+      }
 
       if (endDate && endDate < startDate) {
         endDate = startDate;
       }
 
       const newEv = {
-        id: id || "ev_" + Date.now(),
+        id: id || ("ev_" + Date.now()),
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
+        status: status === "rescheduled" ? "pending" : status, // 改期後回到待辦
         date: startDate,
         endDate: endDate || "",
         time: document.getElementById("eventStartTime").value,
@@ -2327,7 +2432,7 @@
         createdInZone: activeUserZone,
         location: loc,
         mapUrl: loc,
-        desc: document.getElementById("eventDesc").value
+        desc: desc
       };
 
       if (!appState.events) appState.events = [];
@@ -2354,7 +2459,7 @@
       }
     };
 
-    // --- 裝備清單渲染模組 ---
+    // --- 裝備清單渲染模組 (支援編輯已登入物品) ---
     function renderGear() {
       const tabsContainer = document.getElementById("gearCategoryTabs");
       const itemsContainer = document.getElementById("gearItemsContainer");
@@ -2412,7 +2517,10 @@
               ${item.sublines && item.sublines.length ? `<p class="text-[11px] text-stone-500 mt-0.5 leading-relaxed">${item.sublines.join(' / ')}</p>` : ''}
             </div>
           </label>
-          <button type="button" onclick="deleteGearItem('${item.id}')" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer transition" title="刪除此物品">✕</button>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="editGearItem('${item.id}')" class="text-stone-400 hover:text-amber-800 text-xs p-1 cursor-pointer font-medium" title="修改內容">✏️</button>
+            <button type="button" onclick="deleteGearItem('${item.id}')" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer transition" title="刪除此物品">✕</button>
+          </div>
         </div>
       `).join('');
     }
@@ -2431,15 +2539,19 @@
       }
     };
 
-    window.openAddGearModal = function() {
-      document.getElementById("gearLabel").value = "";
-      document.getElementById("gearSubline").value = "";
+    window.openAddGearModal = function(existingItem = null) {
+      document.getElementById("gearId").value = existingItem ? existingItem.id : "";
+      document.getElementById("gearLabel").value = existingItem ? existingItem.label : "";
+      document.getElementById("gearSubline").value = (existingItem && existingItem.sublines) ? existingItem.sublines.join(' / ') : "";
+      document.getElementById("gearModalTitle").textContent = existingItem ? "修改裝備物品" : "新增裝備物品";
 
       const cats = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
       const selectEl = document.getElementById("gearCategorySelect");
       selectEl.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
       
-      if (currentSelectedGearCategory !== "ALL" && cats.includes(currentSelectedGearCategory)) {
+      if (existingItem) {
+        selectEl.value = existingItem.category;
+      } else if (currentSelectedGearCategory !== "ALL" && cats.includes(currentSelectedGearCategory)) {
         selectEl.value = currentSelectedGearCategory;
       } else if (cats.length > 0) {
         selectEl.value = cats[0];
@@ -2448,17 +2560,39 @@
       document.getElementById("gearModal").classList.remove("hidden");
     };
 
+    window.editGearItem = function(id) {
+      const item = (appState.gear || []).find(g => g.id === id);
+      if (item) {
+        openAddGearModal(item);
+      }
+    };
+
     window.handleSaveGearItem = function(e) {
       e.preventDefault();
+      const id = document.getElementById("gearId").value;
       const cat = document.getElementById("gearCategorySelect").value || "修繕自修與固定";
+      const label = document.getElementById("gearLabel").value.trim();
+      const sub = document.getElementById("gearSubline").value.trim();
+      
       if (!appState.gear) appState.gear = [];
-      appState.gear.push({
-        id: "g_" + Date.now(),
-        label: document.getElementById("gearLabel").value.trim(),
-        category: cat,
-        sublines: document.getElementById("gearSubline").value.trim() ? [document.getElementById("gearSubline").value.trim()] : [],
-        checked: false
-      });
+
+      if (id) {
+        const item = appState.gear.find(g => g.id === id);
+        if (item) {
+          item.label = label;
+          item.category = cat;
+          item.sublines = sub ? [sub] : [];
+        }
+      } else {
+        appState.gear.push({
+          id: "g_" + Date.now(),
+          label: label,
+          category: cat,
+          sublines: sub ? [sub] : [],
+          checked: false
+        });
+      }
+
       saveState();
       closeModal("gearModal");
       currentSelectedGearCategory = cat;
@@ -2546,8 +2680,9 @@
       const fmt = n => Math.round(n).toLocaleString();
       const PRE = { casual: [1.2, 1.4], pt: [1.25, 1.5], ft: [1.25, 1.5] };
       const defs = () => ({
-        live: 350,
-        gap: 4,
+        rent: 260,       // 房租+水電
+        misc: 120,       // 其他生活開銷
+        customWeeks: '', // 自訂剩餘週數 (留空則自動算)
         other: 0,
         ovr: '',
         rows: [
@@ -2557,12 +2692,24 @@
         ]
       });
 
-      const P = () => appState.planner || (appState.planner = defs());
+      const P = () => {
+        if (!appState.planner) {
+          appState.planner = defs();
+        } else {
+          // 向下相容舊欄位
+          if (appState.planner.rent == null) appState.planner.rent = 260;
+          if (appState.planner.misc == null) appState.planner.misc = 120;
+          if (appState.planner.customWeeks == null) appState.planner.customWeeks = '';
+        }
+        return appState.planner;
+      };
+
       let timer;
       const save = () => { clearTimeout(timer); timer = setTimeout(() => saveState(), 600); };
 
       function getRoot() { return document.getElementById('content-planner'); }
 
+      // 自動抓取雙幣財務已存金額 (TWD)
       function savedCalc() {
         const a = appState, fx = +a.fxRate || 23, p = a.primaryCurrency || 'AUD', h = a.homeCurrency || 'TWD';
         let pn = 0, hn = 0;
@@ -2571,13 +2718,13 @@
           if (t.currency === p) pn += s * m;
           else if (t.currency === h) hn += s * m;
         });
-        return pn * fx + hn;
+        return Math.round(pn * fx + hn);
       }
 
       const tax = g => 0.15 * Math.min(g, 45000) + 0.3 * Math.max(0, g - 45000);
       const inv = n => n <= 38250 ? n / 0.85 : 45000 + (n - 38250) / 0.7;
       const L = 'block text-[11px] text-stone-500 mb-0.5';
-      const num = (k, v, i) => `<input type="number" step="any" data-k="${k}" ${i != null ? `data-i="${i}"` : ''} value="${v}" class="w-full p-1.5 border rounded font-mono">`;
+      const num = (k, v, i, placeholder = '') => `<input type="number" step="any" data-k="${k}" ${i != null ? `data-i="${i}"` : ''} value="${v}" placeholder="${placeholder}" class="w-full p-1.5 border rounded font-mono">`;
       
       const rowHtml = (j, i) => `
         <div class="p-3 rounded-xl border bg-stone-50 space-y-2 text-xs">
@@ -2607,17 +2754,20 @@
         const root = getRoot();
         if (!root) return;
         const p = P();
+        const autoSavedTWD = savedCalc();
+
         root.innerHTML = `
           <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
             <div>
               <h3 class="text-sm font-bold text-stone-900">🧮 工時 & 工作組合規劃器</h3>
-              <p class="text-xs text-stone-500 mt-0.5">已存金額、匯率、目標與日期自動讀取「雙幣財務」頁。倍率為相對「平日時薪」之加成：Casual 週六 1.2、週日 1.4（餐飲常態週日 1.2）；Part/Full-time 週六 1.25、週日 1.5。</p>
+              <p class="text-xs text-stone-500 mt-0.5">匯率、目標與日期自動讀取「雙幣財務」頁；已存金額預設連動，亦可手動覆寫修正。</p>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div><label class="${L}">每週生活費 (A$)</label>${num('live', p.live)}</div>
-              <div><label class="${L}">預計空窗/無班週數</label>${num('gap', p.gap)}</div>
-              <div><label class="${L}">其他每週收入 (台幣，如線上課)</label>${num('other', p.other)}</div>
-              <div><label class="${L}">已存金額覆寫 (台幣，留空=自動)</label>${num('ovr', p.ovr)}</div>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+              <div><label class="${L}">每週房租+水電 (A$)</label>${num('rent', p.rent)}</div>
+              <div><label class="${L}">每週其他開銷 (A$)</label>${num('misc', p.misc)}</div>
+              <div><label class="${L}">自訂剩餘週數 (留空=自動)</label>${num('customWeeks', p.customWeeks, null, '自動計算')}</div>
+              <div><label class="${L}">其他收入/週 (台幣，如線上課)</label>${num('other', p.other)}</div>
+              <div><label class="${L}">已存金額 (台幣，可自訂覆寫)</label>${num('ovr', p.ovr, null, `目前約 ${autoSavedTWD}`)}</div>
             </div>
             <div class="space-y-2">${p.rows.map(rowHtml).join('')}</div>
           </div>
@@ -2630,12 +2780,20 @@
         const out = document.getElementById('pl-out');
         if (!out) return;
         const a = appState, p = P(), fx = +a.fxRate || 23, tgt = +a.targetNTD || 400000;
-        const have = p.ovr === '' ? savedCalc() : +p.ovr;
+        
+        // 已存金額連動與手動覆寫
+        const have = (p.ovr !== '' && !isNaN(p.ovr)) ? +p.ovr : savedCalc();
+        
+        // 週數計算
         const t0 = new Date(); t0.setHours(0,0,0,0);
-        const wl = Math.max(1, Math.ceil((new Date(a.targetEndDate) - t0) / (1000 * 60 * 60 * 24 * 7)));
-        const eff = Math.max(1, wl - p.gap);
-        const otherA = p.other * eff / fx;
-        const need = Math.max(0, (tgt - have) / fx) + p.live * wl - otherA;
+        const autoWk = Math.max(1, Math.ceil((new Date(a.targetEndDate) - t0) / (1000 * 60 * 60 * 24 * 7)));
+        const eff = (p.customWeeks !== '' && +p.customWeeks > 0) ? +p.customWeeks : autoWk;
+
+        // 生活費加總
+        const weeklyLive = (+p.rent || 0) + (+p.misc || 0);
+        const otherA = (+p.other || 0) * eff / fx;
+        const need = Math.max(0, (tgt - have) / fx) + (weeklyLive * eff) - otherA;
+        
         let G = 0, hrs = 0, best = 0;
         const warn = [];
 
@@ -2651,56 +2809,69 @@
           }
         });
 
-        const net = G - tax(G);
-        const proj = have + (net - p.live * wl) * fx + p.other * eff;
+        // 稅金與扣完後「實拿手上現金」計算
+        const totalTax = tax(G);
+        const netIncomeAfterTax = G - totalTax; // 稅後淨收入 (AUD)
+        const totalLivingCost = weeklyLive * eff; // 總生活費 (AUD)
+        const netCashOnHandAUD = netIncomeAfterTax - totalLivingCost; // 扣完稅與生活費後實得 AUD
+        const estSuperRefundAUD = G * 0.12 * 0.35; // 離澳才拿得到的 Super
+
+        // 預估到期總資產 (台幣)
+        const proj = have + (netCashOnHandAUD * fx) + ((+p.other || 0) * eff);
         const diff = proj - tgt;
         const Greq = inv(Math.max(0, need));
         const perWk = Greq / eff;
         const adv = [];
 
         if (diff >= 0) {
-          adv.push(`✅ 此工作組合預估可順利達標，目標到期日預估超出目標約 NT$ ${fmt(diff)}。`);
+          adv.push(`✅ 此工作組合預估可順利達標，目標日手頭存款預估超出目標約 NT$ ${fmt(diff)}。`);
         } else {
           const addG = (Greq - G) / eff;
           const r = best || 33.05;
           adv.push(`每週需再多賺稅前約 A$${fmt(addG)}；若以 A$${r.toFixed(2)}/hr 估算，每週約需再增加 ${(addG / r).toFixed(1)} 工時。`);
-          adv.push(`或將每週生活開銷壓縮至約 A$${Math.max(0, Math.round(p.live + diff / fx / wl))}（如降低住宿房租）。`);
-          adv.push('面試或應徵時可優先確認「每週最低保障工時」與「週末排班意願」，週末加乘倍率是拉高淨儲蓄最快的方式。');
+          adv.push(`或將每週生活開銷壓縮至約 A$${Math.max(0, Math.round(weeklyLive + diff / fx / eff))}（如房租找每週 A$200 左右房源）。`);
         }
-        adv.push('Casual 臨時工依法享有 25% loading 但無工時保障；Part/Full-time 時薪較低但班表固定。建議以一份固定保底工時為主，搭配一份週末兼職補時數。');
-        adv.push('受限於單一雇主 6 個月限制，建議在前一份工作進入第 4～5 個月時即開始投遞履歷，以確保工時無縫銜接。');
+        adv.push('Casual 臨時工時薪已含 25% Loading 但無工時保障；Part/Full-time 時薪較低但班表固定。建議以穩定工時為主，週末兼職補高倍率時數。');
 
-        const card = (t, v, c) => `
+        const card = (t, v, c, sub = '') => `
           <div class="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">
             <span class="text-[11px] text-stone-500 block">${t}</span>
             <span class="text-lg font-extrabold ${c || 'text-stone-900'} block mt-1">${v}</span>
+            ${sub ? `<span class="text-[10px] text-stone-400 block mt-0.5">${sub}</span>` : ''}
           </div>`;
         const rates = [28, 30, 33.05, 34.76, 38, 42];
 
         out.innerHTML = `
           <div class="space-y-4 mt-4">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              ${card('目前已存', `NT$ ${fmt(have)}`)}
-              ${card('剩餘週數 / 有效工作週', `${wl} / ${eff} 週`)}
+              ${card('目前已存 (連動/覆寫)', `NT$ ${fmt(have)}`)}
+              ${card('目標規劃剩餘週數', `${eff} 週`, '', p.customWeeks ? '自訂週數' : '依目標日期自動推算')}
               ${card('需淨賺 (含生活費)', `A$ ${fmt(need)}`)}
               ${card('每週需稅前', `A$ ${fmt(perWk)}`, 'text-amber-800')}
             </div>
-            <div class="rounded-2xl p-5 border ${diff >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'} text-xs">
+
+            <!-- 實拿現金額與結算卡片 -->
+            <div class="rounded-2xl p-5 border ${diff >= 0 ? 'bg-emerald-50/80 border-emerald-300' : 'bg-rose-50/80 border-rose-300'} text-xs">
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 ${card('此組合平均每週工時', `${hrs.toFixed(1)} 小時`)}
-                ${card('預估稅前總收入', `A$ ${fmt(G)}`)}
-                ${card('預估目標日存款', `NT$ ${fmt(proj)}`)}
-                ${card(diff >= 0 ? '超出目標' : '距離目標還差', `NT$ ${fmt(Math.abs(diff))}`, diff >= 0 ? 'text-emerald-700' : 'text-rose-700')}
+                ${card('稅前總收入', `A$ ${fmt(G)}`, '', `扣稅約 A$ ${fmt(totalTax)}`)}
+                ${card('實拿手頭總現金 (扣完生活費)', `A$ ${fmt(netCashOnHandAUD)}`, netCashOnHandAUD >= 0 ? 'text-emerald-800' : 'text-rose-700', `生活費總扣除 A$ ${fmt(totalLivingCost)}`)}
+                ${card(diff >= 0 ? '預估目標日超額' : '距離目標還差', `NT$ ${fmt(Math.abs(diff))}`, diff >= 0 ? 'text-emerald-700' : 'text-rose-700', `預估總額 NT$ ${fmt(proj)}`)}
               </div>
-              <p class="mt-3 text-stone-500">稅制依打工度假 15%（A$45,000 內）、超出部分 30% 計算；Super 退休金離澳退稅款未計入現期儲蓄。</p>
+              <div class="mt-3 pt-3 border-t border-stone-200 flex flex-wrap justify-between items-center text-stone-600 text-[11px] gap-2">
+                <span>💡 <strong>離澳額外退稅金</strong>：此組合預估另有 Super 退休金離澳退稅款約 <strong>A$ ${fmt(estSuperRefundAUD)}</strong>（離境後領取，未列入即期手上現金）。</span>
+              </div>
             </div>
+
             ${warn.map(w => `<div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900 font-medium">⚠️ ${w}</div>`).join('')}
+            
             <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs space-y-2">
               <h4 class="font-bold text-stone-900">💡 建議怎麼找工作與排工時</h4>
               <ul class="list-disc pl-4 space-y-1 text-stone-700">${adv.map(x => `<li>${x}</li>`).join('')}</ul>
             </div>
+
             <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs">
-              <h4 class="font-bold text-stone-900 mb-2">目標反推：單一時薪每週需要幾小時（未計週末加成）</h4>
+              <h4 class="font-bold text-stone-900 mb-2">目標反推：單一時薪每週需要幾小時（平日基準）</h4>
               <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                 ${rates.map(r => `<div class="p-2 rounded-lg bg-stone-50 border"><span class="block font-mono font-bold">A$${r}</span><span class="text-stone-600">${(perWk / r).toFixed(1)} 小時</span></div>`).join('')}
               </div>
@@ -2719,7 +2890,7 @@
         const el = e.target, k = el.dataset.k;
         if (!k) return;
         const p = P();
-        let v = el.type === 'number' ? (el.value === '' && k === 'ovr' ? '' : (+el.value || 0)) : el.value;
+        let v = el.type === 'number' ? (el.value === '' ? '' : (+el.value || 0)) : el.value;
         if (el.dataset.i != null) {
           const i = +el.dataset.i, j = p.rows[i];
           j[k] = v;
@@ -2738,7 +2909,6 @@
         updatePlanner();
       };
 
-      // 監聽器統一於 DOM 準備完成後掛載
       window.addEventListener("DOMContentLoaded", () => {
         init();
         const rootEl = getRoot();
