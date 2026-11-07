@@ -2605,7 +2605,7 @@
       }
     };
 
-// --- 強化版雙向同步機制 (防空資料覆蓋、防時序覆蓋) ---
+// --- 強化版雙向同步機制 (配合 isSyncReady 解鎖) ---
     window.connectDirectSync = function() {
       var key = document.getElementById("syncKeyDirect").value.trim();
       if (!key) { alert("請輸入一組自訂的同步密碼！"); return; }
@@ -2627,19 +2627,18 @@
           if (doc.exists) {
             var remote = doc.data().data;
             if (remote) {
-              // 完整檢查：統計所有核心資料筆數
               var remoteCount = (remote.transactions || []).length + (remote.events || []).length;
               var localCount = (appState.transactions || []).length + (appState.events || []).length;
 
-              // 【防線 1】：若遠端是空的，但本地有珍貴紀錄，保護性將本地推送上去
+              // 【情況 1】：雲端為空，但本地有珍貴紀錄 -> 解鎖並把本地推送備份上雲端
               if (remoteCount === 0 && localCount > 0) {
-                console.warn("偵測到遠端為空，將本地資料保護性備份至雲端...");
+                console.warn("雲端為空，將本地資料保護性備份至雲端...");
                 isSyncReady = true;
                 saveState();
                 return;
               }
 
-              // 【防線 2】：若遠端有資料，且本地比遠端空，無條件以遠端為主
+              // 【情況 2】：雲端有資料 -> 無條件以雲端為主載入本地
               isRemoteUpdate = true;
               appState = Object.assign({}, appState, remote);
               localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
@@ -2648,18 +2647,16 @@
               calculateWireTransfer();
               isRemoteUpdate = false;
               
-              // 成功拉取遠端後，解除上傳鎖定
+              // 載入完成，解鎖允許後續正常儲存
               isSyncReady = true;
-              console.log("雲端資料已安全同步至本地！");
+              console.log("雲端資料已安全下載，解鎖同步權限！");
             }
           } else {
-            // 雲端是全新密碼（全新文件），且本地有舊紀錄，才上傳
+            // 【情況 3】：全新自訂密碼（雲端尚未有任何文件）
+            isSyncReady = true;
             var totalLocal = (appState.transactions || []).length + (appState.events || []).length;
             if (totalLocal > 0) {
-              isSyncReady = true;
               saveState();
-            } else {
-              isSyncReady = true;
             }
           }
         }, function(err) {
