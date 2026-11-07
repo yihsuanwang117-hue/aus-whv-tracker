@@ -22,49 +22,44 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  /* 手機專屬戶外觸控與視覺優化 */
-  @media (max-width: 640px) {
-    /* 防止橫向溢出 */
-    body {
-      overflow-x: hidden;
-      font-size: 14px;
-    }
-    
-    /* 提升戶外觸控命中率：加大所有輸入框與按鈕的點擊面積 */
-    input, select, textarea, button {
-      min-height: 42px !important;
-      font-size: 14px !important;
-    }
-
-    /* 彈窗在手機上改為底部抽屜式，單手大拇指更好點擊 */
-    .modal-sheet > div {
-      max-height: 85vh !important;
-      overflow-y: auto !important;
-      border-bottom-left-radius: 0 !important;
-      border-bottom-right-radius: 0 !important;
-      margin-top: auto !important;
-      width: 100% !important;
-      max-width: 100% !important;
-    }
-    .modal-sheet {
-      align-items: flex-end !important;
-      padding: 0 !important;
-    }
-
-    /* 頂部選單手機橫向滾動條美化 */
-    .hide-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-  }
-  <style>
+ 
+<style>
     .tab-active { border-bottom: 2px solid #8C3B07 !important; color: #8C3B07 !important; font-weight: bold !important; }
     .gear-cat-active { background-color: #8C3B07 !important; color: #ffffff !important; border-color: #8C3B07 !important; }
     .chart-btn-active { background-color: #8C3B07 !important; color: #ffffff !important; border-color: #8C3B07 !important; }
     .cat-btn-active { background-color: #8C3B07 !important; color: #ffffff !important; }
+
+    /* 手機專屬戶外觸控與視覺優化 */
+    @media (max-width: 640px) {
+      body {
+        overflow-x: hidden;
+        font-size: 14px;
+      }
+      input, select, textarea, button {
+        min-height: 42px !important;
+        font-size: 14px !important;
+      }
+      .modal-sheet > div {
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        margin-top: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      .modal-sheet {
+        align-items: flex-end !important;
+        padding: 0 !important;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    }
   </style>
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans min-h-screen pb-16">
