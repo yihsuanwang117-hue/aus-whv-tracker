@@ -868,7 +868,6 @@
       { id: "g11", label: "防蠅面罩 (Fly Net)", sublines: ["黑色細網束口款 × 2 個 (烏魯魯沙漠戶外防蠅保命神物)"], category: "戶外與極端氣候", checked: false }
     ];
 
-    // 標籤清單已移除灰色
     const DEFAULT_TAGS = [
       { id: "t_1", name: "重要截止", color: "rose" },
       { id: "t_2", name: "重要時程", color: "amber" },
@@ -985,7 +984,7 @@
     }
 
     // --- 即時匯率 API ---
-    async function fetchLiveFxRate(isUserTriggered = false) {
+    async function fetchLiveFxRate(isUserTriggered) {
       const pCurr = appState.primaryCurrency || "AUD";
       const hCurr = appState.homeCurrency || "TWD";
 
@@ -1279,7 +1278,7 @@
           const cleanEnd = nextDay.toISOString().split('T')[0].replace(/-/g, "");
           datesParam = `${cleanStart}/${cleanEnd}`;
         } else {
-          datesParam = `${cleanStart}/${cleanStart}`;
+          datesParam = `${cleanStart}/${cleanEnd}`;
         }
       }
 
@@ -1753,7 +1752,6 @@
       } catch (e) {}
 
       if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
-      // 確保排除舊版灰色
       appState.tags = appState.tags.filter(t => t.color !== 'stone');
       if (appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
 
@@ -2081,7 +2079,7 @@
       }).join('');
     }
 
-    window.openTxModal = function(type, existingTx = null) {
+    window.openTxModal = function(type, existingTx) {
       document.getElementById("txId").value = existingTx ? existingTx.id : "";
       document.getElementById("txType").value = existingTx ? existingTx.type : type;
       document.getElementById("txDate").value = existingTx ? existingTx.date : new Date().toISOString().split('T')[0];
@@ -2274,7 +2272,6 @@
                     timeBadge = `<span class="font-mono text-[9px] block ${isCancelled ? 'text-stone-400' : 'text-stone-500'} leading-tight">📍${times.localTime} (台${times.twTime})</span>`;
                   }
 
-                  // 若取消，顯示灰色與刪除線；否則依標籤顏色
                   const styleClass = isCancelled 
                     ? 'bg-stone-200 text-stone-400 border-stone-300 line-through' 
                     : (isCompleted ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold' : getColorBadgeClass(tag.color));
@@ -2403,7 +2400,6 @@
       const status = document.getElementById("eventStatus").value;
       let desc = document.getElementById("eventDesc").value.trim();
 
-      // 改期邏輯
       if (status === "rescheduled") {
         const newDate = document.getElementById("eventRescheduleDate").value;
         if (!newDate) {
@@ -2412,7 +2408,7 @@
         }
         desc = `[原定: ${startDate}] ${desc}`.trim();
         startDate = newDate;
-        endDate = ""; // 改期後預設清除跨天或重設
+        endDate = "";
       }
 
       if (endDate && endDate < startDate) {
@@ -2423,7 +2419,7 @@
         id: id || ("ev_" + Date.now()),
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
-        status: status === "rescheduled" ? "pending" : status, // 改期後回到待辦
+        status: status === "rescheduled" ? "pending" : status,
         date: startDate,
         endDate: endDate || "",
         time: document.getElementById("eventStartTime").value,
@@ -2539,7 +2535,7 @@
       }
     };
 
-    window.openAddGearModal = function(existingItem = null) {
+    window.openAddGearModal = function(existingItem) {
       document.getElementById("gearId").value = existingItem ? existingItem.id : "";
       document.getElementById("gearLabel").value = existingItem ? existingItem.label : "";
       document.getElementById("gearSubline").value = (existingItem && existingItem.sublines) ? existingItem.sublines.join(' / ') : "";
@@ -2677,26 +2673,27 @@
     // --- 工時規劃器模組 (Planner Module) ---
     // ==========================================
     (function(){
-      const fmt = n => Math.round(n).toLocaleString();
+      const fmt = function(n) { return Math.round(n).toLocaleString(); };
       const PRE = { casual: [1.2, 1.4], pt: [1.25, 1.5], ft: [1.25, 1.5] };
-      const defs = () => ({
-        rent: 260,       // 房租+水電
-        misc: 120,       // 其他生活開銷
-        customWeeks: '', // 自訂剩餘週數 (留空則自動算)
-        other: 0,
-        ovr: '',
-        rows: [
-          { n: '房務', t: 'casual', r: 33.85, wd: 22.5, sa: 0, su: 0, sx: 1.2, ux: 1.4, wk: 26 },
-          { n: '飲料店', t: 'casual', r: 34.76, wd: 0, sa: 6, su: 6, sx: 1.2, ux: 1.2, wk: 26 },
-          { n: '', t: 'casual', r: 0, wd: 0, sa: 0, su: 0, sx: 1.2, ux: 1.4, wk: 26 }
-        ]
-      });
+      const defs = function() {
+        return {
+          rent: 260,
+          misc: 120,
+          customWeeks: '',
+          other: 0,
+          ovr: '',
+          rows: [
+            { n: '房務', t: 'casual', r: 33.85, wd: 22.5, sa: 0, su: 0, sx: 1.2, ux: 1.4, wk: 26 },
+            { n: '飲料店', t: 'casual', r: 34.76, wd: 0, sa: 6, su: 6, sx: 1.2, ux: 1.2, wk: 26 },
+            { n: '', t: 'casual', r: 0, wd: 0, sa: 0, su: 0, sx: 1.2, ux: 1.4, wk: 26 }
+          ]
+        };
+      };
 
-      const P = () => {
+      const P = function() {
         if (!appState.planner) {
           appState.planner = defs();
         } else {
-          // 向下相容舊欄位
           if (appState.planner.rent == null) appState.planner.rent = 260;
           if (appState.planner.misc == null) appState.planner.misc = 120;
           if (appState.planner.customWeeks == null) appState.planner.customWeeks = '';
@@ -2705,28 +2702,36 @@
       };
 
       let timer;
-      const save = () => { clearTimeout(timer); timer = setTimeout(() => saveState(), 600); };
+      const save = function() { clearTimeout(timer); timer = setTimeout(function() { saveState(); }, 600); };
 
       function getRoot() { return document.getElementById('content-planner'); }
 
-      // 自動抓取雙幣財務已存金額 (TWD)
       function savedCalc() {
-        const a = appState, fx = +a.fxRate || 23, p = a.primaryCurrency || 'AUD', h = a.homeCurrency || 'TWD';
+        const a = appState;
+        const fx = +a.fxRate || 23;
+        const p = a.primaryCurrency || 'AUD';
+        const h = a.homeCurrency || 'TWD';
         let pn = 0, hn = 0;
-        (a.transactions || []).forEach(t => {
-          const m = +t.amount || 0, s = t.type === 'income' ? 1 : -1;
+        (a.transactions || []).forEach(function(t) {
+          const m = +t.amount || 0;
+          const s = t.type === 'income' ? 1 : -1;
           if (t.currency === p) pn += s * m;
           else if (t.currency === h) hn += s * m;
         });
         return Math.round(pn * fx + hn);
       }
 
-      const tax = g => 0.15 * Math.min(g, 45000) + 0.3 * Math.max(0, g - 45000);
-      const inv = n => n <= 38250 ? n / 0.85 : 45000 + (n - 38250) / 0.7;
+      const tax = function(g) { return 0.15 * Math.min(g, 45000) + 0.3 * Math.max(0, g - 45000); };
+      const inv = function(n) { return n <= 38250 ? n / 0.85 : 45000 + (n - 38250) / 0.7; };
       const L = 'block text-[11px] text-stone-500 mb-0.5';
-      const num = (k, v, i, placeholder = '') => `<input type="number" step="any" data-k="${k}" ${i != null ? `data-i="${i}"` : ''} value="${v}" placeholder="${placeholder}" class="w-full p-1.5 border rounded font-mono">`;
+      const num = function(k, v, i, placeholder) {
+        const ph = placeholder ? `placeholder="${placeholder}"` : '';
+        const idx = (i !== null && i !== undefined) ? `data-i="${i}"` : '';
+        return `<input type="number" step="any" data-k="${k}" ${idx} value="${v}" ${ph} class="w-full p-1.5 border rounded font-mono">`;
+      };
       
-      const rowHtml = (j, i) => `
+      const rowHtml = function(j, i) {
+        return `
         <div class="p-3 rounded-xl border bg-stone-50 space-y-2 text-xs">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div><label class="${L}">工作名稱</label><input type="text" data-k="n" data-i="${i}" value="${j.n}" class="w-full p-1.5 border rounded"></div>
@@ -2749,6 +2754,7 @@
             <div><label class="${L}">週日倍率</label>${num('ux', j.ux, i)}</div>
           </div>
         </div>`;
+      };
 
       window.renderPlanner = function() {
         const root = getRoot();
@@ -2779,17 +2785,17 @@
       function updatePlanner() {
         const out = document.getElementById('pl-out');
         if (!out) return;
-        const a = appState, p = P(), fx = +a.fxRate || 23, tgt = +a.targetNTD || 400000;
+        const a = appState;
+        const p = P();
+        const fx = +a.fxRate || 23;
+        const tgt = +a.targetNTD || 400000;
         
-        // 已存金額連動與手動覆寫
         const have = (p.ovr !== '' && !isNaN(p.ovr)) ? +p.ovr : savedCalc();
         
-        // 週數計算
         const t0 = new Date(); t0.setHours(0,0,0,0);
         const autoWk = Math.max(1, Math.ceil((new Date(a.targetEndDate) - t0) / (1000 * 60 * 60 * 24 * 7)));
         const eff = (p.customWeeks !== '' && +p.customWeeks > 0) ? +p.customWeeks : autoWk;
 
-        // 生活費加總
         const weeklyLive = (+p.rent || 0) + (+p.misc || 0);
         const otherA = (+p.other || 0) * eff / fx;
         const need = Math.max(0, (tgt - have) / fx) + (weeklyLive * eff) - otherA;
@@ -2797,7 +2803,7 @@
         let G = 0, hrs = 0, best = 0;
         const warn = [];
 
-        p.rows.forEach(j => {
+        p.rows.forEach(function(j) {
           const h = (+j.wd || 0) + (+j.sa || 0) + (+j.su || 0);
           if (!(h > 0 && j.r > 0)) return;
           const w = Math.min(j.wk, eff);
@@ -2809,14 +2815,12 @@
           }
         });
 
-        // 稅金與扣完後「實拿手上現金」計算
         const totalTax = tax(G);
-        const netIncomeAfterTax = G - totalTax; // 稅後淨收入 (AUD)
-        const totalLivingCost = weeklyLive * eff; // 總生活費 (AUD)
-        const netCashOnHandAUD = netIncomeAfterTax - totalLivingCost; // 扣完稅與生活費後實得 AUD
-        const estSuperRefundAUD = G * 0.12 * 0.35; // 離澳才拿得到的 Super
+        const netIncomeAfterTax = G - totalTax;
+        const totalLivingCost = weeklyLive * eff;
+        const netCashOnHandAUD = netIncomeAfterTax - totalLivingCost;
+        const estSuperRefundAUD = G * 0.12 * 0.35;
 
-        // 預估到期總資產 (台幣)
         const proj = have + (netCashOnHandAUD * fx) + ((+p.other || 0) * eff);
         const diff = proj - tgt;
         const Greq = inv(Math.max(0, need));
@@ -2833,12 +2837,15 @@
         }
         adv.push('Casual 臨時工時薪已含 25% Loading 但無工時保障；Part/Full-time 時薪較低但班表固定。建議以穩定工時為主，週末兼職補高倍率時數。');
 
-        const card = (t, v, c, sub = '') => `
+        const card = function(t, v, c, sub) {
+          const subText = sub ? `<span class="text-[10px] text-stone-400 block mt-0.5">${sub}</span>` : '';
+          return `
           <div class="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">
             <span class="text-[11px] text-stone-500 block">${t}</span>
             <span class="text-lg font-extrabold ${c || 'text-stone-900'} block mt-1">${v}</span>
-            ${sub ? `<span class="text-[10px] text-stone-400 block mt-0.5">${sub}</span>` : ''}
+            ${subText}
           </div>`;
+        };
         const rates = [28, 30, 33.05, 34.76, 38, 42];
 
         out.innerHTML = `
@@ -2850,7 +2857,6 @@
               ${card('每週需稅前', `A$ ${fmt(perWk)}`, 'text-amber-800')}
             </div>
 
-            <!-- 實拿現金額與結算卡片 -->
             <div class="rounded-2xl p-5 border ${diff >= 0 ? 'bg-emerald-50/80 border-emerald-300' : 'bg-rose-50/80 border-rose-300'} text-xs">
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 ${card('此組合平均每週工時', `${hrs.toFixed(1)} 小時`)}
@@ -2863,17 +2869,17 @@
               </div>
             </div>
 
-            ${warn.map(w => `<div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900 font-medium">⚠️ ${w}</div>`).join('')}
+            ${warn.map(function(w) { return `<div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900 font-medium">⚠️ ${w}</div>`; }).join('')}
             
             <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs space-y-2">
               <h4 class="font-bold text-stone-900">💡 建議怎麼找工作與排工時</h4>
-              <ul class="list-disc pl-4 space-y-1 text-stone-700">${adv.map(x => `<li>${x}</li>`).join('')}</ul>
+              <ul class="list-disc pl-4 space-y-1 text-stone-700">${adv.map(function(x) { return `<li>${x}</li>`; }).join('')}</ul>
             </div>
 
             <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs">
               <h4 class="font-bold text-stone-900 mb-2">目標反推：單一時薪每週需要幾小時（平日基準）</h4>
               <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
-                ${rates.map(r => `<div class="p-2 rounded-lg bg-stone-50 border"><span class="block font-mono font-bold">A$${r}</span><span class="text-stone-600">${(perWk / r).toFixed(1)} 小時</span></div>`).join('')}
+                ${rates.map(function(r) { return `<div class="p-2 rounded-lg bg-stone-50 border"><span class="block font-mono font-bold">A$${r}</span><span class="text-stone-600">${(perWk / r).toFixed(1)} 小時</span></div>`; }).join('')}
               </div>
             </div>
           </div>`;
@@ -2886,18 +2892,20 @@
         }
       };
 
-      const handlePlannerInput = e => {
-        const el = e.target, k = el.dataset.k;
+      const handlePlannerInput = function(e) {
+        const el = e.target;
+        const k = el.dataset.k;
         if (!k) return;
         const p = P();
         let v = el.type === 'number' ? (el.value === '' ? '' : (+el.value || 0)) : el.value;
-        if (el.dataset.i != null) {
-          const i = +el.dataset.i, j = p.rows[i];
+        if (el.dataset.i !== null && el.dataset.i !== undefined) {
+          const i = +el.dataset.i;
+          const j = p.rows[i];
           j[k] = v;
           if (k === 't') {
             j.sx = PRE[v][0];
             j.ux = PRE[v][1];
-            ['sx', 'ux'].forEach(f => {
+            ['sx', 'ux'].forEach(function(f) {
               const targetInput = getRoot().querySelector(`[data-i="${i}"][data-k="${f}"]`);
               if (targetInput) targetInput.value = j[f];
             });
@@ -2909,7 +2917,7 @@
         updatePlanner();
       };
 
-      window.addEventListener("DOMContentLoaded", () => {
+      window.addEventListener("DOMContentLoaded", function() {
         init();
         const rootEl = getRoot();
         if (rootEl) {
