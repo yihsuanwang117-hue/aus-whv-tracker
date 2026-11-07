@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>個人生活必備 & 雙幣儲蓄目標進度追蹤</title>
   <!-- PWA & 主畫面設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -10,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="AU 澳打生活">
   <meta name="theme-color" content="#8C3B07">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%238C3B07'/%3E%3Ccircle cx='90' cy='90' r='60' fill='%23B45309' opacity='0.3'/%3E%3Ctext x='90' y='115' font-size='70' text-anchor='middle' font-family='sans-serif'%3E🦘%3C/text%3E%3C/svg%3E">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%238C3B07'/%3E%3Ccircle cx='90' cy='90' r='60' fill='%23B45309' opacity='0.3'/%3E%3Ctext x='90' y='115' font-size='70' text-anchor='middle' font-family='sans-serif'%3E🦘%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%238C3B07'/%3E%3Ctext x='90' y='115' font-size='70' text-anchor='middle' font-family='sans-serif'%3E🦘%3C/text%3E%3C/svg%3E">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -468,7 +471,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 管理自訂日曆標籤 (移除灰色，保留取消專用) -->
+  <!-- MODAL: 管理自訂日曆標籤 -->
   <div id="manageTagsModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -585,7 +588,7 @@
     </div>
   </div>
 
-  <!-- MODAL: 新增/編輯日曆事項 (支援狀態與改期) -->
+  <!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
@@ -618,7 +621,7 @@
           </div>
         </div>
 
-        <!-- 改期選項 (選擇改期時顯示) -->
+        <!-- 改期選項 -->
         <div id="rescheduleGroup" class="p-2.5 bg-amber-50 border border-amber-300 rounded-lg space-y-1.5 hidden">
           <label class="block font-bold text-amber-900">🗓️ 改期至新日期 (原日期將自動寫入備註)：</label>
           <input type="date" id="eventRescheduleDate" class="w-full p-1.5 border rounded bg-white font-mono">
@@ -837,7 +840,7 @@
 
   <!-- 核心邏輯腳本 -->
   <script>
-    const FIREBASE_CONFIG = {
+    var FIREBASE_CONFIG = {
       apiKey: "AIzaSyAKM55FbwK-kOP7Jl9a1QPOtn0f2WHnrZ8",
       authDomain: "aus-2026whv.firebaseapp.com",
       projectId: "aus-2026whv",
@@ -847,14 +850,14 @@
       measurementId: "G-XFP80TVSLZ"
     };
 
-    const DEFAULT_GEAR_CATEGORIES = [
+    var DEFAULT_GEAR_CATEGORIES = [
       "修繕自修與固定",
       "青旅生活與防盜",
       "個人衛生與洗沐",
       "戶外與極端氣候"
     ];
 
-    const DEFAULT_GEAR = [
+    var DEFAULT_GEAR = [
       { id: "g1", label: "布基大力膠帶 (Duct Tape)", sublines: ["規格：寬度 2.5 cm，長度 3m～5m，黑色或銀灰"], category: "修繕自修與固定", checked: false },
       { id: "g2", label: "3M VHB 雙面膠貼片", sublines: ["規格：40×40×1 mm，買 1 包，抽 4～5 片帶出國"], category: "修繕自修與固定", checked: false },
       { id: "g3", label: "釹鐵硼強磁掛勾", sublines: ["規格：D25 (直徑2.5cm) × 2 個 + D20 (直徑2.0cm) × 1 個"], category: "修繕自修與固定", checked: false },
@@ -868,7 +871,7 @@
       { id: "g11", label: "防蠅面罩 (Fly Net)", sublines: ["黑色細網束口款 × 2 個 (烏魯魯沙漠戶外防蠅保命神物)"], category: "戶外與極端氣候", checked: false }
     ];
 
-    const DEFAULT_TAGS = [
+    var DEFAULT_TAGS = [
       { id: "t_1", name: "重要截止", color: "rose" },
       { id: "t_2", name: "重要時程", color: "amber" },
       { id: "t_3", name: "文件簽證", color: "purple" },
@@ -876,15 +879,15 @@
       { id: "t_5", name: "生活休閒", color: "blue" }
     ];
 
-    const DEFAULT_EVENTS = [
+    var DEFAULT_EVENTS = [
       { id: "ev1", title: "儲蓄目標/自保金電匯截止", tagId: "t_1", status: "pending", date: "2027-05-15", time: "14:00", baseZone: "LOCAL", location: "台北市信義區信義路五段", desc: "完成目標資金匯出或結算。" },
       { id: "ev2", title: "工作結束交接 & 下一站啟程", tagId: "t_2", status: "pending", date: "2027-06-30", time: "", baseZone: "LOCAL", location: "Ayers Rock Resort", desc: "完成交接，領取相關退稅結算單據。" }
     ];
 
-    const DEFAULT_EXPENSE_CATS = ["房租水電", "飲食餐飲", "玩樂休閒", "生活採買", "機票交通", "金融規費", "其他雜項"];
-    const DEFAULT_INCOME_CATS = ["薪資收入", "兼職副業", "政府退稅", "利息投資", "其他收入"];
+    var DEFAULT_EXPENSE_CATS = ["房租水電", "飲食餐飲", "玩樂休閒", "生活採買", "機票交通", "金融規費", "其他雜項"];
+    var DEFAULT_INCOME_CATS = ["薪資收入", "兼職副業", "政府退稅", "利息投資", "其他收入"];
 
-    let appState = {
+    var appState = {
       mainTitle: "個人旅程儲蓄 × 目標自保金追蹤",
       subTitle: "雙幣資產管理 • 儲蓄進度視覺化",
       avatarInitials: "AU",
@@ -907,18 +910,18 @@
       planner: null
     };
 
-    let calendarDate = new Date();
-    let currentEditingEventId = null;
-    let currentSelectedGearCategory = "ALL";
-    let chartPeriod = "month";
-    let chartType = "expense";
-    let currentManageCatTab = "expense";
-    let pieChartInstance = null;
-    let db = null;
-    let syncUnsubscribe = null;
-    let isRemoteUpdate = false;
+    var calendarDate = new Date();
+    var currentEditingEventId = null;
+    var currentSelectedGearCategory = "ALL";
+    var chartPeriod = "month";
+    var chartType = "expense";
+    var currentManageCatTab = "expense";
+    var pieChartInstance = null;
+    var db = null;
+    var syncUnsubscribe = null;
+    var isRemoteUpdate = false;
 
-    const CHART_PALETTE = ['#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'];
+    var CHART_PALETTE = ['#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'];
 
     // --- 各州固定相對 UTC 偏移 (純數值計算) ---
     function getZoneOffsetHours(zoneKey) {
@@ -937,43 +940,45 @@
 
     function addMinutesToTime(timeStr, diffMinutes) {
       if (!timeStr) return "";
-      const [h, m] = timeStr.split(':').map(Number);
-      let totalM = h * 60 + m + diffMinutes;
+      var parts = timeStr.split(':').map(Number);
+      var h = parts[0];
+      var m = parts[1];
+      var totalM = h * 60 + m + diffMinutes;
       totalM = (totalM % 1440 + 1440) % 1440;
-      const resH = String(Math.floor(totalM / 60)).padStart(2, '0');
-      const resM = String(totalM % 60).padStart(2, '0');
-      return `${resH}:${resM}`;
+      var resH = String(Math.floor(totalM / 60)).padStart(2, '0');
+      var resM = String(totalM % 60).padStart(2, '0');
+      return resH + ":" + resM;
     }
 
     function calculateEventTimes(event, currentActiveZone) {
       if (!event.time) return { localTime: "", twTime: "" };
 
-      const baseZone = event.baseZone || "LOCAL";
-      const rawTime = event.time;
+      var baseZone = event.baseZone || "LOCAL";
+      var rawTime = event.time;
 
       if (baseZone === "LOCAL") {
-        const localOffset = getZoneOffsetHours(currentActiveZone);
-        const twOffset = 8.0;
-        const diffMinutes = Math.round((twOffset - localOffset) * 60);
+        var localOffset = getZoneOffsetHours(currentActiveZone);
+        var twOffset = 8.0;
+        var diffMinutes = Math.round((twOffset - localOffset) * 60);
         return {
           localTime: rawTime,
           twTime: addMinutesToTime(rawTime, diffMinutes)
         };
       } else if (baseZone === "Asia/Taipei") {
-        const localOffset = getZoneOffsetHours(currentActiveZone);
-        const twOffset = 8.0;
-        const diffMinutes = Math.round((localOffset - twOffset) * 60);
+        var localOffset2 = getZoneOffsetHours(currentActiveZone);
+        var twOffset2 = 8.0;
+        var diffMinutes2 = Math.round((localOffset2 - twOffset2) * 60);
         return {
-          localTime: addMinutesToTime(rawTime, diffMinutes),
+          localTime: addMinutesToTime(rawTime, diffMinutes2),
           twTime: rawTime
         };
       } else if (baseZone === "CUSTOM_UTC") {
-        const customOffset = parseFloat(event.customUtcOffset || "3");
-        const localOffset = getZoneOffsetHours(currentActiveZone);
-        const twOffset = 8.0;
+        var customOffset = parseFloat(event.customUtcOffset || "3");
+        var localOffset3 = getZoneOffsetHours(currentActiveZone);
+        var twOffset3 = 8.0;
 
-        const diffLocal = Math.round((localOffset - customOffset) * 60);
-        const diffTw = Math.round((twOffset - customOffset) * 60);
+        var diffLocal = Math.round((localOffset3 - customOffset) * 60);
+        var diffTw = Math.round((twOffset3 - customOffset) * 60);
 
         return {
           localTime: addMinutesToTime(rawTime, diffLocal),
@@ -984,66 +989,69 @@
     }
 
     // --- 即時匯率 API ---
-    async function fetchLiveFxRate(isUserTriggered) {
-      const pCurr = appState.primaryCurrency || "AUD";
-      const hCurr = appState.homeCurrency || "TWD";
+    function fetchLiveFxRate(isUserTriggered) {
+      var pCurr = appState.primaryCurrency || "AUD";
+      var hCurr = appState.homeCurrency || "TWD";
 
-      try {
-        const res = await fetch(`https://open.er-api.com/v6/latest/${pCurr}`);
-        if (!res.ok) throw new Error("API error");
-        const json = await res.json();
-        if (json && json.rates && json.rates[hCurr]) {
-          const liveRate = parseFloat(json.rates[hCurr].toFixed(2));
-          appState.fxRate = liveRate;
-          document.getElementById("fxRateInput").value = liveRate;
-          document.getElementById("wireFxRate").value = liveRate;
-          saveState();
-          renderFinance();
-          renderPieChart();
-          calculateWireTransfer();
-          if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
-          if (isUserTriggered) alert(`已更新最新即時匯率：1 ${pCurr} = ${liveRate} ${hCurr}`);
-        }
-      } catch (err) {
-        if (isUserTriggered) alert("暫時無法連線至即時匯率伺服器，可直接手動輸入。");
-      }
+      fetch("https://open.er-api.com/v6/latest/" + pCurr)
+        .then(function(res) {
+          if (!res.ok) throw new Error("API error");
+          return res.json();
+        })
+        .then(function(json) {
+          if (json && json.rates && json.rates[hCurr]) {
+            var liveRate = parseFloat(json.rates[hCurr].toFixed(2));
+            appState.fxRate = liveRate;
+            document.getElementById("fxRateInput").value = liveRate;
+            document.getElementById("wireFxRate").value = liveRate;
+            saveState();
+            renderFinance();
+            renderPieChart();
+            calculateWireTransfer();
+            if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
+            if (isUserTriggered) alert("已更新最新即時匯率：1 " + pCurr + " = " + liveRate + " " + hCurr);
+          }
+        })
+        .catch(function(err) {
+          if (isUserTriggered) alert("暫時無法連線至即時匯率伺服器，可直接手動輸入。");
+        });
     }
 
     // --- 國際電匯試算核心演算法 ---
     function calculateWireTransfer() {
-      const sendHome = parseFloat(document.getElementById("wireSendAmount").value) || 0;
-      const rate = parseFloat(document.getElementById("wireFxRate").value) || 1;
-      const homeFee = parseFloat(document.getElementById("wireHomeFee").value) || 0;
-      const foreignFee = parseFloat(document.getElementById("wireForeignFee").value) || 0;
+      var sendHome = parseFloat(document.getElementById("wireSendAmount").value) || 0;
+      var rate = parseFloat(document.getElementById("wireFxRate").value) || 1;
+      var homeFee = parseFloat(document.getElementById("wireHomeFee").value) || 0;
+      var foreignFee = parseFloat(document.getElementById("wireForeignFee").value) || 0;
 
-      const pCurr = appState.primaryCurrency || "AUD";
-      const hCurr = appState.homeCurrency || "TWD";
+      var pCurr = appState.primaryCurrency || "AUD";
+      var hCurr = appState.homeCurrency || "TWD";
 
-      const convertedForeign = sendHome / rate;
-      const netReceivedForeign = Math.max(0, convertedForeign - foreignFee);
+      var convertedForeign = sendHome / rate;
+      var netReceivedForeign = Math.max(0, convertedForeign - foreignFee);
 
-      const totalLostHome = homeFee + (foreignFee * rate);
-      const totalPaidHome = sendHome + homeFee;
-      const effectiveRate = netReceivedForeign > 0 ? (totalPaidHome / netReceivedForeign).toFixed(2) : "0.00";
+      var totalLostHome = homeFee + (foreignFee * rate);
+      var totalPaidHome = sendHome + homeFee;
+      var effectiveRate = netReceivedForeign > 0 ? (totalPaidHome / netReceivedForeign).toFixed(2) : "0.00";
 
-      document.getElementById("wireNetReceivedText").textContent = `$${netReceivedForeign.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${pCurr}`;
-      document.getElementById("wireTotalFeeText").textContent = `約 ${hCurr} ${Math.round(totalLostHome).toLocaleString()}`;
-      document.getElementById("wireEffectiveRateText").textContent = `1 ${pCurr} = ${effectiveRate} ${hCurr}`;
+      document.getElementById("wireNetReceivedText").textContent = "$" + netReceivedForeign.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " " + pCurr;
+      document.getElementById("wireTotalFeeText").textContent = "約 " + hCurr + " " + Math.round(totalLostHome).toLocaleString();
+      document.getElementById("wireEffectiveRateText").textContent = "1 " + pCurr + " = " + effectiveRate + " " + hCurr;
     }
 
     window.applyWireTransferToForm = function() {
-      const sendHome = parseFloat(document.getElementById("wireSendAmount").value) || 0;
-      const rate = parseFloat(document.getElementById("wireFxRate").value) || 1;
-      const foreignFee = parseFloat(document.getElementById("wireForeignFee").value) || 0;
-      const homeFee = parseFloat(document.getElementById("wireHomeFee").value) || 0;
+      var sendHome = parseFloat(document.getElementById("wireSendAmount").value) || 0;
+      var rate = parseFloat(document.getElementById("wireFxRate").value) || 1;
+      var foreignFee = parseFloat(document.getElementById("wireForeignFee").value) || 0;
+      var homeFee = parseFloat(document.getElementById("wireHomeFee").value) || 0;
 
-      const pCurr = appState.primaryCurrency || "AUD";
-      const netForeign = Math.max(0, (sendHome / rate) - foreignFee).toFixed(2);
+      var pCurr = appState.primaryCurrency || "AUD";
+      var netForeign = Math.max(0, (sendHome / rate) - foreignFee).toFixed(2);
 
       openTxModal('income');
       document.getElementById("txCurrency").value = pCurr;
       document.getElementById("txAmount").value = netForeign;
-      document.getElementById("txNote").value = `跨國電匯實收 (扣除中轉手續費 $${foreignFee} ${pCurr}，出匯費 NT$${homeFee})`;
+      document.getElementById("txNote").value = "跨國電匯實收 (扣除中轉手續費 $" + foreignFee + " " + pCurr + "，出匯費 NT$" + homeFee + ")";
     };
 
     function getColorBadgeClass(color) {
@@ -1061,13 +1069,13 @@
 
     function buildGoogleMapsUrl(input) {
       if (!input || !input.trim()) return "";
-      const trimmed = input.trim();
+      var trimmed = input.trim();
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+      return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(trimmed);
     }
 
     window.previewLocationSearch = function() {
-      const input = document.getElementById("eventLocationInput").value.trim();
+      var input = document.getElementById("eventLocationInput").value.trim();
       if (!input) { alert("請先輸入地點名稱、地址或 Maps 連結！"); return; }
       window.open(buildGoogleMapsUrl(input), "_blank");
     };
@@ -1080,43 +1088,43 @@
     };
 
     window.handleBaseZoneChange = function() {
-      const baseZone = document.getElementById("eventBaseZone").value;
-      const customGroup = document.getElementById("customUtcInputGroup");
+      var baseZone = document.getElementById("eventBaseZone").value;
+      var customGroup = document.getElementById("customUtcInputGroup");
       if (baseZone === "CUSTOM_UTC") customGroup.classList.remove("hidden");
       else customGroup.classList.add("hidden");
       updateEventTimePreview();
     };
 
     window.updateEventTimePreview = function() {
-      const timeStr = document.getElementById("eventStartTime").value;
-      const baseZone = document.getElementById("eventBaseZone").value;
-      const previewBox = document.getElementById("timezoneConvertPreview");
+      var timeStr = document.getElementById("eventStartTime").value;
+      var baseZone = document.getElementById("eventBaseZone").value;
+      var previewBox = document.getElementById("timezoneConvertPreview");
 
       if (!timeStr) {
         previewBox.classList.add("hidden");
         return;
       }
 
-      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
-      const dummyEv = {
+      var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      var dummyEv = {
         time: timeStr,
         baseZone: baseZone,
         customUtcOffset: document.getElementById("eventCustomUtcOffset").value
       };
 
-      const times = calculateEventTimes(dummyEv, activeUserZone);
+      var times = calculateEventTimes(dummyEv, activeUserZone);
 
-      let thirdLabel = "自訂時區";
-      let thirdTime = "--:--";
+      var thirdLabel = "自訂時區";
+      var thirdTime = "--:--";
 
       if (baseZone === "CUSTOM_UTC") {
-        const offset = document.getElementById("eventCustomUtcOffset").value;
-        thirdLabel = `自訂 (UTC${offset >= 0 ? '+' : ''}${offset})`;
+        var offset = document.getElementById("eventCustomUtcOffset").value;
+        thirdLabel = "自訂 (UTC" + (offset >= 0 ? '+' : '') + offset + ")";
         thirdTime = timeStr;
       } else {
         thirdLabel = "土耳其 (UTC+3)";
-        const localOff = getZoneOffsetHours(activeUserZone);
-        const diffTr = Math.round((3.0 - (baseZone === "Asia/Taipei" ? 8.0 : localOff)) * 60);
+        var localOff = getZoneOffsetHours(activeUserZone);
+        var diffTr = Math.round((3.0 - (baseZone === "Asia/Taipei" ? 8.0 : localOff)) * 60);
         thirdTime = addMinutesToTime(timeStr, diffTr);
       }
 
@@ -1128,8 +1136,8 @@
     };
 
     window.handleEventStatusChange = function() {
-      const st = document.getElementById("eventStatus").value;
-      const rGroup = document.getElementById("rescheduleGroup");
+      var st = document.getElementById("eventStatus").value;
+      var rGroup = document.getElementById("rescheduleGroup");
       if (st === "rescheduled") {
         rGroup.classList.remove("hidden");
       } else {
@@ -1139,19 +1147,19 @@
 
     window.duplicateEventQuick = function(daysToAdd) {
       if (!currentEditingEventId) return;
-      const origin = (appState.events || []).find(e => e.id === currentEditingEventId);
+      var origin = (appState.events || []).find(function(e) { return e.id === currentEditingEventId; });
       if (!origin) return;
 
-      const [y, m, d] = origin.date.split('-').map(Number);
-      const originDate = new Date(Date.UTC(y, m - 1, d));
+      var parts = origin.date.split('-').map(Number);
+      var originDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
       originDate.setUTCDate(originDate.getUTCDate() + daysToAdd);
 
-      const yr = originDate.getUTCFullYear();
-      const mo = String(originDate.getUTCMonth() + 1).padStart(2, '0');
-      const da = String(originDate.getUTCDate()).padStart(2, '0');
-      const newDateStr = `${yr}-${mo}-${da}`;
+      var yr = originDate.getUTCFullYear();
+      var mo = String(originDate.getUTCMonth() + 1).padStart(2, '0');
+      var da = String(originDate.getUTCDate()).padStart(2, '0');
+      var newDateStr = yr + "-" + mo + "-" + da;
 
-      const cloned = Object.assign({}, origin, {
+      var cloned = Object.assign({}, origin, {
         id: "ev_" + Date.now(),
         date: newDateStr,
         endDate: origin.endDate ? addDaysToStr(origin.endDate, daysToAdd) : "",
@@ -1163,31 +1171,31 @@
       renderCalendar();
       checkSmartReminders();
       closeModal('eventModal');
-      alert(`已成功複製至：${newDateStr}`);
+      alert("已成功複製至：" + newDateStr);
     };
 
     function addDaysToStr(dateStr, days) {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const dt = new Date(Date.UTC(y, m - 1, d));
+      var parts = dateStr.split('-').map(Number);
+      var dt = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
       dt.setUTCDate(dt.getUTCDate() + days);
-      const yr = dt.getUTCFullYear();
-      const mo = String(dt.getUTCMonth() + 1).padStart(2, '0');
-      const da = String(dt.getUTCDate()).padStart(2, '0');
-      return `${yr}-${mo}-${da}`;
+      var yr = dt.getUTCFullYear();
+      var mo = String(dt.getUTCMonth() + 1).padStart(2, '0');
+      var da = String(dt.getUTCDate()).padStart(2, '0');
+      return yr + "-" + mo + "-" + da;
     }
 
     window.duplicateEventCustomPrompt = function() {
       if (!currentEditingEventId) return;
-      const origin = (appState.events || []).find(e => e.id === currentEditingEventId);
+      var origin = (appState.events || []).find(function(e) { return e.id === currentEditingEventId; });
       if (!origin) return;
 
-      const targetDate = prompt("請輸入欲複製到的日期 (格式：YYYY-MM-DD)：", origin.date);
+      var targetDate = prompt("請輸入欲複製到的日期 (格式：YYYY-MM-DD)：", origin.date);
       if (!targetDate || !/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
         if (targetDate) alert("日期格式不正確，請輸入如 2026-11-20");
         return;
       }
 
-      const cloned = Object.assign({}, origin, {
+      var cloned = Object.assign({}, origin, {
         id: "ev_" + Date.now(),
         date: targetDate,
         endDate: "",
@@ -1199,25 +1207,25 @@
       renderCalendar();
       checkSmartReminders();
       closeModal('eventModal');
-      alert(`已成功複製至：${targetDate}`);
+      alert("已成功複製至：" + targetDate);
     };
 
     function checkSmartReminders() {
-      const banner = document.getElementById("smartReminderBanner");
-      const listEl = document.getElementById("smartReminderList");
+      var banner = document.getElementById("smartReminderBanner");
+      var listEl = document.getElementById("smartReminderList");
       if (!banner || !listEl) return;
 
-      const now = new Date();
+      var now = new Date();
       now.setHours(0,0,0,0);
-      const upcoming = [];
+      var upcoming = [];
 
-      (appState.events || []).forEach(ev => {
+      (appState.events || []).forEach(function(ev) {
         if (!ev.date || ev.status === "cancelled" || ev.status === "completed") return;
-        const [y, m, d] = ev.date.split("-").map(Number);
-        const evDate = new Date(y, m - 1, d);
+        var parts = ev.date.split("-").map(Number);
+        var evDate = new Date(parts[0], parts[1] - 1, parts[2]);
         evDate.setHours(0,0,0,0);
-        const diffDays = Math.round((evDate - now) / (1000 * 60 * 60 * 24));
-        if (diffDays >= 0 && diffDays <= 3) upcoming.push({ ...ev, diffDays });
+        var diffDays = Math.round((evDate - now) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays <= 3) upcoming.push(Object.assign({}, ev, { diffDays: diffDays }));
       });
 
       if (upcoming.length === 0) {
@@ -1225,124 +1233,122 @@
         return;
       }
 
-      upcoming.sort((a, b) => a.diffDays - b.diffDays);
-      listEl.innerHTML = upcoming.map(item => {
-        let dayBadge = "";
-        if (item.diffDays === 0) dayBadge = `<span class="px-1.5 py-0.5 rounded bg-rose-600 text-white font-bold text-[10px] animate-pulse">今日</span>`;
-        else if (item.diffDays === 1) dayBadge = `<span class="px-1.5 py-0.5 rounded bg-amber-500 text-stone-900 font-bold text-[10px]">明天</span>`;
-        else dayBadge = `<span class="px-1.5 py-0.5 rounded bg-stone-700 text-stone-300 font-semibold text-[10px]">${item.diffDays} 天後</span>`;
+      upcoming.sort(function(a, b) { return a.diffDays - b.diffDays; });
+      listEl.innerHTML = upcoming.map(function(item) {
+        var dayBadge = "";
+        if (item.diffDays === 0) dayBadge = '<span class="px-1.5 py-0.5 rounded bg-rose-600 text-white font-bold text-[10px] animate-pulse">今日</span>';
+        else if (item.diffDays === 1) dayBadge = '<span class="px-1.5 py-0.5 rounded bg-amber-500 text-stone-900 font-bold text-[10px]">明天</span>';
+        else dayBadge = '<span class="px-1.5 py-0.5 rounded bg-stone-700 text-stone-300 font-semibold text-[10px]">' + item.diffDays + ' 天後</span>';
 
-        const loc = item.location || item.mapUrl || "";
-        const timeText = item.time ? ` ⏰ ${item.time}` : '';
-        return `
-          <div class="flex items-center justify-between p-2 rounded-lg bg-stone-800/80 border border-stone-700">
-            <div class="flex items-center gap-2 overflow-hidden">
-              ${dayBadge}
-              <span class="font-bold text-stone-100 truncate">${item.title}${timeText}</span>
-              ${loc ? `<span class="text-stone-400 text-[11px] truncate hidden sm:inline">📍 ${loc}</span>` : ''}
-            </div>
-            <button type="button" onclick="openEditEvent('${item.id}', event); switchTab('calendar');" class="text-amber-400 hover:text-amber-300 text-[11px] font-bold whitespace-nowrap ml-2 cursor-pointer">查看 ➔</button>
-          </div>
-        `;
+        var loc = item.location || item.mapUrl || "";
+        var timeText = item.time ? (' ⏰ ' + item.time) : '';
+        return '<div class="flex items-center justify-between p-2 rounded-lg bg-stone-800/80 border border-stone-700">' +
+          '<div class="flex items-center gap-2 overflow-hidden">' +
+            dayBadge +
+            '<span class="font-bold text-stone-100 truncate">' + item.title + timeText + '</span>' +
+            (loc ? '<span class="text-stone-400 text-[11px] truncate hidden sm:inline">📍 ' + loc + '</span>' : '') +
+          '</div>' +
+          '<button type="button" onclick="openEditEvent(\'' + item.id + '\', event); switchTab(\'calendar\');" class="text-amber-400 hover:text-amber-300 text-[11px] font-bold whitespace-nowrap ml-2 cursor-pointer">查看 ➔</button>' +
+        '</div>';
       }).join('');
       banner.classList.remove("hidden");
     }
 
     // Google 日曆匯出
     window.addToGoogleCalendarFromModal = function() {
-      const title = document.getElementById("eventTitle").value.trim();
-      const dateStr = document.getElementById("eventDate").value;
-      const endDateStr = document.getElementById("eventEndDate").value;
-      const timeStr = document.getElementById("eventStartTime").value;
-      const baseZone = document.getElementById("eventBaseZone").value;
-      const loc = document.getElementById("eventLocationInput").value.trim();
-      const desc = document.getElementById("eventDesc").value.trim();
+      var title = document.getElementById("eventTitle").value.trim();
+      var dateStr = document.getElementById("eventDate").value;
+      var endDateStr = document.getElementById("eventEndDate").value;
+      var timeStr = document.getElementById("eventStartTime").value;
+      var baseZone = document.getElementById("eventBaseZone").value;
+      var loc = document.getElementById("eventLocationInput").value.trim();
+      var desc = document.getElementById("eventDesc").value.trim();
 
       if (!title || !dateStr) { alert("請填寫事項名稱與日期！"); return; }
 
-      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
-      const dummyEv = { time: timeStr, baseZone: baseZone, customUtcOffset: document.getElementById("eventCustomUtcOffset").value };
-      const times = calculateEventTimes(dummyEv, activeUserZone);
+      var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      var dummyEv = { time: timeStr, baseZone: baseZone, customUtcOffset: document.getElementById("eventCustomUtcOffset").value };
+      var times = calculateEventTimes(dummyEv, activeUserZone);
 
-      let datesParam = "";
-      const cleanStart = dateStr.replace(/-/g, "");
+      var datesParam = "";
+      var cleanStart = dateStr.replace(/-/g, "");
 
       if (timeStr) {
-        const [h, m] = times.localTime.split(':').map(Number);
-        const endH = String((h + 1) % 24).padStart(2, '0');
-        datesParam = `${cleanStart}T${times.localTime.replace(':', '')}00/${cleanStart}T${endH}${String(m).padStart(2, '0')}00`;
+        var parts = times.localTime.split(':').map(Number);
+        var endH = String((parts[0] + 1) % 24).padStart(2, '0');
+        datesParam = cleanStart + "T" + times.localTime.replace(':', '') + "00/" + cleanStart + "T" + endH + String(parts[1]).padStart(2, '0') + "00";
       } else {
         if (endDateStr && endDateStr > dateStr) {
-          const [ey, em, ed] = endDateStr.split('-').map(Number);
-          const nextDay = new Date(Date.UTC(ey, em - 1, ed + 1));
-          const cleanEnd = nextDay.toISOString().split('T')[0].replace(/-/g, "");
-          datesParam = `${cleanStart}/${cleanEnd}`;
+          var ep = endDateStr.split('-').map(Number);
+          var nextDay = new Date(Date.UTC(ep[0], ep[1] - 1, ep[2] + 1));
+          var cleanEnd = nextDay.toISOString().split('T')[0].replace(/-/g, "");
+          datesParam = cleanStart + "/" + cleanEnd;
         } else {
-          datesParam = `${cleanStart}/${cleanEnd}`;
+          datesParam = cleanStart + "/" + cleanStart;
         }
       }
 
-      let details = desc || "";
+      var details = desc || "";
       if (timeStr) {
-        details += `\n[時間對齊] 當地時間: ${times.localTime} | 台灣時間: ${times.twTime}`;
+        details += "\n[時間對齊] 當地時間: " + times.localTime + " | 台灣時間: " + times.twTime;
       }
-      if (loc) details += `\n地點導航：${buildGoogleMapsUrl(loc)}`;
+      if (loc) details += "\n地點導航：" + buildGoogleMapsUrl(loc);
 
-      const gUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${datesParam}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(loc)}`;
+      var gUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title) + "&dates=" + datesParam + "&details=" + encodeURIComponent(details) + "&location=" + encodeURIComponent(loc);
       window.open(gUrl, "_blank");
     };
 
     window.downloadIcsFileFromModal = function() {
-      const title = document.getElementById("eventTitle").value.trim();
-      const dateStr = document.getElementById("eventDate").value;
-      const endDateStr = document.getElementById("eventEndDate").value;
-      const timeStr = document.getElementById("eventStartTime").value;
-      const baseZone = document.getElementById("eventBaseZone").value;
-      const loc = document.getElementById("eventLocationInput").value.trim();
-      const desc = document.getElementById("eventDesc").value.trim();
+      var title = document.getElementById("eventTitle").value.trim();
+      var dateStr = document.getElementById("eventDate").value;
+      var endDateStr = document.getElementById("eventEndDate").value;
+      var timeStr = document.getElementById("eventStartTime").value;
+      var baseZone = document.getElementById("eventBaseZone").value;
+      var loc = document.getElementById("eventLocationInput").value.trim();
+      var desc = document.getElementById("eventDesc").value.trim();
 
       if (!title || !dateStr) { alert("請填寫事項名稱與日期！"); return; }
 
-      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
-      const dummyEv = { time: timeStr, baseZone: baseZone, customUtcOffset: document.getElementById("eventCustomUtcOffset").value };
-      const times = calculateEventTimes(dummyEv, activeUserZone);
+      var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      var dummyEv = { time: timeStr, baseZone: baseZone, customUtcOffset: document.getElementById("eventCustomUtcOffset").value };
+      var times = calculateEventTimes(dummyEv, activeUserZone);
 
-      const cleanStart = dateStr.replace(/-/g, "");
-      let dtStartLine = `DTSTART;VALUE=DATE:${cleanStart}`;
-      let dtEndLine = `DTEND;VALUE=DATE:${cleanStart}`;
+      var cleanStart = dateStr.replace(/-/g, "");
+      var dtStartLine = "DTSTART;VALUE=DATE:" + cleanStart;
+      var dtEndLine = "DTEND;VALUE=DATE:" + cleanStart;
 
       if (timeStr) {
-        const [h, m] = times.localTime.split(':').map(Number);
-        const endH = String((h + 1) % 24).padStart(2, '0');
-        dtStartLine = `DTSTART:${cleanStart}T${times.localTime.replace(':', '')}00`;
-        dtEndLine = `DTEND:${cleanStart}T${endH}${String(m).padStart(2, '0')}00`;
+        var parts = times.localTime.split(':').map(Number);
+        var endH = String((parts[0] + 1) % 24).padStart(2, '0');
+        dtStartLine = "DTSTART:" + cleanStart + "T" + times.localTime.replace(':', '') + "00";
+        dtEndLine = "DTEND:" + cleanStart + "T" + endH + String(parts[1]).padStart(2, '0') + "00";
       } else if (endDateStr && endDateStr > dateStr) {
-        const [ey, em, ed] = endDateStr.split('-').map(Number);
-        const nextDay = new Date(Date.UTC(ey, em - 1, ed + 1));
-        const cleanEnd = nextDay.toISOString().split('T')[0].replace(/-/g, "");
-        dtEndLine = `DTEND;VALUE=DATE:${cleanEnd}`;
+        var ep = endDateStr.split('-').map(Number);
+        var nextDay = new Date(Date.UTC(ep[0], ep[1] - 1, ep[2] + 1));
+        var cleanEnd = nextDay.toISOString().split('T')[0].replace(/-/g, "");
+        dtEndLine = "DTEND;VALUE=DATE:" + cleanEnd;
       }
 
-      const icsData = [
+      var icsData = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
         "PRODID:-//AU WHV Tracker//CN",
         "BEGIN:VEVENT",
-        `UID:${Date.now()}@whv-tracker`,
-        `DTSTAMP:${cleanStart}T000000Z`,
+        "UID:" + Date.now() + "@whv-tracker",
+        "DTSTAMP:" + cleanStart + "T000000Z",
         dtStartLine,
         dtEndLine,
-        `SUMMARY:${title}`,
-        `DESCRIPTION:${desc} ${loc ? '\\n導航: ' + buildGoogleMapsUrl(loc) : ''}`,
-        `LOCATION:${loc}`,
+        "SUMMARY:" + title,
+        "DESCRIPTION:" + desc + (loc ? ('\\n導航: ' + buildGoogleMapsUrl(loc)) : ''),
+        "LOCATION:" + loc,
         "END:VEVENT",
         "END:VCALENDAR"
       ].join("\r\n");
 
-      const blob = new Blob([icsData], { type: "text/calendar;charset=utf-8" });
-      const link = document.createElement("a");
+      var blob = new Blob([icsData], { type: "text/calendar;charset=utf-8" });
+      var link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
-      link.setAttribute("download", `${title}_${dateStr}.ics`);
+      link.setAttribute("download", title + "_" + dateStr + ".ics");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1351,16 +1357,16 @@
     window.triggerAvatarUpload = function() { document.getElementById('avatarFileInput').click(); };
 
     window.handleAvatarFileSelect = function(e) {
-      const file = e.target.files[0];
+      var file = e.target.files[0];
       if (!file || !file.type.startsWith('image/')) return;
 
-      const reader = new FileReader();
+      var reader = new FileReader();
       reader.onload = function(event) {
-        const img = new Image();
+        var img = new Image();
         img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const maxDim = 120;
-          let w = img.width, h = img.height;
+          var canvas = document.createElement('canvas');
+          var maxDim = 120;
+          var w = img.width, h = img.height;
           if (w > h) { if (w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; } }
           else { if (h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; } }
           canvas.width = w; canvas.height = h;
@@ -1381,16 +1387,16 @@
     };
 
     function renderAvatar() {
-      const headerBox = document.getElementById("headerAvatarContainer");
-      const previewBox = document.getElementById("settingsAvatarPreview");
-      const initials = (appState.avatarInitials || "AU").toUpperCase();
+      var headerBox = document.getElementById("headerAvatarContainer");
+      var previewBox = document.getElementById("settingsAvatarPreview");
+      var initials = (appState.avatarInitials || "AU").toUpperCase();
 
       if (appState.avatarImage && appState.avatarImage.trim()) {
-        headerBox.innerHTML = `<img src="${appState.avatarImage}" class="w-full h-full object-cover rounded-full" alt="頭像">`;
-        if (previewBox) previewBox.innerHTML = `<img src="${appState.avatarImage}" class="w-full h-full object-cover rounded-full" alt="預覽">`;
+        headerBox.innerHTML = '<img src="' + appState.avatarImage + '" class="w-full h-full object-cover rounded-full" alt="頭像">';
+        if (previewBox) previewBox.innerHTML = '<img src="' + appState.avatarImage + '" class="w-full h-full object-cover rounded-full" alt="預覽">';
       } else {
-        headerBox.innerHTML = `<span id="headerAvatarText">${initials}</span>`;
-        if (previewBox) previewBox.innerHTML = `<span>${initials}</span>`;
+        headerBox.innerHTML = '<span id="headerAvatarText">' + initials + '</span>';
+        if (previewBox) previewBox.innerHTML = '<span>' + initials + '</span>';
       }
     }
 
@@ -1401,31 +1407,31 @@
     };
 
     function renderTagsListWithOrder() {
-      const container = document.getElementById("tagsListContainer");
-      const tags = appState.tags || [];
+      var container = document.getElementById("tagsListContainer");
+      var tags = appState.tags || [];
 
       if (tags.length === 0) {
-        container.innerHTML = `<p class="text-xs text-stone-400 py-3 text-center">尚無標籤，請在上方新增</p>`;
+        container.innerHTML = '<p class="text-xs text-stone-400 py-3 text-center">尚無標籤，請在上方新增</p>';
         return;
       }
 
-      container.innerHTML = tags.map((tag, idx) => `
-        <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50">
-          <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${getColorBadgeClass(tag.color)}">● ${tag.name}</span>
-          <div class="flex items-center gap-1">
-            <button type="button" onclick="renameTag('${tag.id}')" class="text-stone-500 hover:text-amber-800 text-xs px-1.5 py-0.5 rounded cursor-pointer font-medium" title="修改名稱">✏️ 改名</button>
-            <button type="button" onclick="moveTagOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▲</button>
-            <button type="button" onclick="moveTagOrder(${idx}, 1)" ${idx === tags.length - 1 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▼</button>
-            <button type="button" onclick="deleteTag('${tag.id}')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 cursor-pointer ml-1">刪除</button>
-          </div>
-        </div>
-      `).join('');
+      container.innerHTML = tags.map(function(tag, idx) {
+        return '<div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50">' +
+          '<span class="px-2 py-0.5 rounded text-[11px] font-bold border ' + getColorBadgeClass(tag.color) + '">● ' + tag.name + '</span>' +
+          '<div class="flex items-center gap-1">' +
+            '<button type="button" onclick="renameTag(\'' + tag.id + '\')" class="text-stone-500 hover:text-amber-800 text-xs px-1.5 py-0.5 rounded cursor-pointer font-medium" title="修改名稱">✏️ 改名</button>' +
+            '<button type="button" onclick="moveTagOrder(' + idx + ', -1)" ' + (idx === 0 ? 'disabled' : '') + ' class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▲</button>' +
+            '<button type="button" onclick="moveTagOrder(' + idx + ', 1)" ' + (idx === tags.length - 1 ? 'disabled' : '') + ' class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▼</button>' +
+            '<button type="button" onclick="deleteTag(\'' + tag.id + '\')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 cursor-pointer ml-1">刪除</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
 
     window.renameTag = function(tagId) {
-      const tag = (appState.tags || []).find(t => t.id === tagId);
+      var tag = (appState.tags || []).find(function(t) { return t.id === tagId; });
       if (!tag) return;
-      const newName = prompt(`請輸入「${tag.name}」的新名稱：`, tag.name);
+      var newName = prompt("請輸入「" + tag.name + "」的新名稱：", tag.name);
       if (newName && newName.trim() && newName.trim() !== tag.name) {
         tag.name = newName.trim();
         saveState();
@@ -1435,11 +1441,11 @@
     };
 
     window.moveTagOrder = function(index, delta) {
-      const tags = appState.tags || [];
-      const targetIndex = index + delta;
+      var tags = appState.tags || [];
+      var targetIndex = index + delta;
       if (targetIndex < 0 || targetIndex >= tags.length) return;
 
-      const item = tags.splice(index, 1)[0];
+      var item = tags.splice(index, 1)[0];
       tags.splice(targetIndex, 0, item);
 
       appState.tags = tags;
@@ -1449,11 +1455,11 @@
     };
 
     window.handleAddNewTag = function() {
-      const name = document.getElementById("newTagName").value.trim();
-      const color = document.getElementById("newTagColor").value;
+      var name = document.getElementById("newTagName").value.trim();
+      var color = document.getElementById("newTagColor").value;
       if (!name) return;
       if (!appState.tags) appState.tags = [];
-      appState.tags.push({ id: "t_" + Date.now(), name, color });
+      appState.tags.push({ id: "t_" + Date.now(), name: name, color: color });
       saveState();
       document.getElementById("newTagName").value = "";
       renderTagsListWithOrder();
@@ -1462,7 +1468,7 @@
 
     window.deleteTag = function(tagId) {
       if (confirm("確定要刪除此標籤嗎？")) {
-        appState.tags = appState.tags.filter(t => t.id !== tagId);
+        appState.tags = appState.tags.filter(function(t) { return t.id !== tagId; });
         saveState();
         renderTagsListWithOrder();
         renderCalendar();
@@ -1477,9 +1483,9 @@
 
     window.switchFinanceCategoryTab = function(type) {
       currentManageCatTab = type;
-      const expBtn = document.getElementById("catTabExpense");
-      const incBtn = document.getElementById("catTabIncome");
-      const label = document.getElementById("addCategoryInputLabel");
+      var expBtn = document.getElementById("catTabExpense");
+      var incBtn = document.getElementById("catTabIncome");
+      var label = document.getElementById("addCategoryInputLabel");
 
       if (type === 'expense') {
         expBtn.className = "flex-1 py-1.5 rounded-lg cat-btn-active transition cursor-pointer";
@@ -1495,46 +1501,46 @@
     };
 
     function renderFinanceCategoryList() {
-      const container = document.getElementById("financeCategoriesListContainer");
-      const list = currentManageCatTab === 'expense' 
+      var container = document.getElementById("financeCategoriesListContainer");
+      var list = currentManageCatTab === 'expense' 
         ? (appState.expenseCategories || DEFAULT_EXPENSE_CATS)
         : (appState.incomeCategories || DEFAULT_INCOME_CATS);
 
       if (list.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-stone-400 text-xs">目前尚無自訂類別</div>`;
+        container.innerHTML = '<div class="p-4 text-center text-stone-400 text-xs">目前尚無自訂類別</div>';
         return;
       }
 
-      container.innerHTML = list.map((cat, idx) => `
-        <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50 hover:bg-stone-100 transition">
-          <span class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full ${currentManageCatTab === 'expense' ? 'bg-rose-500' : 'bg-emerald-500'}"></span>
-            ${cat}
-          </span>
-          <div class="flex items-center gap-1">
-            <button type="button" onclick="renameFinanceCategory('${cat}')" class="text-stone-500 hover:text-amber-800 text-xs px-1.5 py-0.5 rounded cursor-pointer font-medium" title="修改名稱">✏️ 改名</button>
-            <button type="button" onclick="moveFinanceCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▲</button>
-            <button type="button" onclick="moveFinanceCategoryOrder(${idx}, 1)" ${idx === list.length - 1 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▼</button>
-            <button type="button" onclick="deleteFinanceCategory('${cat}')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 rounded cursor-pointer ml-1">刪除</button>
-          </div>
-        </div>
-      `).join('');
+      container.innerHTML = list.map(function(cat, idx) {
+        return '<div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50 hover:bg-stone-100 transition">' +
+          '<span class="font-bold text-xs text-stone-800 flex items-center gap-1.5">' +
+            '<span class="w-2 h-2 rounded-full ' + (currentManageCatTab === 'expense' ? 'bg-rose-500' : 'bg-emerald-500') + '"></span>' +
+            cat +
+          '</span>' +
+          '<div class="flex items-center gap-1">' +
+            '<button type="button" onclick="renameFinanceCategory(\'' + cat + '\')" class="text-stone-500 hover:text-amber-800 text-xs px-1.5 py-0.5 rounded cursor-pointer font-medium" title="修改名稱">✏️ 改名</button>' +
+            '<button type="button" onclick="moveFinanceCategoryOrder(' + idx + ', -1)" ' + (idx === 0 ? 'disabled' : '') + ' class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▲</button>' +
+            '<button type="button" onclick="moveFinanceCategoryOrder(' + idx + ', 1)" ' + (idx === list.length - 1 ? 'disabled' : '') + ' class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▼</button>' +
+            '<button type="button" onclick="deleteFinanceCategory(\'' + cat + '\')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 rounded cursor-pointer ml-1">刪除</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
 
     window.renameFinanceCategory = function(oldCatName) {
-      const newName = prompt(`請輸入「${oldCatName}」的新名稱：`, oldCatName);
+      var newName = prompt("請輸入「" + oldCatName + "」的新名稱：", oldCatName);
       if (!newName || !newName.trim() || newName.trim() === oldCatName) return;
-      const finalNewName = newName.trim();
+      var finalNewName = newName.trim();
 
       if (currentManageCatTab === 'expense') {
-        const idx = (appState.expenseCategories || []).indexOf(oldCatName);
+        var idx = (appState.expenseCategories || []).indexOf(oldCatName);
         if (idx !== -1) appState.expenseCategories[idx] = finalNewName;
       } else {
-        const idx = (appState.incomeCategories || []).indexOf(oldCatName);
-        if (idx !== -1) appState.incomeCategories[idx] = finalNewName;
+        var idx2 = (appState.incomeCategories || []).indexOf(oldCatName);
+        if (idx2 !== -1) appState.incomeCategories[idx2] = finalNewName;
       }
 
-      (appState.transactions || []).forEach(tx => {
+      (appState.transactions || []).forEach(function(tx) {
         if (tx.type === currentManageCatTab && tx.category === oldCatName) {
           tx.category = finalNewName;
         }
@@ -1548,11 +1554,11 @@
     };
 
     window.moveFinanceCategoryOrder = function(index, delta) {
-      let list = currentManageCatTab === 'expense' ? (appState.expenseCategories || []) : (appState.incomeCategories || []);
-      const targetIndex = index + delta;
+      var list = currentManageCatTab === 'expense' ? (appState.expenseCategories || []) : (appState.incomeCategories || []);
+      var targetIndex = index + delta;
       if (targetIndex < 0 || targetIndex >= list.length) return;
 
-      const item = list.splice(index, 1)[0];
+      var item = list.splice(index, 1)[0];
       list.splice(targetIndex, 0, item);
 
       if (currentManageCatTab === 'expense') {
@@ -1567,8 +1573,8 @@
     };
 
     window.handleAddNewFinanceCategory = function() {
-      const input = document.getElementById("newCategoryName");
-      const val = input.value.trim();
+      var input = document.getElementById("newCategoryName");
+      var val = input.value.trim();
       if (!val) return;
 
       if (currentManageCatTab === 'expense') {
@@ -1586,11 +1592,11 @@
     };
 
     window.deleteFinanceCategory = function(catName) {
-      if (confirm(`確定刪除「${catName}」類別嗎？`)) {
+      if (confirm("確定刪除「" + catName + "」類別嗎？")) {
         if (currentManageCatTab === 'expense') {
-          appState.expenseCategories = appState.expenseCategories.filter(c => c !== catName);
+          appState.expenseCategories = appState.expenseCategories.filter(function(c) { return c !== catName; });
         } else {
-          appState.incomeCategories = appState.incomeCategories.filter(c => c !== catName);
+          appState.incomeCategories = appState.incomeCategories.filter(function(c) { return c !== catName; });
         }
         saveState();
         renderFinanceCategoryList();
@@ -1599,14 +1605,14 @@
     };
 
     function refreshTxModalCategories() {
-      const type = document.getElementById("txType").value || "expense";
-      const cats = type === 'income' 
+      var type = document.getElementById("txType").value || "expense";
+      var cats = type === 'income' 
         ? (appState.incomeCategories || DEFAULT_INCOME_CATS) 
         : (appState.expenseCategories || DEFAULT_EXPENSE_CATS);
       
-      const selectEl = document.getElementById("txCategorySelect");
+      var selectEl = document.getElementById("txCategorySelect");
       if (selectEl) {
-        selectEl.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        selectEl.innerHTML = cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
       }
     }
 
@@ -1617,36 +1623,36 @@
     };
 
     function renderGearCategoriesList() {
-      const container = document.getElementById("gearCategoriesListContainer");
-      const list = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
+      var container = document.getElementById("gearCategoriesListContainer");
+      var list = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
 
       if (list.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-stone-400 text-xs">目前尚無自訂裝備分類</div>`;
+        container.innerHTML = '<div class="p-4 text-center text-stone-400 text-xs">目前尚無自訂裝備分類</div>';
         return;
       }
 
-      container.innerHTML = list.map((cat, idx) => `
-        <div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50 hover:bg-stone-100 transition">
-          <span class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-amber-800"></span>
-            ${cat}
-          </span>
-          <div class="flex items-center gap-1">
-            <button type="button" onclick="renameGearCategory('${cat}')" class="text-stone-500 hover:text-amber-800 text-xs px-1.5 py-0.5 rounded cursor-pointer font-medium" title="修改名稱">✏️ 改名</button>
-            <button type="button" onclick="moveGearCategoryOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▲</button>
-            <button type="button" onclick="moveGearCategoryOrder(${idx}, 1)" ${idx === list.length - 1 ? 'disabled' : ''} class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▼</button>
-            <button type="button" onclick="deleteGearCategory('${cat}')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 rounded cursor-pointer ml-1">刪除</button>
-          </div>
-        </div>
-      `).join('');
+      container.innerHTML = list.map(function(cat, idx) {
+        return '<div class="flex items-center justify-between p-2 rounded-lg border bg-stone-50 hover:bg-stone-100 transition">' +
+          '<span class="font-bold text-xs text-stone-800 flex items-center gap-1.5">' +
+            '<span class="w-2 h-2 rounded-full bg-amber-800"></span>' +
+            cat +
+          '</span>' +
+          '<div class="flex items-center gap-1">' +
+            '<button type="button" onclick="renameGearCategory(\'' + cat + '\')" class="text-stone-500 hover:text-amber-800 text-xs px-1.5 py-0.5 rounded cursor-pointer font-medium" title="修改名稱">✏️ 改名</button>' +
+            '<button type="button" onclick="moveGearCategoryOrder(' + idx + ', -1)" ' + (idx === 0 ? 'disabled' : '') + ' class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▲</button>' +
+            '<button type="button" onclick="moveGearCategoryOrder(' + idx + ', 1)" ' + (idx === list.length - 1 ? 'disabled' : '') + ' class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold">▼</button>' +
+            '<button type="button" onclick="deleteGearCategory(\'' + cat + '\')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 rounded cursor-pointer ml-1">刪除</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
 
     window.handleAddNewGearCategory = function() {
-      const input = document.getElementById("newGearCategoryInput");
-      const val = input.value.trim();
+      var input = document.getElementById("newGearCategoryInput");
+      var val = input.value.trim();
       if (!val) return;
 
-      if (!appState.gearCategories) appState.gearCategories = [...DEFAULT_GEAR_CATEGORIES];
+      if (!appState.gearCategories) appState.gearCategories = [].concat(DEFAULT_GEAR_CATEGORIES);
       if (!appState.gearCategories.includes(val)) {
         appState.gearCategories.push(val);
       }
@@ -1658,14 +1664,14 @@
     };
 
     window.renameGearCategory = function(oldCatName) {
-      const newName = prompt(`請輸入「${oldCatName}」的新分類名稱：`, oldCatName);
+      var newName = prompt("請輸入「" + oldCatName + "」的新分類名稱：", oldCatName);
       if (!newName || !newName.trim() || newName.trim() === oldCatName) return;
-      const finalNewName = newName.trim();
+      var finalNewName = newName.trim();
 
-      const idx = (appState.gearCategories || []).indexOf(oldCatName);
+      var idx = (appState.gearCategories || []).indexOf(oldCatName);
       if (idx !== -1) appState.gearCategories[idx] = finalNewName;
 
-      (appState.gear || []).forEach(item => {
+      (appState.gear || []).forEach(function(item) {
         if (item.category === oldCatName) {
           item.category = finalNewName;
         }
@@ -1681,11 +1687,11 @@
     };
 
     window.moveGearCategoryOrder = function(index, delta) {
-      const list = appState.gearCategories || [];
-      const targetIndex = index + delta;
+      var list = appState.gearCategories || [];
+      var targetIndex = index + delta;
       if (targetIndex < 0 || targetIndex >= list.length) return;
 
-      const item = list.splice(index, 1)[0];
+      var item = list.splice(index, 1)[0];
       list.splice(targetIndex, 0, item);
 
       appState.gearCategories = list;
@@ -1695,9 +1701,9 @@
     };
 
     window.deleteGearCategory = function(catName) {
-      if (confirm(`確定刪除「${catName}」分類嗎？此分類下的物品將會變更為「未分類物品」。`)) {
-        appState.gearCategories = (appState.gearCategories || []).filter(c => c !== catName);
-        (appState.gear || []).forEach(item => {
+      if (confirm("確定刪除「" + catName + "」分類嗎？此分類下的物品將會變更為「未分類物品」。")) {
+        appState.gearCategories = (appState.gearCategories || []).filter(function(c) { return c !== catName; });
+        (appState.gear || []).forEach(function(item) {
           if (item.category === catName) {
             item.category = "未分類物品";
           }
@@ -1712,8 +1718,8 @@
     };
 
     window.toggleAccordion = function(id) {
-      const el = document.getElementById(id);
-      const icon = document.getElementById(id + "-icon");
+      var el = document.getElementById(id);
+      var icon = document.getElementById(id + "-icon");
       if (el) {
         if (el.classList.contains("hidden")) {
           el.classList.remove("hidden");
@@ -1726,9 +1732,9 @@
     };
 
     window.switchTab = function(tabId) {
-      ['guide', 'finance', 'calendar', 'gear', 'planner'].forEach(t => {
-        const c = document.getElementById('content-' + t);
-        const b = document.getElementById('tab-' + t);
+      ['guide', 'finance', 'calendar', 'gear', 'planner'].forEach(function(t) {
+        var c = document.getElementById('content-' + t);
+        var b = document.getElementById('tab-' + t);
         if (c && b) {
           if (t === tabId) {
             c.classList.remove('hidden');
@@ -1747,12 +1753,12 @@
 
     function init() {
       try {
-        const local = localStorage.getItem("au_de_tracker_data");
+        var local = localStorage.getItem("au_de_tracker_data");
         if (local) appState = Object.assign({}, appState, JSON.parse(local));
       } catch (e) {}
 
       if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
-      appState.tags = appState.tags.filter(t => t.color !== 'stone');
+      appState.tags = appState.tags.filter(function(t) { return t.color !== 'stone'; });
       if (appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
 
       if (!appState.expenseCategories) appState.expenseCategories = DEFAULT_EXPENSE_CATS;
@@ -1763,7 +1769,7 @@
       if (!appState.homeCurrency) appState.homeCurrency = "TWD";
       if (!appState.userTimeZone) appState.userTimeZone = "Australia/Brisbane";
 
-      const fxInput = document.getElementById("fxRateInput");
+      var fxInput = document.getElementById("fxRateInput");
       if (fxInput) fxInput.value = appState.fxRate || 23.0;
 
       applyTitlesAndSettings();
@@ -1771,23 +1777,23 @@
       fetchLiveFxRate(false);
       calculateWireTransfer();
 
-      const savedKey = localStorage.getItem("au_sync_key");
+      var savedKey = localStorage.getItem("au_sync_key");
       if (savedKey) {
-        const keyEl = document.getElementById("syncKeyDirect");
+        var keyEl = document.getElementById("syncKeyDirect");
         if (keyEl) keyEl.value = savedKey;
         connectDirectSync();
       }
     }
 
     function applyTitlesAndSettings() {
-      const getEl = id => document.getElementById(id);
-      const pCurr = appState.primaryCurrency || "AUD";
-      const hCurr = appState.homeCurrency || "TWD";
+      var getEl = function(id) { return document.getElementById(id); };
+      var pCurr = appState.primaryCurrency || "AUD";
+      var hCurr = appState.homeCurrency || "TWD";
 
       if (getEl("headerMainTitle")) getEl("headerMainTitle").textContent = appState.mainTitle;
       if (getEl("headerSubTitle")) getEl("headerSubTitle").textContent = appState.subTitle;
-      if (getEl("primaryPoolTitle")) getEl("primaryPoolTitle").textContent = appState.audPoolTitle || `主要外幣資金池 (${pCurr})`;
-      if (getEl("homePoolTitle")) getEl("homePoolTitle").textContent = appState.twdPoolTitle || `本國資金池 (${hCurr})`;
+      if (getEl("primaryPoolTitle")) getEl("primaryPoolTitle").textContent = appState.audPoolTitle || ("主要外幣資金池 (" + pCurr + ")");
+      if (getEl("homePoolTitle")) getEl("homePoolTitle").textContent = appState.twdPoolTitle || ("本國資金池 (" + hCurr + ")");
       if (getEl("cardTargetDate")) getEl("cardTargetDate").textContent = appState.targetEndDate;
 
       if (getEl("headerPrimaryCurrencyLabel")) getEl("headerPrimaryCurrencyLabel").textContent = pCurr;
@@ -1795,7 +1801,7 @@
       if (getEl("wireHomeCurrLabel")) getEl("wireHomeCurrLabel").textContent = hCurr;
       if (getEl("wireFeeHomeLabel")) getEl("wireFeeHomeLabel").textContent = hCurr;
 
-      document.querySelectorAll(".primaryCurrText").forEach(el => el.textContent = pCurr);
+      document.querySelectorAll(".primaryCurrText").forEach(function(el) { el.textContent = pCurr; });
 
       if (getEl("settingMainTitle")) getEl("settingMainTitle").value = appState.mainTitle;
       if (getEl("settingAvatarInitials")) getEl("settingAvatarInitials").value = appState.avatarInitials || "AU";
@@ -1816,8 +1822,8 @@
     };
 
     window.saveCustomSettings = function() {
-      const oldPCurr = appState.primaryCurrency;
-      const newPCurr = document.getElementById("settingPrimaryCurrency").value;
+      var oldPCurr = appState.primaryCurrency;
+      var newPCurr = document.getElementById("settingPrimaryCurrency").value;
 
       appState.mainTitle = document.getElementById("settingMainTitle").value || "個人旅程儲蓄追蹤";
       appState.avatarInitials = document.getElementById("settingAvatarInitials").value.trim() || "AU";
@@ -1826,8 +1832,8 @@
       appState.subTitle = document.getElementById("settingSubTitle").value || "目標追蹤看板";
       appState.targetNTD = parseFloat(document.getElementById("settingTargetNTD").value) || 400000;
       appState.targetEndDate = document.getElementById("settingTargetDate").value || "2027-06-30";
-      appState.audPoolTitle = document.getElementById("settingAudPoolTitle").value || `主要外幣資金池 (${newPCurr})`;
-      appState.twdPoolTitle = document.getElementById("settingTwdPoolTitle").value || `本國資金池 (${appState.homeCurrency})`;
+      appState.audPoolTitle = document.getElementById("settingAudPoolTitle").value || ("主要外幣資金池 (" + newPCurr + ")");
+      appState.twdPoolTitle = document.getElementById("settingTwdPoolTitle").value || ("本國資金池 (" + appState.homeCurrency + ")");
 
       applyTitlesAndSettings();
       saveState();
@@ -1843,12 +1849,12 @@
 
     function saveState() {
       try { localStorage.setItem("au_de_tracker_data", JSON.stringify(appState)); } catch (e) {}
-      const syncKey = localStorage.getItem("au_sync_key");
+      var syncKey = localStorage.getItem("au_sync_key");
       if (db && syncKey && !isRemoteUpdate) {
         db.collection("sync_data").doc(syncKey).set({
           data: appState,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(err => console.error(err));
+        }).catch(function(err) { console.error(err); });
       }
     }
 
@@ -1864,7 +1870,7 @@
     }
 
     window.updateFxRate = function(val) {
-      const r = parseFloat(val);
+      var r = parseFloat(val);
       if (r > 0) {
         appState.fxRate = r;
         document.getElementById("wireFxRate").value = r;
@@ -1877,14 +1883,14 @@
     };
 
     function renderFinance() {
-      const fx = appState.fxRate || 23.0;
-      const pCurr = appState.primaryCurrency || "AUD";
-      const hCurr = appState.homeCurrency || "TWD";
+      var fx = appState.fxRate || 23.0;
+      var pCurr = appState.primaryCurrency || "AUD";
+      var hCurr = appState.homeCurrency || "TWD";
 
-      let pInc = 0, pExp = 0, hInc = 0, hExp = 0, superRefund = 0;
+      var pInc = 0, pExp = 0, hInc = 0, hExp = 0, superRefund = 0;
 
-      (appState.transactions || []).forEach(t => {
-        const amt = parseFloat(t.amount) || 0;
+      (appState.transactions || []).forEach(function(t) {
+        var amt = parseFloat(t.amount) || 0;
         if (t.currency === pCurr) {
           if (t.type === "income") {
             pInc += amt;
@@ -1896,39 +1902,39 @@
         }
       });
 
-      const pNet = pInc - pExp;
-      const hNet = hInc - hExp;
-      const totalSavingsHome = Math.round((pNet * fx) + (superRefund * fx) + hNet);
-      const targetHome = appState.targetNTD || 400000;
-      const gapHome = targetHome - totalSavingsHome;
-      const pct = Math.min(100, Math.max(0, Math.round((totalSavingsHome / targetHome) * 100)));
+      var pNet = pInc - pExp;
+      var hNet = hInc - hExp;
+      var totalSavingsHome = Math.round((pNet * fx) + (superRefund * fx) + hNet);
+      var targetHome = appState.targetNTD || 400000;
+      var gapHome = targetHome - totalSavingsHome;
+      var pct = Math.min(100, Math.max(0, Math.round((totalSavingsHome / targetHome) * 100)));
 
-      const weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - new Date()) / (1000 * 60 * 60 * 24 * 7)));
-      const weeklyNeedPrimary = gapHome > 0 ? Math.round((gapHome / fx) / weeksLeft) : 0;
+      var weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - new Date()) / (1000 * 60 * 60 * 24 * 7)));
+      var weeklyNeedPrimary = gapHome > 0 ? Math.round((gapHome / fx) / weeksLeft) : 0;
 
-      const getEl = id => document.getElementById(id);
-      if (getEl("targetBadgeText")) getEl("targetBadgeText").textContent = `儲蓄目標：${hCurr} ${targetHome.toLocaleString()} (約 $${Math.round(targetHome/fx).toLocaleString()} ${pCurr})`;
-      if (getEl("totalSavingsNTD")) getEl("totalSavingsNTD").textContent = `${hCurr} ${totalSavingsHome.toLocaleString()}`;
-      if (getEl("totalSavingsPrimary")) getEl("totalSavingsPrimary").textContent = `折合約 $${Math.round(totalSavingsHome / fx).toLocaleString()} ${pCurr}`;
-      if (getEl("remainingGapText")) getEl("remainingGapText").textContent = gapHome > 0 ? `距離達成目標還差 ${hCurr} ${gapHome.toLocaleString()}` : "🎉 恭喜達成儲蓄目標！";
-      if (getEl("progressPercent")) getEl("progressPercent").textContent = `${pct}%`;
-      if (getEl("progressBar")) getEl("progressBar").style.width = `${pct}%`;
-      if (getEl("weeksLeftText")) getEl("weeksLeftText").textContent = `${weeksLeft} 週`;
-      if (getEl("weeklyNeedPrimary")) getEl("weeklyNeedPrimary").textContent = `$${weeklyNeedPrimary.toLocaleString()} ${pCurr}`;
-      if (getEl("superRefundEst")) getEl("superRefundEst").textContent = `$${Math.round(superRefund).toLocaleString()} ${pCurr}`;
+      var getEl = function(id) { return document.getElementById(id); };
+      if (getEl("targetBadgeText")) getEl("targetBadgeText").textContent = "儲蓄目標：" + hCurr + " " + targetHome.toLocaleString() + " (約 $" + Math.round(targetHome/fx).toLocaleString() + " " + pCurr + ")";
+      if (getEl("totalSavingsNTD")) getEl("totalSavingsNTD").textContent = hCurr + " " + totalSavingsHome.toLocaleString();
+      if (getEl("totalSavingsPrimary")) getEl("totalSavingsPrimary").textContent = "折合約 $" + Math.round(totalSavingsHome / fx).toLocaleString() + " " + pCurr;
+      if (getEl("remainingGapText")) getEl("remainingGapText").textContent = gapHome > 0 ? ("距離達成目標還差 " + hCurr + " " + gapHome.toLocaleString()) : "🎉 恭喜達成儲蓄目標！";
+      if (getEl("progressPercent")) getEl("progressPercent").textContent = pct + "%";
+      if (getEl("progressBar")) getEl("progressBar").style.width = pct + "%";
+      if (getEl("weeksLeftText")) getEl("weeksLeftText").textContent = weeksLeft + " 週";
+      if (getEl("weeklyNeedPrimary")) getEl("weeklyNeedPrimary").textContent = "$" + weeklyNeedPrimary.toLocaleString() + " " + pCurr;
+      if (getEl("superRefundEst")) getEl("superRefundEst").textContent = "$" + Math.round(superRefund).toLocaleString() + " " + pCurr;
       
-      if (getEl("primaryBalance")) getEl("primaryBalance").textContent = `$${pNet.toLocaleString()} ${pCurr}`;
-      if (getEl("primaryIncome")) getEl("primaryIncome").textContent = `+$${pInc.toLocaleString()}`;
-      if (getEl("primaryExpense")) getEl("primaryExpense").textContent = `-$${pExp.toLocaleString()}`;
-      if (getEl("homeBalance")) getEl("homeBalance").textContent = `${hCurr} ${hNet.toLocaleString()}`;
-      if (getEl("homeIncome")) getEl("homeIncome").textContent = `+${hCurr} ${hInc.toLocaleString()}`;
-      if (getEl("homeExpense")) getEl("homeExpense").textContent = `-${hCurr} ${hExp.toLocaleString()}`;
+      if (getEl("primaryBalance")) getEl("primaryBalance").textContent = "$" + pNet.toLocaleString() + " " + pCurr;
+      if (getEl("primaryIncome")) getEl("primaryIncome").textContent = "+$" + pInc.toLocaleString();
+      if (getEl("primaryExpense")) getEl("primaryExpense").textContent = "-$" + pExp.toLocaleString();
+      if (getEl("homeBalance")) getEl("homeBalance").textContent = hCurr + " " + hNet.toLocaleString();
+      if (getEl("homeIncome")) getEl("homeIncome").textContent = "+" + hCurr + " " + hInc.toLocaleString();
+      if (getEl("homeExpense")) getEl("homeExpense").textContent = "-" + hCurr + " " + hExp.toLocaleString();
     }
 
     window.setChartPeriod = function(p) {
       chartPeriod = p;
-      ['Week', 'Month', 'All'].forEach(k => {
-        const btn = document.getElementById('chartPeriod' + k);
+      ['Week', 'Month', 'All'].forEach(function(k) {
+        var btn = document.getElementById('chartPeriod' + k);
         if (btn) btn.className = (k.toLowerCase() === p) ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
       });
       renderPieChart();
@@ -1936,31 +1942,31 @@
 
     window.setChartType = function(t) {
       chartType = t;
-      const expBtn = document.getElementById('chartTypeExpense');
-      const incBtn = document.getElementById('chartTypeIncome');
+      var expBtn = document.getElementById('chartTypeExpense');
+      var incBtn = document.getElementById('chartTypeIncome');
       if (expBtn && incBtn) {
         expBtn.className = (t === 'expense') ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
-        incBtn.className = (t === 'income') ? 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
+        incBtn.className = (t === 'income') ? 'px-2.5 py-1 rounded-md font-semibold chart-btn-active transition cursor-pointer' : 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer';
       }
       renderPieChart();
     };
 
     function renderPieChart() {
-      const canvas = document.getElementById('financePieChart');
-      const noDataEl = document.getElementById('chartNoDataText');
-      const legendListEl = document.getElementById('chartLegendList');
+      var canvas = document.getElementById('financePieChart');
+      var noDataEl = document.getElementById('chartNoDataText');
+      var legendListEl = document.getElementById('chartLegendList');
       if (!canvas) return;
 
-      const fx = appState.fxRate || 23.0;
-      const pCurr = appState.primaryCurrency || "AUD";
-      const hCurr = appState.homeCurrency || "TWD";
-      const now = new Date();
+      var fx = appState.fxRate || 23.0;
+      var pCurr = appState.primaryCurrency || "AUD";
+      var hCurr = appState.homeCurrency || "TWD";
+      var now = new Date();
 
-      const filtered = (appState.transactions || []).filter(t => {
+      var filtered = (appState.transactions || []).filter(function(t) {
         if (t.type !== chartType || t.isCustomThird) return false;
-        const tDate = new Date(t.date);
+        var tDate = new Date(t.date);
         if (chartPeriod === 'week') {
-          const diffDays = Math.ceil(Math.abs(now - tDate) / (1000 * 60 * 60 * 24));
+          var diffDays = Math.ceil(Math.abs(now - tDate) / (1000 * 60 * 60 * 24));
           return diffDays <= 7;
         } else if (chartPeriod === 'month') {
           return tDate.getFullYear() === now.getFullYear() && tDate.getMonth() === now.getMonth();
@@ -1968,35 +1974,35 @@
         return true;
       });
 
-      const catTotals = {};
-      let totalAmountHome = 0;
+      var catTotals = {};
+      var totalAmountHome = 0;
 
-      filtered.forEach(t => {
-        const amt = parseFloat(t.amount) || 0;
-        const amtHome = t.currency === pCurr ? (amt * fx) : amt;
-        const cat = t.category || "未分類";
+      filtered.forEach(function(t) {
+        var amt = parseFloat(t.amount) || 0;
+        var amtHome = t.currency === pCurr ? (amt * fx) : amt;
+        var cat = t.category || "未分類";
         catTotals[cat] = (catTotals[cat] || 0) + amtHome;
         totalAmountHome += amtHome;
       });
 
-      const labels = Object.keys(catTotals);
-      const dataValues = Object.values(catTotals);
+      var labels = Object.keys(catTotals);
+      var dataValues = Object.values(catTotals);
 
       if (labels.length === 0 || totalAmountHome === 0) {
         if (pieChartInstance) { pieChartInstance.destroy(); pieChartInstance = null; }
         canvas.classList.add('hidden');
         noDataEl.classList.remove('hidden');
-        legendListEl.innerHTML = `<p class="text-stone-400 py-6 text-center">該區間無雙幣${chartType === 'expense' ? '支出' : '收入'}記錄</p>`;
+        legendListEl.innerHTML = '<p class="text-stone-400 py-6 text-center">該區間無雙幣' + (chartType === 'expense' ? '支出' : '收入') + '記錄</p>';
         return;
       }
 
       canvas.classList.remove('hidden');
       noDataEl.classList.add('hidden');
-      const bgColors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+      var bgColors = labels.map(function(_, i) { return CHART_PALETTE[i % CHART_PALETTE.length]; });
 
       if (pieChartInstance) pieChartInstance.destroy();
 
-      const ctx = canvas.getContext('2d');
+      var ctx = canvas.getContext('2d');
       pieChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -2011,9 +2017,9 @@
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  const val = context.raw || 0;
-                  const pct = Math.round((val / totalAmountHome) * 100);
-                  return ` ${hCurr} ${Math.round(val).toLocaleString()} (${pct}%)`;
+                  var val = context.raw || 0;
+                  var pct = Math.round((val / totalAmountHome) * 100);
+                  return " " + hCurr + " " + Math.round(val).toLocaleString() + " (" + pct + "%)";
                 }
               }
             }
@@ -2022,60 +2028,58 @@
         }
       });
 
-      const sorted = Object.entries(catTotals).sort((a,b) => b[1] - a[1]);
-      legendListEl.innerHTML = sorted.map(([cat, amt], idx) => {
-        const pct = Math.round((amt / totalAmountHome) * 100);
-        const col = CHART_PALETTE[idx % CHART_PALETTE.length];
-        return `
-          <div class="p-2 rounded-lg bg-stone-50 border border-stone-100 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${col}"></span>
-              <span class="font-bold text-stone-800">${cat}</span>
-            </div>
-            <div class="text-right">
-              <span class="font-mono font-bold text-stone-900">${hCurr} ${Math.round(amt).toLocaleString()}</span>
-              <span class="text-[10px] text-stone-500 ml-1 font-mono">(${pct}%)</span>
-            </div>
-          </div>
-        `;
+      var sorted = Object.entries(catTotals).sort(function(a,b) { return b[1] - a[1]; });
+      legendListEl.innerHTML = sorted.map(function(item, idx) {
+        var cat = item[0];
+        var amt = item[1];
+        var pct = Math.round((amt / totalAmountHome) * 100);
+        var col = CHART_PALETTE[idx % CHART_PALETTE.length];
+        return '<div class="p-2 rounded-lg bg-stone-50 border border-stone-100 flex items-center justify-between">' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ' + col + '"></span>' +
+            '<span class="font-bold text-stone-800">' + cat + '</span>' +
+          '</div>' +
+          '<div class="text-right">' +
+            '<span class="font-mono font-bold text-stone-900">' + hCurr + " " + Math.round(amt).toLocaleString() + '</span>' +
+            '<span class="text-[10px] text-stone-500 ml-1 font-mono">(' + pct + '%)</span>' +
+          '</div>' +
+        '</div>';
       }).join('');
     }
 
-    // --- 收支表格渲染 (新增編輯按鈕) ---
+    // --- 收支表格渲染 ---
     function renderTransactions() {
-      const tbody = document.getElementById("transactionTableBody");
+      var tbody = document.getElementById("transactionTableBody");
       if (!tbody) return;
-      const list = (appState.transactions || []).slice().reverse();
+      var list = (appState.transactions || []).slice().reverse();
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-stone-400">目前尚無收支紀錄</td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-stone-400">目前尚無收支紀錄</td></tr>';
         return;
       }
-      tbody.innerHTML = list.map(t => {
-        const isThird = Boolean(t.isCustomThird);
-        return `
-          <tr class="hover:bg-stone-50">
-            <td class="py-2.5 px-4 font-mono">${t.date}</td>
-            <td class="py-2.5 px-3">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
-                ${t.type === 'income' ? '收入' : '支出'}
-              </span>
-            </td>
-            <td class="py-2.5 px-3">
-              <span class="font-bold font-mono ${isThird ? 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]' : 'text-stone-700'}">
-                ${t.currency} ${isThird ? '(獨立)' : ''}
-              </span>
-            </td>
-            <td class="py-2.5 px-3 font-bold text-stone-800">${t.category}</td>
-            <td class="py-2.5 px-4 text-stone-600">${t.note || '-'}</td>
-            <td class="py-2.5 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-900'}">
-              ${t.type === 'income' ? '+' : '-'}${t.amount}
-            </td>
-            <td class="py-2.5 px-3 text-center whitespace-nowrap">
-              <button type="button" onclick="editTx('${t.id}')" class="text-stone-500 hover:text-amber-800 text-xs px-1 cursor-pointer font-medium" title="修改內容">✏️</button>
-              <button type="button" onclick="delTx('${t.id}')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer" title="刪除紀錄">✕</button>
-            </td>
-          </tr>
-        `;
+      tbody.innerHTML = list.map(function(t) {
+        var isThird = Boolean(t.isCustomThird);
+        return '<tr class="hover:bg-stone-50">' +
+          '<td class="py-2.5 px-4 font-mono">' + t.date + '</td>' +
+          '<td class="py-2.5 px-3">' +
+            '<span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700') + '">' +
+              (t.type === 'income' ? '收入' : '支出') +
+            '</span>' +
+          '</td>' +
+          '<td class="py-2.5 px-3">' +
+            '<span class="font-bold font-mono ' + (isThird ? 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]' : 'text-stone-700') + '">' +
+              t.currency + (isThird ? '(獨立)' : '') +
+            '</span>' +
+          '</td>' +
+          '<td class="py-2.5 px-3 font-bold text-stone-800">' + t.category + '</td>' +
+          '<td class="py-2.5 px-4 text-stone-600">' + (t.note || '-') + '</td>' +
+          '<td class="py-2.5 px-4 text-right font-mono font-bold ' + (t.type === 'income' ? 'text-emerald-600' : 'text-stone-900') + '">' +
+            (t.type === 'income' ? '+' : '-') + t.amount +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-center whitespace-nowrap">' +
+            '<button type="button" onclick="editTx(\'' + t.id + '\')" class="text-stone-500 hover:text-amber-800 text-xs px-1 cursor-pointer font-medium" title="修改內容">✏️</button>' +
+            '<button type="button" onclick="delTx(\'' + t.id + '\')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer" title="刪除紀錄">✕</button>' +
+          '</td>' +
+        '</tr>';
       }).join('');
     }
 
@@ -2086,20 +2090,18 @@
       document.getElementById("txAmount").value = existingTx ? existingTx.amount : "";
       document.getElementById("txNote").value = existingTx ? existingTx.note : "";
       
-      const effectiveType = existingTx ? existingTx.type : type;
+      var effectiveType = existingTx ? existingTx.type : type;
       document.getElementById("txModalTitle").textContent = existingTx 
-        ? `修改${effectiveType === 'income' ? '收入' : '支出'}紀錄` 
+        ? ("修改" + (effectiveType === 'income' ? '收入' : '支出') + "紀錄")
         : (effectiveType === 'income' ? '記一筆收入' : '記一筆支出');
 
-      const pCurr = appState.primaryCurrency || "AUD";
-      const hCurr = appState.homeCurrency || "TWD";
+      var pCurr = appState.primaryCurrency || "AUD";
+      var hCurr = appState.homeCurrency || "TWD";
 
-      const currSelect = document.getElementById("txCurrency");
-      currSelect.innerHTML = `
-        <option value="${pCurr}">${pCurr} (主要外幣)</option>
-        <option value="${hCurr}">${hCurr} (本國幣別)</option>
-        <option value="CUSTOM_THIRD">＋ 自訂第三幣別 (獨立紀錄)</option>
-      `;
+      var currSelect = document.getElementById("txCurrency");
+      currSelect.innerHTML = '<option value="' + pCurr + '">' + pCurr + ' (主要外幣)</option>' +
+        '<option value="' + hCurr + '">' + hCurr + ' (本國幣別)</option>' +
+        '<option value="CUSTOM_THIRD">＋ 自訂第三幣別 (獨立紀錄)</option>';
 
       if (existingTx) {
         if (existingTx.isCustomThird) {
@@ -2128,44 +2130,44 @@
     };
 
     window.editTx = function(id) {
-      const tx = (appState.transactions || []).find(t => t.id === id);
+      var tx = (appState.transactions || []).find(function(t) { return t.id === id; });
       if (tx) {
         openTxModal(tx.type, tx);
       }
     };
 
     window.handleTxCurrencyChange = function() {
-      const val = document.getElementById("txCurrency").value;
-      const thirdArea = document.getElementById("thirdCurrencyArea");
-      const superBox = document.getElementById("txSuperOption");
-      const pCurr = appState.primaryCurrency || "AUD";
+      var val = document.getElementById("txCurrency").value;
+      var thirdArea = document.getElementById("thirdCurrencyArea");
+      var superBox = document.getElementById("txSuperOption");
+      var pCurr = appState.primaryCurrency || "AUD";
 
       if (val === "CUSTOM_THIRD") thirdArea.classList.remove("hidden");
       else thirdArea.classList.add("hidden");
 
-      const isAudInc = (val === "AUD" || (val === pCurr && pCurr === "AUD")) && document.getElementById("txType").value === "income";
+      var isAudInc = (val === "AUD" || (val === pCurr && pCurr === "AUD")) && document.getElementById("txType").value === "income";
       if (superBox) superBox.classList.toggle("hidden", !isAudInc);
     };
 
     window.handleSaveTx = function(e) {
       e.preventDefault();
-      const id = document.getElementById("txId").value;
-      const type = document.getElementById("txType").value;
-      const currVal = document.getElementById("txCurrency").value;
-      const finalCat = document.getElementById("txCategorySelect").value || (type === 'income' ? '其他收入' : '其他雜項');
+      var id = document.getElementById("txId").value;
+      var type = document.getElementById("txType").value;
+      var currVal = document.getElementById("txCurrency").value;
+      var finalCat = document.getElementById("txCategorySelect").value || (type === 'income' ? '其他收入' : '其他雜項');
 
-      let finalCurrency = currVal;
-      let isCustomThird = false;
-      let customRate = 1.0;
+      var finalCurrency = currVal;
+      var isCustomThird = false;
+      var customRate = 1.0;
 
       if (currVal === "CUSTOM_THIRD") {
-        const code = document.getElementById("txCustomCurrencyCode").value.trim().toUpperCase() || "ETC";
+        var code = document.getElementById("txCustomCurrencyCode").value.trim().toUpperCase() || "ETC";
         finalCurrency = code;
         isCustomThird = true;
         customRate = parseFloat(document.getElementById("txCustomCurrencyRate").value) || 1.0;
       }
 
-      const txData = {
+      var txData = {
         id: id || ("tx_" + Date.now()),
         type: type,
         currency: finalCurrency,
@@ -2181,7 +2183,7 @@
       if (!appState.transactions) appState.transactions = [];
 
       if (id) {
-        const idx = appState.transactions.findIndex(t => t.id === id);
+        var idx = appState.transactions.findIndex(function(t) { return t.id === id; });
         if (idx !== -1) appState.transactions[idx] = txData;
       } else {
         appState.transactions.push(txData);
@@ -2197,7 +2199,7 @@
 
     window.delTx = function(id) {
       if (confirm("確定刪除這筆紀錄？")) {
-        appState.transactions = appState.transactions.filter(t => t.id !== id);
+        appState.transactions = appState.transactions.filter(function(t) { return t.id !== id; });
         saveState();
         renderFinance();
         renderTransactions();
@@ -2206,97 +2208,90 @@
       }
     };
 
-    // --- 日曆渲染 (省略標籤文字，支援取消灰色劃線與改期) ---
+    // --- 日曆渲染 ---
     function renderCalendar() {
-      const year = calendarDate.getFullYear();
-      const month = calendarDate.getMonth();
-      const titleEl = document.getElementById("calendarMonthTitle");
-      if (titleEl) titleEl.textContent = `${year} 年 ${month + 1} 月`;
-      const grid = document.getElementById("calendarGrid");
+      var year = calendarDate.getFullYear();
+      var month = calendarDate.getMonth();
+      var titleEl = document.getElementById("calendarMonthTitle");
+      if (titleEl) titleEl.textContent = year + " 年 " + (month + 1) + " 月";
+      var grid = document.getElementById("calendarGrid");
       if (!grid) return;
       grid.innerHTML = "";
 
-      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
-      const tzSelect = document.getElementById("userCurrentTimeZone");
+      var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      var tzSelect = document.getElementById("userCurrentTimeZone");
       if (tzSelect) tzSelect.value = activeUserZone;
 
-      const legendEl = document.getElementById("eventCategoryLegend");
+      var legendEl = document.getElementById("eventCategoryLegend");
       if (legendEl) {
-        legendEl.innerHTML = (appState.tags || []).map(t => `
-          <span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${getColorBadgeClass(t.color)}">● ${t.name}</span>
-        `).join('');
+        legendEl.innerHTML = (appState.tags || []).map(function(t) {
+          return '<span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ' + getColorBadgeClass(t.color) + '">● ' + t.name + '</span>';
+        }).join('');
       }
 
-      const firstDay = new Date(year, month, 1).getDay();
-      const totalDays = new Date(year, month + 1, 0).getDate();
-      const prevTotalDays = new Date(year, month, 0).getDate();
+      var firstDay = new Date(year, month, 1).getDay();
+      var totalDays = new Date(year, month + 1, 0).getDate();
+      var prevTotalDays = new Date(year, month, 0).getDate();
 
-      // 上月墊檔
-      for (let i = firstDay - 1; i >= 0; i--) {
-        grid.innerHTML += `<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">${prevTotalDays - i}</span></div>`;
+      for (var i = firstDay - 1; i >= 0; i--) {
+        grid.innerHTML += '<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">' + (prevTotalDays - i) + '</span></div>';
       }
 
-      // 當月天數
-      for (let day = 1; day <= totalDays; day++) {
-        const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      for (var day = 1; day <= totalDays; day++) {
+        var dStr = year + "-" + String(month + 1).padStart(2, '0') + "-" + String(day).padStart(2, '0');
         
-        const evs = (appState.events || []).filter(e => {
+        var evs = (appState.events || []).filter(function(e) {
           if (e.endDate && e.endDate > e.date) {
             return dStr >= e.date && dStr <= e.endDate;
           }
           return e.date === dStr;
         });
 
-        grid.innerHTML += `
-          <div onclick="openAddEventForDate('${dStr}')" class="bg-white min-h-[90px] p-1.5 hover:bg-stone-50 transition cursor-pointer flex flex-col justify-between">
-            <div>
-              <span class="font-mono text-xs font-semibold text-stone-700">${day}</span>
-              <div class="mt-1 space-y-1">
-                ${evs.map(e => {
-                  const tag = (appState.tags || []).find(t => t.id === e.tagId) || { name: '待辦', color: 'rose' };
-                  const locVal = e.location || e.mapUrl || "";
-                  const hasLocation = Boolean(locVal && locVal.trim());
-                  const isCancelled = e.status === "cancelled";
-                  const isCompleted = e.status === "completed";
+        var dayEventsHtml = evs.map(function(e) {
+          var tag = (appState.tags || []).find(function(t) { return t.id === e.tagId; }) || { name: '待辦', color: 'rose' };
+          var locVal = e.location || e.mapUrl || "";
+          var hasLocation = Boolean(locVal && locVal.trim());
+          var isCancelled = e.status === "cancelled";
+          var isCompleted = e.status === "completed";
 
-                  let spanBadge = "";
-                  if (e.endDate && e.endDate > e.date) {
-                    if (dStr === e.date) spanBadge = `<span class="text-[9px] font-bold text-amber-800 mr-0.5">▶起</span>`;
-                    else if (dStr === e.endDate) spanBadge = `<span class="text-[9px] font-bold text-rose-700 mr-0.5">■迄</span>`;
-                    else spanBadge = `<span class="text-[9px] text-stone-400 mr-0.5">~</span>`;
-                  }
+          var spanBadge = "";
+          if (e.endDate && e.endDate > e.date) {
+            if (dStr === e.date) spanBadge = '<span class="text-[9px] font-bold text-amber-800 mr-0.5">▶起</span>';
+            else if (dStr === e.endDate) spanBadge = '<span class="text-[9px] font-bold text-rose-700 mr-0.5">■迄</span>';
+            else spanBadge = '<span class="text-[9px] text-stone-400 mr-0.5">~</span>';
+          }
 
-                  let timeBadge = "";
-                  if (e.time && (!e.endDate || e.endDate === e.date)) {
-                    const times = calculateEventTimes(e, activeUserZone);
-                    timeBadge = `<span class="font-mono text-[9px] block ${isCancelled ? 'text-stone-400' : 'text-stone-500'} leading-tight">📍${times.localTime} (台${times.twTime})</span>`;
-                  }
+          var timeBadge = "";
+          if (e.time && (!e.endDate || e.endDate === e.date)) {
+            var times = calculateEventTimes(e, activeUserZone);
+            timeBadge = '<span class="font-mono text-[9px] block ' + (isCancelled ? 'text-stone-400' : 'text-stone-500') + ' leading-tight">📍' + times.localTime + ' (台' + times.twTime + ')</span>';
+          }
 
-                  const styleClass = isCancelled 
-                    ? 'bg-stone-200 text-stone-400 border-stone-300 line-through' 
-                    : (isCompleted ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold' : getColorBadgeClass(tag.color));
+          var styleClass = isCancelled 
+            ? 'bg-stone-200 text-stone-400 border-stone-300 line-through' 
+            : (isCompleted ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold' : getColorBadgeClass(tag.color));
 
-                  return `
-                    <div onclick="openEditEvent('${e.id}', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ${styleClass}">
-                      <div class="flex items-center justify-between gap-1 truncate">
-                        <span class="truncate">${spanBadge}${isCompleted ? '✓ ' : ''}${e.title}</span>
-                        ${hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含地點">📍</span>' : ''}
-                      </div>
-                      ${timeBadge}
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          </div>
-        `;
+          return '<div onclick="openEditEvent(\'' + e.id + '\', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-medium ' + styleClass + '">' +
+            '<div class="flex items-center justify-between gap-1 truncate">' +
+              '<span class="truncate">' + spanBadge + (isCompleted ? '✓ ' : '') + e.title + '</span>' +
+              (hasLocation ? '<span class="flex-shrink-0 text-[10px]" title="包含地點">📍</span>' : '') +
+            '</div>' +
+            timeBadge +
+          '</div>';
+        }).join('');
+
+        grid.innerHTML += '<div onclick="openAddEventForDate(\'' + dStr + '\')" class="bg-white min-h-[90px] p-1.5 hover:bg-stone-50 transition cursor-pointer flex flex-col justify-between">' +
+          '<div>' +
+            '<span class="font-mono text-xs font-semibold text-stone-700">' + day + '</span>' +
+            '<div class="mt-1 space-y-1">' + dayEventsHtml + '</div>' +
+          '</div>' +
+        '</div>';
       }
 
-      // 下月墊檔
-      const currentCellCount = firstDay + totalDays;
-      const nextMonthDays = (7 - (currentCellCount % 7)) % 7;
-      for (let j = 1; j <= nextMonthDays; j++) {
-        grid.innerHTML += `<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">${j}</span></div>`;
+      var currentCellCount = firstDay + totalDays;
+      var nextMonthDays = (7 - (currentCellCount % 7)) % 7;
+      for (var j = 1; j <= nextMonthDays; j++) {
+        grid.innerHTML += '<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">' + j + '</span></div>';
       }
     }
 
@@ -2327,8 +2322,8 @@
       document.getElementById("eventActionsArea").classList.add("hidden");
       document.getElementById("timezoneConvertPreview").classList.add("hidden");
 
-      const tagSelect = document.getElementById("eventTagSelect");
-      tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}">● ${t.name}</option>`).join('');
+      var tagSelect = document.getElementById("eventTagSelect");
+      tagSelect.innerHTML = (appState.tags || []).map(function(t) { return '<option value="' + t.id + '">● ' + t.name + '</option>'; }).join('');
       document.getElementById("eventModal").classList.remove("hidden");
     };
 
@@ -2340,7 +2335,7 @@
     window.openEditEvent = function(id, evt) {
       evt.stopPropagation();
       currentEditingEventId = id;
-      const ev = (appState.events || []).find(e => e.id === id);
+      var ev = (appState.events || []).find(function(e) { return e.id === id; });
       if (!ev) return;
       document.getElementById("eventId").value = ev.id;
       document.getElementById("eventTitle").value = ev.title;
@@ -2352,37 +2347,37 @@
       document.getElementById("rescheduleGroup").classList.add("hidden");
       document.getElementById("eventRescheduleDate").value = "";
 
-      const bZone = ev.baseZone || "LOCAL";
+      var bZone = ev.baseZone || "LOCAL";
       document.getElementById("eventBaseZone").value = bZone;
       document.getElementById("eventCustomUtcOffset").value = ev.customUtcOffset || "3";
       
-      const customGroup = document.getElementById("customUtcInputGroup");
+      var customGroup = document.getElementById("customUtcInputGroup");
       if (bZone === "CUSTOM_UTC") customGroup.classList.remove("hidden");
       else customGroup.classList.add("hidden");
 
-      const locVal = ev.location || ev.mapUrl || "";
+      var locVal = ev.location || ev.mapUrl || "";
       document.getElementById("eventLocationInput").value = locVal;
       document.getElementById("eventDesc").value = ev.desc || "";
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
       document.getElementById("eventCopyMoveArea").classList.remove("hidden");
 
-      const actionsArea = document.getElementById("eventActionsArea");
-      const mapBtn = document.getElementById("eventMapDirectLink");
-      const mapBtnText = document.getElementById("eventMapDirectLinkText");
+      var actionsArea = document.getElementById("eventActionsArea");
+      var mapBtn = document.getElementById("eventMapDirectLink");
+      var mapBtnText = document.getElementById("eventMapDirectLinkText");
 
       actionsArea.classList.remove("hidden");
 
       if (locVal && locVal.trim()) {
         mapBtn.href = buildGoogleMapsUrl(locVal);
-        mapBtnText.textContent = locVal.startsWith("http") ? "🗺️ 開啟 Google Maps 連結 ↗" : `🗺️ 前往導航：「${locVal.substring(0, 16)}...」↗`;
+        mapBtnText.textContent = locVal.startsWith("http") ? "🗺️ 開啟 Google Maps 連結 ↗" : ("🗺️ 前往導航：「" + locVal.substring(0, 16) + "...」↗");
         mapBtn.classList.remove("hidden");
       } else {
         mapBtn.classList.add("hidden");
       }
 
-      const tagSelect = document.getElementById("eventTagSelect");
-      tagSelect.innerHTML = (appState.tags || []).map(t => `<option value="${t.id}" ${t.id === ev.tagId ? 'selected' : ''}>● ${t.name}</option>`).join('');
+      var tagSelect = document.getElementById("eventTagSelect");
+      tagSelect.innerHTML = (appState.tags || []).map(function(t) { return '<option value="' + t.id + '" ' + (t.id === ev.tagId ? 'selected' : '') + '>● ' + t.name + '</option>'; }).join('');
 
       handleEventStatusChange();
       updateEventTimePreview();
@@ -2391,22 +2386,22 @@
 
     window.handleSaveEvent = function(e) {
       e.preventDefault();
-      const id = document.getElementById("eventId").value;
-      const loc = document.getElementById("eventLocationInput").value.trim();
-      const activeUserZone = appState.userTimeZone || "Australia/Brisbane";
-      const bZone = document.getElementById("eventBaseZone").value;
-      let startDate = document.getElementById("eventDate").value;
-      let endDate = document.getElementById("eventEndDate").value;
-      const status = document.getElementById("eventStatus").value;
-      let desc = document.getElementById("eventDesc").value.trim();
+      var id = document.getElementById("eventId").value;
+      var loc = document.getElementById("eventLocationInput").value.trim();
+      var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      var bZone = document.getElementById("eventBaseZone").value;
+      var startDate = document.getElementById("eventDate").value;
+      var endDate = document.getElementById("eventEndDate").value;
+      var status = document.getElementById("eventStatus").value;
+      var desc = document.getElementById("eventDesc").value.trim();
 
       if (status === "rescheduled") {
-        const newDate = document.getElementById("eventRescheduleDate").value;
+        var newDate = document.getElementById("eventRescheduleDate").value;
         if (!newDate) {
           alert("請選擇改期後的新日期！");
           return;
         }
-        desc = `[原定: ${startDate}] ${desc}`.trim();
+        desc = ("[原定: " + startDate + "] " + desc).trim();
         startDate = newDate;
         endDate = "";
       }
@@ -2415,7 +2410,7 @@
         endDate = startDate;
       }
 
-      const newEv = {
+      var newEv = {
         id: id || ("ev_" + Date.now()),
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
@@ -2433,7 +2428,7 @@
 
       if (!appState.events) appState.events = [];
       if (id) {
-        const idx = appState.events.findIndex(ev => ev.id === id);
+        var idx = appState.events.findIndex(function(ev) { return ev.id === id; });
         if (idx !== -1) appState.events[idx] = newEv;
       } else {
         appState.events.push(newEv);
@@ -2447,7 +2442,7 @@
 
     window.deleteCurrentEvent = function() {
       if (currentEditingEventId && confirm("確定刪除此事項？")) {
-        appState.events = appState.events.filter(e => e.id !== currentEditingEventId);
+        appState.events = appState.events.filter(function(e) { return e.id !== currentEditingEventId; });
         saveState();
         closeModal("eventModal");
         renderCalendar();
@@ -2455,70 +2450,66 @@
       }
     };
 
-    // --- 裝備清單渲染模組 (支援編輯已登入物品) ---
+    // --- 裝備清單渲染模組 ---
     function renderGear() {
-      const tabsContainer = document.getElementById("gearCategoryTabs");
-      const itemsContainer = document.getElementById("gearItemsContainer");
+      var tabsContainer = document.getElementById("gearCategoryTabs");
+      var itemsContainer = document.getElementById("gearItemsContainer");
       if (!tabsContainer || !itemsContainer) return;
 
-      const categoriesList = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
-      const gearList = appState.gear || DEFAULT_GEAR;
+      var categoriesList = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
+      var gearList = appState.gear || DEFAULT_GEAR;
 
       if (currentSelectedGearCategory !== "ALL" && !categoriesList.includes(currentSelectedGearCategory)) {
         currentSelectedGearCategory = "ALL";
       }
 
-      const total = gearList.length;
-      const done = gearList.filter(g => g.checked).length;
-      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-      const progressText = document.getElementById("gearProgressText");
-      if (progressText) progressText.textContent = `完成度：${done} / ${total} (${pct}%)`;
+      var total = gearList.length;
+      var done = gearList.filter(function(g) { return g.checked; }).length;
+      var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      var progressText = document.getElementById("gearProgressText");
+      if (progressText) progressText.textContent = "完成度：" + done + " / " + total + " (" + pct + "%)";
 
-      let tabsHtml = `
-        <button type="button" onclick="selectGearCategory('ALL')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ${currentSelectedGearCategory === 'ALL' ? 'gear-cat-active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'}">
-          全部物品 (${total})
-        </button>
-      `;
+      var tabsHtml = '<button type="button" onclick="selectGearCategory(\'ALL\')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ' + (currentSelectedGearCategory === 'ALL' ? 'gear-cat-active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+        '全部物品 (' + total + ')' +
+      '</button>';
 
-      categoriesList.forEach(cat => {
-        const catItems = gearList.filter(g => g.category === cat);
-        const catDone = catItems.filter(g => g.checked).length;
-        const isActive = currentSelectedGearCategory === cat;
-        tabsHtml += `
-          <button type="button" onclick="selectGearCategory('${cat}')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ${isActive ? 'gear-cat-active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'}">
-            ${cat} (${catDone}/${catItems.length})
-          </button>
-        `;
+      categoriesList.forEach(function(cat) {
+        var catItems = gearList.filter(function(g) { return g.category === cat; });
+        var catDone = catItems.filter(function(g) { return g.checked; }).length;
+        var isActive = currentSelectedGearCategory === cat;
+        tabsHtml += '<button type="button" onclick="selectGearCategory(\'' + cat + '\')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ' + (isActive ? 'gear-cat-active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+          cat + ' (' + catDone + '/' + catItems.length + ')' +
+        '</button>';
       });
       tabsContainer.innerHTML = tabsHtml;
 
-      const filteredItems = currentSelectedGearCategory === "ALL" 
+      var filteredItems = currentSelectedGearCategory === "ALL" 
         ? gearList 
-        : gearList.filter(g => g.category === currentSelectedGearCategory);
+        : gearList.filter(function(g) { return g.category === currentSelectedGearCategory; });
 
       if (filteredItems.length === 0) {
-        itemsContainer.innerHTML = `<div class="p-8 text-center text-stone-400 text-xs">該分類尚無任何物品，點擊右上角新增物品吧！</div>`;
+        itemsContainer.innerHTML = '<div class="p-8 text-center text-stone-400 text-xs">該分類尚無任何物品，點擊右上角新增物品吧！</div>';
         return;
       }
 
-      itemsContainer.innerHTML = filteredItems.map(item => `
-        <div class="flex items-start justify-between p-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-white hover:border-amber-700/40 transition">
-          <label class="flex items-start gap-2.5 cursor-pointer flex-1">
-            <input type="checkbox" onchange="toggleGear('${item.id}', this.checked)" ${item.checked ? 'checked' : ''} class="mt-0.5 rounded text-amber-800 w-4 h-4 cursor-pointer">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold ${item.checked ? 'line-through text-stone-400' : 'text-stone-800'}">${item.label}</span>
-                ${currentSelectedGearCategory === 'ALL' ? `<span class="px-1.5 py-0.2 bg-stone-200 text-stone-600 rounded text-[10px]">${item.category}</span>` : ''}
-              </div>
-              ${item.sublines && item.sublines.length ? `<p class="text-[11px] text-stone-500 mt-0.5 leading-relaxed">${item.sublines.join(' / ')}</p>` : ''}
-            </div>
-          </label>
-          <div class="flex items-center gap-1.5">
-            <button type="button" onclick="editGearItem('${item.id}')" class="text-stone-400 hover:text-amber-800 text-xs p-1 cursor-pointer font-medium" title="修改內容">✏️</button>
-            <button type="button" onclick="deleteGearItem('${item.id}')" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer transition" title="刪除此物品">✕</button>
-          </div>
-        </div>
-      `).join('');
+      itemsContainer.innerHTML = filteredItems.map(function(item) {
+        return '<div class="flex items-start justify-between p-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-white hover:border-amber-700/40 transition">' +
+          '<label class="flex items-start gap-2.5 cursor-pointer flex-1">' +
+            '<input type="checkbox" onchange="toggleGear(\'' + item.id + '\', this.checked)" ' + (item.checked ? 'checked' : '') + ' class="mt-0.5 rounded text-amber-800 w-4 h-4 cursor-pointer">' +
+            '<div>' +
+              '<div class="flex items-center gap-2">' +
+                '<span class="text-xs font-bold ' + (item.checked ? 'line-through text-stone-400' : 'text-stone-800') + '">' + item.label + '</span>' +
+                (currentSelectedGearCategory === 'ALL' ? ('<span class="px-1.5 py-0.2 bg-stone-200 text-stone-600 rounded text-[10px]">' + item.category + '</span>') : '') +
+              '</div>' +
+              (item.sublines && item.sublines.length ? ('<p class="text-[11px] text-stone-500 mt-0.5 leading-relaxed">' + item.sublines.join(' / ') + '</p>') : '') +
+            '</div>' +
+          '</label>' +
+          '<div class="flex items-center gap-1.5">' +
+            '<button type="button" onclick="editGearItem(\'' + item.id + '\')" class="text-stone-400 hover:text-amber-800 text-xs p-1 cursor-pointer font-medium" title="修改內容">✏️</button>' +
+            '<button type="button" onclick="deleteGearItem(\'' + item.id + '\')" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer transition" title="刪除此物品">✕</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
 
     window.selectGearCategory = function(cat) {
@@ -2527,7 +2518,7 @@
     };
 
     window.toggleGear = function(id, chk) {
-      const item = (appState.gear || []).find(g => g.id === id);
+      var item = (appState.gear || []).find(function(g) { return g.id === id; });
       if (item) {
         item.checked = chk;
         saveState();
@@ -2541,9 +2532,9 @@
       document.getElementById("gearSubline").value = (existingItem && existingItem.sublines) ? existingItem.sublines.join(' / ') : "";
       document.getElementById("gearModalTitle").textContent = existingItem ? "修改裝備物品" : "新增裝備物品";
 
-      const cats = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
-      const selectEl = document.getElementById("gearCategorySelect");
-      selectEl.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+      var cats = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
+      var selectEl = document.getElementById("gearCategorySelect");
+      selectEl.innerHTML = cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
       
       if (existingItem) {
         selectEl.value = existingItem.category;
@@ -2557,7 +2548,7 @@
     };
 
     window.editGearItem = function(id) {
-      const item = (appState.gear || []).find(g => g.id === id);
+      var item = (appState.gear || []).find(function(g) { return g.id === id; });
       if (item) {
         openAddGearModal(item);
       }
@@ -2565,15 +2556,15 @@
 
     window.handleSaveGearItem = function(e) {
       e.preventDefault();
-      const id = document.getElementById("gearId").value;
-      const cat = document.getElementById("gearCategorySelect").value || "修繕自修與固定";
-      const label = document.getElementById("gearLabel").value.trim();
-      const sub = document.getElementById("gearSubline").value.trim();
+      var id = document.getElementById("gearId").value;
+      var cat = document.getElementById("gearCategorySelect").value || "修繕自修與固定";
+      var label = document.getElementById("gearLabel").value.trim();
+      var sub = document.getElementById("gearSubline").value.trim();
       
       if (!appState.gear) appState.gear = [];
 
       if (id) {
-        const item = appState.gear.find(g => g.id === id);
+        var item = appState.gear.find(function(g) { return g.id === id; });
         if (item) {
           item.label = label;
           item.category = cat;
@@ -2597,15 +2588,15 @@
 
     window.deleteGearItem = function(id) {
       if (confirm("確定刪除此項目？")) {
-        appState.gear = appState.gear.filter(g => g.id !== id);
+        appState.gear = appState.gear.filter(function(g) { return g.id !== id; });
         saveState();
         renderGear();
       }
     };
 
-    // --- 安全雙向同步機制 (防空資料覆蓋) ---
+    // --- 安全雙向同步機制 ---
     window.connectDirectSync = function() {
-      const key = document.getElementById("syncKeyDirect").value.trim();
+      var key = document.getElementById("syncKeyDirect").value.trim();
       if (!key) { alert("請輸入一組自訂的同步密碼！"); return; }
 
       try {
@@ -2613,19 +2604,19 @@
         db = firebase.firestore();
 
         localStorage.setItem("au_sync_key", key);
-        const btn = document.getElementById("syncDirectBtn");
+        var btn = document.getElementById("syncDirectBtn");
         btn.textContent = "連線中...";
 
         if (syncUnsubscribe) syncUnsubscribe();
 
-        syncUnsubscribe = db.collection("sync_data").doc(key).onSnapshot(doc => {
+        syncUnsubscribe = db.collection("sync_data").doc(key).onSnapshot(function(doc) {
           btn.textContent = "🟢 同步中";
           btn.className = "ml-1 px-2.5 py-1 bg-emerald-600 text-white rounded font-semibold text-xs cursor-pointer";
           if (doc.exists) {
-            const remote = doc.data().data;
+            var remote = doc.data().data;
             if (remote) {
-              const remoteEventCount = (remote.events || []).length;
-              const localEventCount = (appState.events || []).length;
+              var remoteEventCount = (remote.events || []).length;
+              var localEventCount = (appState.events || []).length;
 
               if (remoteEventCount === 0 && localEventCount > 0) {
                 console.warn("雲端為空但本地有資料，自動將本地完整資料推上雲端保護...");
@@ -2646,7 +2637,7 @@
               saveState();
             }
           }
-        }, err => {
+        }, function(err) {
           console.error(err);
           btn.textContent = "連線失敗";
           btn.className = "ml-1 px-2.5 py-1 bg-rose-600 text-white rounded font-semibold text-xs cursor-pointer";
@@ -2657,15 +2648,15 @@
     };
 
     window.exportData = function() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-      const a = document.createElement('a');
+      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+      var a = document.createElement('a');
       a.href = dataStr;
-      a.download = `finance_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = "finance_backup_" + (new Date().toISOString().split('T')[0]) + ".json";
       a.click();
     };
 
     window.closeModal = function(id) {
-      const el = document.getElementById(id);
+      var el = document.getElementById(id);
       if (el) el.classList.add("hidden");
     };
 
@@ -2673,9 +2664,10 @@
     // --- 工時規劃器模組 (Planner Module) ---
     // ==========================================
     (function(){
-      const fmt = function(n) { return Math.round(n).toLocaleString(); };
-      const PRE = { casual: [1.2, 1.4], pt: [1.25, 1.5], ft: [1.25, 1.5] };
-      const defs = function() {
+      var fmt = function(n) { return Math.round(n).toLocaleString(); };
+      var PRE = { casual: [1.2, 1.4], pt: [1.25, 1.5], ft: [1.25, 1.5] };
+      
+      var defs = function() {
         return {
           rent: 260,
           misc: 120,
@@ -2690,223 +2682,230 @@
         };
       };
 
-      const P = function() {
+      var P = function() {
         if (!appState.planner) {
           appState.planner = defs();
         } else {
-          if (appState.planner.rent == null) appState.planner.rent = 260;
-          if (appState.planner.misc == null) appState.planner.misc = 120;
-          if (appState.planner.customWeeks == null) appState.planner.customWeeks = '';
+          if (appState.planner.rent === undefined || appState.planner.rent === null) appState.planner.rent = 260;
+          if (appState.planner.misc === undefined || appState.planner.misc === null) appState.planner.misc = 120;
+          if (appState.planner.customWeeks === undefined || appState.planner.customWeeks === null) appState.planner.customWeeks = '';
         }
         return appState.planner;
       };
 
-      let timer;
-      const save = function() { clearTimeout(timer); timer = setTimeout(function() { saveState(); }, 600); };
+      var timer;
+      var save = function() { 
+        clearTimeout(timer); 
+        timer = setTimeout(function() { saveState(); }, 600); 
+      };
 
-      function getRoot() { return document.getElementById('content-planner'); }
+      function getRoot() { 
+        return document.getElementById('content-planner'); 
+      }
 
       function savedCalc() {
-        const a = appState;
-        const fx = +a.fxRate || 23;
-        const p = a.primaryCurrency || 'AUD';
-        const h = a.homeCurrency || 'TWD';
-        let pn = 0, hn = 0;
+        var a = appState;
+        var fx = +a.fxRate || 23;
+        var p = a.primaryCurrency || 'AUD';
+        var h = a.homeCurrency || 'TWD';
+        var pn = 0, hn = 0;
         (a.transactions || []).forEach(function(t) {
-          const m = +t.amount || 0;
-          const s = t.type === 'income' ? 1 : -1;
+          var m = +t.amount || 0;
+          var s = t.type === 'income' ? 1 : -1;
           if (t.currency === p) pn += s * m;
           else if (t.currency === h) hn += s * m;
         });
         return Math.round(pn * fx + hn);
       }
 
-      const tax = function(g) { return 0.15 * Math.min(g, 45000) + 0.3 * Math.max(0, g - 45000); };
-      const inv = function(n) { return n <= 38250 ? n / 0.85 : 45000 + (n - 38250) / 0.7; };
-      const L = 'block text-[11px] text-stone-500 mb-0.5';
-      const num = function(k, v, i, placeholder) {
-        const ph = placeholder ? `placeholder="${placeholder}"` : '';
-        const idx = (i !== null && i !== undefined) ? `data-i="${i}"` : '';
-        return `<input type="number" step="any" data-k="${k}" ${idx} value="${v}" ${ph} class="w-full p-1.5 border rounded font-mono">`;
+      var tax = function(g) { 
+        return 0.15 * Math.min(g, 45000) + 0.3 * Math.max(0, g - 45000); 
+      };
+
+      var inv = function(n) { 
+        return n <= 38250 ? (n / 0.85) : (45000 + (n - 38250) / 0.7); 
+      };
+
+      var L = 'block text-[11px] text-stone-500 mb-0.5';
+
+      var num = function(k, v, i, placeholder) {
+        var ph = placeholder ? ('placeholder="' + placeholder + '"') : '';
+        var idx = (i !== null && i !== undefined) ? ('data-i="' + i + '"') : '';
+        return '<input type="number" step="any" data-k="' + k + '" ' + idx + ' value="' + v + '" ' + ph + ' class="w-full p-1.5 border rounded font-mono">';
       };
       
-      const rowHtml = function(j, i) {
-        return `
-        <div class="p-3 rounded-xl border bg-stone-50 space-y-2 text-xs">
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div><label class="${L}">工作名稱</label><input type="text" data-k="n" data-i="${i}" value="${j.n}" class="w-full p-1.5 border rounded"></div>
-            <div>
-              <label class="${L}">聘僱類型</label>
-              <select data-k="t" data-i="${i}" class="w-full p-1.5 border rounded font-bold">
-                <option value="casual" ${j.t === 'casual' ? 'selected' : ''}>Casual</option>
-                <option value="pt" ${j.t === 'pt' ? 'selected' : ''}>Part-time</option>
-                <option value="ft" ${j.t === 'ft' ? 'selected' : ''}>Full-time</option>
-              </select>
-            </div>
-            <div><label class="${L}">平日時薪 (A$)</label>${num('r', j.r, i)}</div>
-            <div><label class="${L}">預計做幾週</label>${num('wk', j.wk, i)}</div>
-          </div>
-          <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
-            <div><label class="${L}">平日時數/週</label>${num('wd', j.wd, i)}</div>
-            <div><label class="${L}">週六時數/週</label>${num('sa', j.sa, i)}</div>
-            <div><label class="${L}">週日時數/週</label>${num('su', j.su, i)}</div>
-            <div><label class="${L}">週六倍率</label>${num('sx', j.sx, i)}</div>
-            <div><label class="${L}">週日倍率</label>${num('ux', j.ux, i)}</div>
-          </div>
-        </div>`;
+      var rowHtml = function(j, i) {
+        return '<div class="p-3 rounded-xl border bg-stone-50 space-y-2 text-xs">' +
+          '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">' +
+            '<div><label class="' + L + '">工作名稱</label><input type="text" data-k="n" data-i="' + i + '" value="' + j.n + '" class="w-full p-1.5 border rounded"></div>' +
+            '<div>' +
+              '<label class="' + L + '">聘僱類型</label>' +
+              '<select data-k="t" data-i="' + i + '" class="w-full p-1.5 border rounded font-bold">' +
+                '<option value="casual" ' + (j.t === 'casual' ? 'selected' : '') + '>Casual</option>' +
+                '<option value="pt" ' + (j.t === 'pt' ? 'selected' : '') + '>Part-time</option>' +
+                '<option value="ft" ' + (j.t === 'ft' ? 'selected' : '') + '>Full-time</option>' +
+              '</select>' +
+            '</div>' +
+            '<div><label class="' + L + '">平日時薪 (A$)</label>' + num('r', j.r, i) + '</div>' +
+            '<div><label class="' + L + '">預計做幾週</label>' + num('wk', j.wk, i) + '</div>' +
+          '</div>' +
+          '<div class="grid grid-cols-3 sm:grid-cols-5 gap-2">' +
+            '<div><label class="' + L + '">平日時數/週</label>' + num('wd', j.wd, i) + '</div>' +
+            '<div><label class="' + L + '">週六時數/週</label>' + num('sa', j.sa, i) + '</div>' +
+            '<div><label class="' + L + '">週日時數/週</label>' + num('su', j.su, i) + '</div>' +
+            '<div><label class="' + L + '">週六倍率</label>' + num('sx', j.sx, i) + '</div>' +
+            '<div><label class="' + L + '">週日倍率</label>' + num('ux', j.ux, i) + '</div>' +
+          '</div>' +
+        '</div>';
       };
 
       window.renderPlanner = function() {
-        const root = getRoot();
+        var root = getRoot();
         if (!root) return;
-        const p = P();
-        const autoSavedTWD = savedCalc();
+        var p = P();
+        var autoSavedTWD = savedCalc();
 
-        root.innerHTML = `
-          <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
-            <div>
-              <h3 class="text-sm font-bold text-stone-900">🧮 工時 & 工作組合規劃器</h3>
-              <p class="text-xs text-stone-500 mt-0.5">匯率、目標與日期自動讀取「雙幣財務」頁；已存金額預設連動，亦可手動覆寫修正。</p>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-              <div><label class="${L}">每週房租+水電 (A$)</label>${num('rent', p.rent)}</div>
-              <div><label class="${L}">每週其他開銷 (A$)</label>${num('misc', p.misc)}</div>
-              <div><label class="${L}">自訂剩餘週數 (留空=自動)</label>${num('customWeeks', p.customWeeks, null, '自動計算')}</div>
-              <div><label class="${L}">其他收入/週 (台幣，如線上課)</label>${num('other', p.other)}</div>
-              <div><label class="${L}">已存金額 (台幣，可自訂覆寫)</label>${num('ovr', p.ovr, null, `目前約 ${autoSavedTWD}`)}</div>
-            </div>
-            <div class="space-y-2">${p.rows.map(rowHtml).join('')}</div>
-          </div>
-          <div id="pl-out"></div>
-        `;
+        root.innerHTML = '<div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">' +
+            '<div>' +
+              '<h3 class="text-sm font-bold text-stone-900">🧮 工時 & 工作組合規劃器</h3>' +
+              '<p class="text-xs text-stone-500 mt-0.5">匯率、目標與日期自動讀取「雙幣財務」頁；已存金額預設連動，亦可手動覆寫修正。</p>' +
+            '</div>' +
+            '<div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">' +
+              '<div><label class="' + L + '">每週房租+水電 (A$)</label>' + num('rent', p.rent) + '</div>' +
+              '<div><label class="' + L + '">每週其他開銷 (A$)</label>' + num('misc', p.misc) + '</div>' +
+              '<div><label class="' + L + '">自訂剩餘週數 (留空=自動)</label>' + num('customWeeks', p.customWeeks, null, '自動計算') + '</div>' +
+              '<div><label class="' + L + '">其他收入/週 (台幣，如線上課)</label>' + num('other', p.other) + '</div>' +
+              '<div><label class="' + L + '">已存金額 (台幣，可自訂覆寫)</label>' + num('ovr', p.ovr, null, '目前約 ' + autoSavedTWD) + '</div>' +
+            '</div>' +
+            '<div class="space-y-2">' + p.rows.map(rowHtml).join('') + '</div>' +
+          '</div>' +
+          '<div id="pl-out"></div>';
         updatePlanner();
       };
 
       function updatePlanner() {
-        const out = document.getElementById('pl-out');
+        var out = document.getElementById('pl-out');
         if (!out) return;
-        const a = appState;
-        const p = P();
-        const fx = +a.fxRate || 23;
-        const tgt = +a.targetNTD || 400000;
+        var a = appState;
+        var p = P();
+        var fx = +a.fxRate || 23;
+        var tgt = +a.targetNTD || 400000;
         
-        const have = (p.ovr !== '' && !isNaN(p.ovr)) ? +p.ovr : savedCalc();
+        var have = (p.ovr !== '' && !isNaN(p.ovr)) ? +p.ovr : savedCalc();
         
-        const t0 = new Date(); t0.setHours(0,0,0,0);
-        const autoWk = Math.max(1, Math.ceil((new Date(a.targetEndDate) - t0) / (1000 * 60 * 60 * 24 * 7)));
-        const eff = (p.customWeeks !== '' && +p.customWeeks > 0) ? +p.customWeeks : autoWk;
+        var t0 = new Date(); t0.setHours(0,0,0,0);
+        var autoWk = Math.max(1, Math.ceil((new Date(a.targetEndDate) - t0) / (1000 * 60 * 60 * 24 * 7)));
+        var eff = (p.customWeeks !== '' && +p.customWeeks > 0) ? +p.customWeeks : autoWk;
 
-        const weeklyLive = (+p.rent || 0) + (+p.misc || 0);
-        const otherA = (+p.other || 0) * eff / fx;
-        const need = Math.max(0, (tgt - have) / fx) + (weeklyLive * eff) - otherA;
+        var weeklyLive = (+p.rent || 0) + (+p.misc || 0);
+        var otherA = (+p.other || 0) * eff / fx;
+        var need = Math.max(0, (tgt - have) / fx) + (weeklyLive * eff) - otherA;
         
-        let G = 0, hrs = 0, best = 0;
-        const warn = [];
+        var G = 0, hrs = 0, best = 0;
+        var warn = [];
 
         p.rows.forEach(function(j) {
-          const h = (+j.wd || 0) + (+j.sa || 0) + (+j.su || 0);
+          var h = (+j.wd || 0) + (+j.sa || 0) + (+j.su || 0);
           if (!(h > 0 && j.r > 0)) return;
-          const w = Math.min(j.wk, eff);
+          var w = Math.min(j.wk, eff);
           G += j.r * ((+j.wd || 0) + (+j.sa || 0) * (+j.sx || 1) + (+j.su || 0) * (+j.ux || 1)) * w;
           hrs += h * w / eff;
           best = Math.max(best, +j.r || 0);
           if (j.wk > 26) {
-            warn.push(`「${j.n || '工作'}」預計做 ${j.wk} 週，已超過同一雇主 6 個月（約 26 週）上限，需安排更換雇主、分店或確認具備豁免資格。`);
+            warn.push("「" + (j.n || '工作') + "」預計做 " + j.wk + " 週，已超過同一雇主 6 個月（約 26 週）上限，需安排更換雇主、分店或確認具備豁免資格。");
           }
         });
 
-        const totalTax = tax(G);
-        const netIncomeAfterTax = G - totalTax;
-        const totalLivingCost = weeklyLive * eff;
-        const netCashOnHandAUD = netIncomeAfterTax - totalLivingCost;
-        const estSuperRefundAUD = G * 0.12 * 0.35;
+        var totalTax = tax(G);
+        var netIncomeAfterTax = G - totalTax;
+        var totalLivingCost = weeklyLive * eff;
+        var netCashOnHandAUD = netIncomeAfterTax - totalLivingCost;
+        var estSuperRefundAUD = G * 0.12 * 0.35;
 
-        const proj = have + (netCashOnHandAUD * fx) + ((+p.other || 0) * eff);
-        const diff = proj - tgt;
-        const Greq = inv(Math.max(0, need));
-        const perWk = Greq / eff;
-        const adv = [];
+        var proj = have + (netCashOnHandAUD * fx) + ((+p.other || 0) * eff);
+        var diff = proj - tgt;
+        var Greq = inv(Math.max(0, need));
+        var perWk = Greq / eff;
+        var adv = [];
 
         if (diff >= 0) {
-          adv.push(`✅ 此工作組合預估可順利達標，目標日手頭存款預估超出目標約 NT$ ${fmt(diff)}。`);
+          adv.push("✅ 此工作組合預估可順利達標，目標日手頭存款預估超出目標約 NT$ " + fmt(diff) + "。");
         } else {
-          const addG = (Greq - G) / eff;
-          const r = best || 33.05;
-          adv.push(`每週需再多賺稅前約 A$${fmt(addG)}；若以 A$${r.toFixed(2)}/hr 估算，每週約需再增加 ${(addG / r).toFixed(1)} 工時。`);
-          adv.push(`或將每週生活開銷壓縮至約 A$${Math.max(0, Math.round(weeklyLive + diff / fx / eff))}（如房租找每週 A$200 左右房源）。`);
+          var addG = (Greq - G) / eff;
+          var r = best || 33.05;
+          adv.push("每週需再多賺稅前約 A$" + fmt(addG) + "；若以 A$" + r.toFixed(2) + "/hr 估算，每週約需再增加 " + (addG / r).toFixed(1) + " 工時。");
+          adv.push("或將每週生活開銷壓縮至約 A$" + Math.max(0, Math.round(weeklyLive + diff / fx / eff)) + "（如房租找每週 A$200 左右房源）。");
         }
-        adv.push('Casual 臨時工時薪已含 25% Loading 但無工時保障；Part/Full-time 時薪較低但班表固定。建議以穩定工時為主，週末兼職補高倍率時數。');
+        adv.push("Casual 臨時工時薪已含 25% Loading 但無工時保障；Part/Full-time 時薪較低但班表固定。建議以穩定工時為主，週末兼職補高倍率時數。");
 
-        const card = function(t, v, c, sub) {
-          const subText = sub ? `<span class="text-[10px] text-stone-400 block mt-0.5">${sub}</span>` : '';
-          return `
-          <div class="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">
-            <span class="text-[11px] text-stone-500 block">${t}</span>
-            <span class="text-lg font-extrabold ${c || 'text-stone-900'} block mt-1">${v}</span>
-            ${subText}
-          </div>`;
+        var card = function(t, v, c, sub) {
+          var subText = sub ? ('<span class="text-[10px] text-stone-400 block mt-0.5">' + sub + '</span>') : '';
+          return '<div class="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">' +
+            '<span class="text-[11px] text-stone-500 block">' + t + '</span>' +
+            '<span class="text-lg font-extrabold ' + (c || 'text-stone-900') + ' block mt-1">' + v + '</span>' +
+            subText +
+          '</div>';
         };
-        const rates = [28, 30, 33.05, 34.76, 38, 42];
+        var rates = [28, 30, 33.05, 34.76, 38, 42];
 
-        out.innerHTML = `
-          <div class="space-y-4 mt-4">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              ${card('目前已存 (連動/覆寫)', `NT$ ${fmt(have)}`)}
-              ${card('目標規劃剩餘週數', `${eff} 週`, '', p.customWeeks ? '自訂週數' : '依目標日期自動推算')}
-              ${card('需淨賺 (含生活費)', `A$ ${fmt(need)}`)}
-              ${card('每週需稅前', `A$ ${fmt(perWk)}`, 'text-amber-800')}
-            </div>
+        out.innerHTML = '<div class="space-y-4 mt-4">' +
+            '<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">' +
+              card('目前已存 (連動/覆寫)', 'NT$ ' + fmt(have)) +
+              card('目標規劃剩餘週數', eff + ' 週', '', p.customWeeks ? '自訂週數' : '依目標日期自動推算') +
+              card('需淨賺 (含生活費)', 'A$ ' + fmt(need)) +
+              card('每週需稅前', 'A$ ' + fmt(perWk), 'text-amber-800') +
+            '</div>' +
 
-            <div class="rounded-2xl p-5 border ${diff >= 0 ? 'bg-emerald-50/80 border-emerald-300' : 'bg-rose-50/80 border-rose-300'} text-xs">
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                ${card('此組合平均每週工時', `${hrs.toFixed(1)} 小時`)}
-                ${card('稅前總收入', `A$ ${fmt(G)}`, '', `扣稅約 A$ ${fmt(totalTax)}`)}
-                ${card('實拿手頭總現金 (扣完生活費)', `A$ ${fmt(netCashOnHandAUD)}`, netCashOnHandAUD >= 0 ? 'text-emerald-800' : 'text-rose-700', `生活費總扣除 A$ ${fmt(totalLivingCost)}`)}
-                ${card(diff >= 0 ? '預估目標日超額' : '距離目標還差', `NT$ ${fmt(Math.abs(diff))}`, diff >= 0 ? 'text-emerald-700' : 'text-rose-700', `預估總額 NT$ ${fmt(proj)}`)}
-              </div>
-              <div class="mt-3 pt-3 border-t border-stone-200 flex flex-wrap justify-between items-center text-stone-600 text-[11px] gap-2">
-                <span>💡 <strong>離澳額外退稅金</strong>：此組合預估另有 Super 退休金離澳退稅款約 <strong>A$ ${fmt(estSuperRefundAUD)}</strong>（離境後領取，未列入即期手上現金）。</span>
-              </div>
-            </div>
+            '<div class="rounded-2xl p-5 border ' + (diff >= 0 ? 'bg-emerald-50/80 border-emerald-300' : 'bg-rose-50/80 border-rose-300') + ' text-xs">' +
+              '<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">' +
+                card('此組合平均每週工時', hrs.toFixed(1) + ' 小時') +
+                card('稅前總收入', 'A$ ' + fmt(G), '', '扣稅約 A$ ' + fmt(totalTax)) +
+                card('實拿手頭總現金 (扣完生活費)', 'A$ ' + fmt(netCashOnHandAUD), netCashOnHandAUD >= 0 ? 'text-emerald-800' : 'text-rose-700', '生活費總扣除 A$ ' + fmt(totalLivingCost)) +
+                card(diff >= 0 ? '預估目標日超額' : '距離目標還差', 'NT$ ' + fmt(Math.abs(diff)), diff >= 0 ? 'text-emerald-700' : 'text-rose-700', '預估總額 NT$ ' + fmt(proj)) +
+              '</div>' +
+              '<div class="mt-3 pt-3 border-t border-stone-200 flex flex-wrap justify-between items-center text-stone-600 text-[11px] gap-2">' +
+                '<span>💡 <strong>離澳額外退稅金</strong>：此組合預估另有 Super 退休金離澳退稅款約 <strong>A$ ' + fmt(estSuperRefundAUD) + '</strong>（離境後領取，未列入即期手上現金）。</span>' +
+              '</div>' +
+            '</div>' +
 
-            ${warn.map(function(w) { return `<div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900 font-medium">⚠️ ${w}</div>`; }).join('')}
+            warn.map(function(w) { return '<div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900 font-medium">⚠️ ' + w + '</div>'; }).join('') +
             
-            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs space-y-2">
-              <h4 class="font-bold text-stone-900">💡 建議怎麼找工作與排工時</h4>
-              <ul class="list-disc pl-4 space-y-1 text-stone-700">${adv.map(function(x) { return `<li>${x}</li>`; }).join('')}</ul>
-            </div>
+            '<div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs space-y-2">' +
+              '<h4 class="font-bold text-stone-900">💡 建議怎麼找工作與排工時</h4>' +
+              '<ul class="list-disc pl-4 space-y-1 text-stone-700">' + adv.map(function(x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' +
+            '</div>' +
 
-            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs">
-              <h4 class="font-bold text-stone-900 mb-2">目標反推：單一時薪每週需要幾小時（平日基準）</h4>
-              <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
-                ${rates.map(function(r) { return `<div class="p-2 rounded-lg bg-stone-50 border"><span class="block font-mono font-bold">A$${r}</span><span class="text-stone-600">${(perWk / r).toFixed(1)} 小時</span></div>`; }).join('')}
-              </div>
-            </div>
-          </div>`;
+            '<div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm text-xs">' +
+              '<h4 class="font-bold text-stone-900 mb-2">目標反推：單一時薪每週需要幾小時（平日基準）</h4>' +
+              '<div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">' +
+                rates.map(function(r) { return '<div class="p-2 rounded-lg bg-stone-50 border"><span class="block font-mono font-bold">A$' + r + '</span><span class="text-stone-600">' + (perWk / r).toFixed(1) + ' 小時</span></div>'; }).join('') +
+              '</div>' +
+            '</div>' +
+          '</div>';
       }
 
       window.updatePlannerUI = function() {
-        const root = getRoot();
+        var root = getRoot();
         if (root && !root.classList.contains('hidden')) {
           updatePlanner();
         }
       };
 
-      const handlePlannerInput = function(e) {
-        const el = e.target;
-        const k = el.dataset.k;
+      var handlePlannerInput = function(e) {
+        var el = e.target;
+        var k = el.dataset.k;
         if (!k) return;
-        const p = P();
-        let v = el.type === 'number' ? (el.value === '' ? '' : (+el.value || 0)) : el.value;
+        var p = P();
+        var v = el.type === 'number' ? (el.value === '' ? '' : (+el.value || 0)) : el.value;
         if (el.dataset.i !== null && el.dataset.i !== undefined) {
-          const i = +el.dataset.i;
-          const j = p.rows[i];
+          var i = +el.dataset.i;
+          var j = p.rows[i];
           j[k] = v;
           if (k === 't') {
             j.sx = PRE[v][0];
             j.ux = PRE[v][1];
             ['sx', 'ux'].forEach(function(f) {
-              const targetInput = getRoot().querySelector(`[data-i="${i}"][data-k="${f}"]`);
+              var targetInput = getRoot().querySelector('[data-i="' + i + '"][data-k="' + f + '"]');
               if (targetInput) targetInput.value = j[f];
             });
           }
@@ -2919,7 +2918,7 @@
 
       window.addEventListener("DOMContentLoaded", function() {
         init();
-        const rootEl = getRoot();
+        var rootEl = getRoot();
         if (rootEl) {
           rootEl.addEventListener('input', handlePlannerInput);
           rootEl.addEventListener('change', handlePlannerInput);
