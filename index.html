@@ -1240,8 +1240,10 @@
         else if (item.diffDays === 1) dayBadge = '<span class="px-1.5 py-0.5 rounded bg-amber-500 text-stone-900 font-bold text-[10px]">明天</span>';
         else dayBadge = '<span class="px-1.5 py-0.5 rounded bg-stone-700 text-stone-300 font-semibold text-[10px]">' + item.diffDays + ' 天後</span>';
 
-        var loc = item.location || item.mapUrl || "";
-        var timeText = item.time ? (' ⏰ ' + item.time) : '';
+       var loc = item.location || item.mapUrl || "";
+        var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+        var times = calculateEventTimes(item, activeUserZone);
+        var timeText = times.localTime ? (' ⏰ ' + times.localTime) : '';
         return '<div class="flex items-center justify-between p-2 rounded-lg bg-stone-800/80 border border-stone-700">' +
           '<div class="flex items-center gap-2 overflow-hidden">' +
             dayBadge +
