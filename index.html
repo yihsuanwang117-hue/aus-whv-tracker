@@ -19,11 +19,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js 圓餅圖套件 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Leaflet.js CSS & JS (免 API Key 開源地圖引擎) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
  
-<style>
+  <style>
     .tab-active { border-bottom: 2px solid #8C3B07 !important; color: #8C3B07 !important; font-weight: bold !important; }
     .gear-cat-active { background-color: #8C3B07 !important; color: #ffffff !important; border-color: #8C3B07 !important; }
     .chart-btn-active { background-color: #8C3B07 !important; color: #ffffff !important; border-color: #8C3B07 !important; }
@@ -60,11 +63,56 @@
         scrollbar-width: none;
       }
     }
+
+    /* === 地圖專屬樣式 === */
+    #brisbaneMapContainer .leaflet-popup-content-wrapper {
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+      padding: 2px;
+    }
+    #brisbaneMapContainer .leaflet-popup-content {
+      margin: 10px 14px;
+    }
+    .custom-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      border: 3px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+      position: relative;
+    }
+    .custom-pin:hover, .custom-pin.active {
+      transform: scale(1.25);
+      z-index: 1000 !important;
+    }
+    .pin-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 12px;
+      height: 12px;
+      background-color: #ef4444;
+      border: 2px solid #ffffff;
+      border-radius: 9999px;
+    }
+    .transit-label {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans min-h-screen pb-16">
 
- <!-- 頂部導航 (手機戶外緊湊版) -->
+  <!-- 頂部導航 (手機戶外緊湊版) -->
   <header class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
       <!-- 頭像與標題 -->
@@ -110,6 +158,7 @@
       <button type="button" onclick="switchTab('calendar')" id="tab-calendar" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">📅 時程日曆</button>
       <button type="button" onclick="switchTab('gear')" id="tab-gear" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">🎒 裝備清單</button>
       <button type="button" onclick="switchTab('planner')" id="tab-planner" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">🧮 工時規劃</button>
+      <button type="button" onclick="switchTab('map')" id="tab-map" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">🗺️ 布里斯本地圖</button>
     </div>
   </header>
 
@@ -433,10 +482,97 @@
 
     <!-- TAB 4: 工時規劃器 -->
     <div id="content-planner" class="space-y-6 hidden"></div>
+
+    <!-- TAB 5: 布里斯本打工度假與交通地圖 -->
+    <div id="content-map" class="space-y-4 hidden">
+      <div id="brisbaneMapContainer" class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex flex-col">
+        <!-- 地圖工具與篩選列 -->
+        <div class="px-3 sm:px-4 py-2.5 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="bg-teal-600 text-white p-1.5 rounded-lg text-sm">🗺️</span>
+            <div>
+              <h2 class="font-bold text-xs sm:text-sm text-stone-900 leading-tight">布里斯本打工度假＆交通地圖</h2>
+              <p class="text-[11px] text-stone-500 hidden sm:block">大眾運輸單趟僅 <span class="font-bold text-emerald-700">AUD $0.50</span> · 點擊區域可收藏工作網址與筆記（支援雲端同步）</p>
+            </div>
+          </div>
+
+          <!-- 分類篩選按鈕 -->
+          <div class="flex items-center gap-1.5 overflow-x-auto hide-scrollbar max-w-full py-0.5" id="map-filter-bar">
+            <button type="button" data-filter="all" class="map-filter-btn active px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-800 text-white transition whitespace-nowrap cursor-pointer">全部 (12)</button>
+            <button type="button" data-filter="hub" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🚉 樞紐/首週</button>
+            <button type="button" data-filter="cbd" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🏙️ 市區商圈</button>
+            <button type="button" data-filter="south" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🧋 南區華人</button>
+            <button type="button" data-filter="industrial" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🏭 高薪工廠</button>
+            <button type="button" data-filter="saved" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition whitespace-nowrap cursor-pointer">⭐ 已收藏 (<span id="map-saved-count-badge">0</span>)</button>
+          </div>
+
+          <!-- 獨立地圖紀錄匯出/匯入 -->
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="exportMapRecords()" title="僅匯出地圖工作網址與筆記備份" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">📥 匯出地圖筆記</button>
+            <label title="匯入地圖 JSON 備份檔" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white text-stone-700 border border-stone-200 hover:bg-stone-100 transition cursor-pointer">
+              📤 匯入
+              <input type="file" id="map-import-file" accept=".json" class="hidden" onchange="importMapRecords(event)">
+            </label>
+          </div>
+        </div>
+
+        <!-- 主視覺區：左側詳細資訊與筆記 + 右側互動地圖 -->
+        <div class="flex flex-col-reverse md:flex-row h-[720px] md:h-[620px] relative">
+          <!-- 左側/底部 資訊卡片與區域列表 -->
+          <aside class="w-full md:w-[410px] h-[54%] md:h-full bg-white border-t md:border-t-0 md:border-r border-stone-200 flex flex-col z-20 shrink-0">
+            <div id="map-detail-panel" class="p-4 overflow-y-auto flex-1"></div>
+          </aside>
+
+          <!-- 右側地圖容器 -->
+          <div class="flex-1 h-[46%] md:h-full relative">
+            <div id="brisbaneLeafletMap" class="w-full h-full z-10"></div>
+
+            <!-- 地圖右上角：交通路線圖層控制器 -->
+            <div class="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-sm border border-stone-200 rounded-xl p-2.5 shadow-md max-w-[225px]">
+              <div class="text-[11px] font-bold text-stone-800 mb-1.5 flex items-center justify-between">
+                <span>🚆 交通幹道圖層</span>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-semibold">$0.50/趟</span>
+              </div>
+              <div class="space-y-1 text-[11px]">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" id="toggle-busway" checked class="rounded text-orange-500 focus:ring-0">
+                  <span class="w-3.5 h-1.5 rounded-full bg-orange-500 inline-block"></span>
+                  <span class="text-stone-700 font-medium">南區公車專用道 (130/140)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" id="toggle-south-train" checked class="rounded text-blue-600 focus:ring-0">
+                  <span class="w-3.5 h-1.5 rounded-full bg-blue-600 inline-block"></span>
+                  <span class="text-stone-700 font-medium">南區火車線 (Beenleigh)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" id="toggle-north-train" checked class="rounded text-purple-600 focus:ring-0">
+                  <span class="w-3.5 h-1.5 rounded-full bg-purple-600 inline-block"></span>
+                  <span class="text-stone-700 font-medium">機場與北區火車線</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 地圖左下角：顏色圖例 -->
+            <div class="hidden sm:flex absolute bottom-4 left-3 z-20 bg-white/95 backdrop-blur-sm border border-stone-200 rounded-xl px-3 py-1.5 shadow-md gap-3 text-[11px] font-medium text-stone-700">
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>樞紐/落腳</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block"></span>市區商圈</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>南區華人</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>高薪工廠</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
+  <!-- 全域提示訊息 Toast -->
+  <div id="global-toast-msg" class="fixed bottom-5 right-5 bg-stone-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+    已儲存變更
+  </div>
+
   <!-- MODAL: 管理裝備分類 -->
-<div id="manageGearCategoriesModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+  <div id="manageGearCategoriesModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
         <h3 class="text-base font-bold text-stone-900 flex items-center gap-1.5">
           <span>🏷️</span> 管理與排序裝備分類
@@ -466,7 +602,8 @@
   </div>
 
   <!-- MODAL: 管理收支類別 -->
-<div id="manageFinanceCategoriesModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+  <div id="manageFinanceCategoriesModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
         <h3 class="text-base font-bold text-stone-900 flex items-center gap-1.5">
           <span>🏷️</span> 管理與排序收支類別
@@ -501,7 +638,8 @@
   </div>
 
   <!-- MODAL: 管理自訂日曆標籤 -->
-<div id="manageTagsModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+  <div id="manageTagsModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
         <h3 class="text-base font-bold text-stone-900">🏷️ 管理與排序日曆標籤</h3>
         <button type="button" onclick="closeModal('manageTagsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
@@ -535,7 +673,8 @@
   </div>
 
   <!-- MODAL: 個人化看板設定 -->
-<div id="settingsModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
+  <div id="settingsModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
         <h3 class="text-base font-bold text-stone-900 flex items-center gap-1.5"><span>⚙️</span> 個人化看板設定</h3>
         <button type="button" onclick="closeModal('settingsModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
@@ -616,7 +755,8 @@
   </div>
 
   <!-- MODAL: 新增/編輯日曆事項 -->
-<div id="eventModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+  <div id="eventModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
         <h3 id="eventModalTitle" class="text-base font-bold text-stone-900">待辦事項</h3>
         <button type="button" onclick="closeModal('eventModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
@@ -770,7 +910,8 @@
   </div>
 
   <!-- MODAL: 記帳 (支援新增與修改) -->
-<div id="txModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+  <div id="txModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <h3 id="txModalTitle" class="text-base font-bold text-stone-900 mb-3">記帳</h3>
       <form onsubmit="handleSaveTx(event)" class="space-y-3 text-xs">
         <input type="hidden" id="txId">
@@ -832,7 +973,8 @@
   </div>
 
   <!-- MODAL: 裝備項目 (支援新增與修改) -->
-<div id="gearModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+  <div id="gearModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
         <h3 id="gearModalTitle" class="text-base font-bold text-stone-900">裝備物品</h3>
         <button type="button" onclick="closeModal('gearModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
@@ -931,7 +1073,8 @@
       tags: DEFAULT_TAGS,
       events: DEFAULT_EVENTS,
       gear: DEFAULT_GEAR,
-      planner: null
+      planner: null,
+      mapSavedData: {}
     };
 
     var calendarDate = new Date();
@@ -946,6 +1089,16 @@
     var isRemoteUpdate = false;
 
     var CHART_PALETTE = ['#B45309', '#D97706', '#059669', '#2563EB', '#7C3AED', '#DB2777', '#0891B2', '#4B5563', '#DC2626', '#EAB308'];
+
+    function showGlobalToast(msg) {
+      var toast = document.getElementById('global-toast-msg');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.remove('opacity-0');
+      setTimeout(function() {
+        toast.classList.add('opacity-0');
+      }, 2200);
+    }
 
     // --- 各州固定相對 UTC 偏移 (純數值計算) ---
     function getZoneOffsetHours(zoneKey) {
@@ -1264,7 +1417,7 @@
         else if (item.diffDays === 1) dayBadge = '<span class="px-1.5 py-0.5 rounded bg-amber-500 text-stone-900 font-bold text-[10px]">明天</span>';
         else dayBadge = '<span class="px-1.5 py-0.5 rounded bg-stone-700 text-stone-300 font-semibold text-[10px]">' + item.diffDays + ' 天後</span>';
 
-       var loc = item.location || item.mapUrl || "";
+        var loc = item.location || item.mapUrl || "";
         var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
         var times = calculateEventTimes(item, activeUserZone);
         var timeText = times.localTime ? (' ⏰ ' + times.localTime) : '';
@@ -1758,16 +1911,16 @@
     };
 
     window.switchTab = function(tabId) {
-      ['guide', 'finance', 'calendar', 'gear', 'planner'].forEach(function(t) {
+      ['guide', 'finance', 'calendar', 'gear', 'planner', 'map'].forEach(function(t) {
         var c = document.getElementById('content-' + t);
         var b = document.getElementById('tab-' + t);
         if (c && b) {
           if (t === tabId) {
             c.classList.remove('hidden');
-            b.className = "py-2.5 tab-active cursor-pointer";
+            b.className = "py-2.5 px-1 tab-active cursor-pointer flex-shrink-0";
           } else {
             c.classList.add('hidden');
-            b.className = "py-2.5 text-stone-500 hover:text-stone-800 cursor-pointer";
+            b.className = "py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0";
           }
         }
       });
@@ -1775,6 +1928,7 @@
       if (tabId === 'calendar') renderCalendar();
       if (tabId === 'gear') renderGear();
       if (tabId === 'planner' && typeof window.renderPlanner === 'function') window.renderPlanner();
+      if (tabId === 'map' && typeof window.initOrRefreshBrisbaneMap === 'function') window.initOrRefreshBrisbaneMap();
     };
 
     function init() {
@@ -1782,6 +1936,14 @@
         var local = localStorage.getItem("au_de_tracker_data");
         if (local) appState = Object.assign({}, appState, JSON.parse(local));
       } catch (e) {}
+
+      // 相容舊版獨立地圖本機紀錄
+      if (!appState.mapSavedData || Object.keys(appState.mapSavedData).length === 0) {
+        try {
+          var legacyMapData = localStorage.getItem("brisbane_whv_map_user_data_v1");
+          if (legacyMapData) appState.mapSavedData = JSON.parse(legacyMapData);
+        } catch (e) {}
+      }
 
       if (!appState.tags || appState.tags.length === 0) appState.tags = DEFAULT_TAGS;
       appState.tags = appState.tags.filter(function(t) { return t.color !== 'stone'; });
@@ -1873,17 +2035,15 @@
       switchTab('finance');
     };
 
-  // 增加全域保護旗標
-    var isSyncReady = false; // 只有雲端確認載入完成後，才允許寫入雲端
+    // 增加全域保護旗標
+    var isSyncReady = false;
 
     function saveState() {
-      // 1. 本地更新永遠安全儲存
       try { 
-        appState.lastModified = Date.now(); // 記錄本地最後操作時間戳
+        appState.lastModified = Date.now();
         localStorage.setItem("au_de_tracker_data", JSON.stringify(appState)); 
       } catch (e) {}
 
-      // 2. 雲端防覆蓋保護：若尚未完成初次同步、或是正在接收遠端更新，嚴禁推送！
       var syncKey = localStorage.getItem("au_sync_key");
       if (db && syncKey && !isRemoteUpdate && isSyncReady) {
         db.collection("sync_data").doc(syncKey).set({
@@ -1902,6 +2062,7 @@
       renderPieChart();
       checkSmartReminders();
       if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
+      if (typeof window.syncMapUIWithAppState === 'function') window.syncMapUIWithAppState();
     }
 
     window.updateFxRate = function(val) {
@@ -2629,7 +2790,7 @@
       }
     };
 
-// --- 強化版雙向同步機制 (配合 isSyncReady 解鎖) ---
+    // --- 強化版雙向同步機制 ---
     window.connectDirectSync = function() {
       var key = document.getElementById("syncKeyDirect").value.trim();
       if (!key) { alert("請輸入一組自訂的同步密碼！"); return; }
@@ -2651,34 +2812,28 @@
           if (doc.exists) {
             var remote = doc.data().data;
             if (remote) {
-              var remoteCount = (remote.transactions || []).length + (remote.events || []).length;
-              var localCount = (appState.transactions || []).length + (appState.events || []).length;
+              var remoteCount = (remote.transactions || []).length + (remote.events || []).length + Object.keys(remote.mapSavedData || {}).length;
+              var localCount = (appState.transactions || []).length + (appState.events || []).length + Object.keys(appState.mapSavedData || {}).length;
 
-              // 【情況 1】：雲端為空，但本地有珍貴紀錄 -> 解鎖並把本地推送備份上雲端
               if (remoteCount === 0 && localCount > 0) {
-                console.warn("雲端為空，將本地資料保護性備份至雲端...");
                 isSyncReady = true;
                 saveState();
                 return;
               }
 
-              // 【情況 2】：雲端有資料 -> 無條件以雲端為主載入本地
               isRemoteUpdate = true;
               appState = Object.assign({}, appState, remote);
+              if (!appState.mapSavedData) appState.mapSavedData = {};
               localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
               applyTitlesAndSettings();
               renderAll();
               calculateWireTransfer();
               isRemoteUpdate = false;
-              
-              // 載入完成，解鎖允許後續正常儲存
               isSyncReady = true;
-              console.log("雲端資料已安全下載，解鎖同步權限！");
             }
           } else {
-            // 【情況 3】：全新自訂密碼（雲端尚未有任何文件）
             isSyncReady = true;
-            var totalLocal = (appState.transactions || []).length + (appState.events || []).length;
+            var totalLocal = (appState.transactions || []).length + (appState.events || []).length + Object.keys(appState.mapSavedData || {}).length;
             if (totalLocal > 0) {
               saveState();
             }
@@ -2969,6 +3124,703 @@
           rootEl.addEventListener('input', handlePlannerInput);
           rootEl.addEventListener('change', handlePlannerInput);
         }
+      });
+    })();
+
+    // ==========================================
+    // --- 布里斯本地圖與交通模組 (Brisbane Map Module) ---
+    // ==========================================
+    (function() {
+      var brisbaneLocations = [
+        {
+          id: 'roma-street',
+          name: 'Roma Street Station & YHA 區',
+          enName: 'Roma Street Precinct',
+          category: 'hub',
+          categoryLabel: '交通樞紐 / 首週落腳',
+          color: '#f43f5e',
+          iconText: '🚉',
+          lat: -27.4658,
+          lng: 153.0185,
+          distance: 'CBD 西側核心大站（步行 5 分鐘至市中心）',
+          carNeeded: '完全不需開車',
+          features: '布里斯本最重要的火車與公車總轉運站，機場快線（Airtrain）直達。周邊有多家大型青年旅館（如 Roma Street YHA），適合落地前 1～3 週短租，辦銀行開戶、稅號（TFN）與前往各區面試極度方便。',
+          jobs: ['飯店房務 (Housekeeping)', '車站周邊咖啡廳', '市區連鎖餐飲', '活動場館兼職'],
+          transit: '全線火車交會站（Airport Line, Beenleigh Line 等）及各大公車轉運站。單程票價 AUD $0.50（機場快線除外）。',
+          rentHint: '青旅床位約 AUD $45–$65/晚；短租套房較貴，建議確定工作後搬離。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Roma+Street+Station+Brisbane+QLD'
+        },
+        {
+          id: 'spring-hill',
+          name: '斯普林希爾 (Spring Hill)',
+          enName: 'Spring Hill',
+          category: 'hub',
+          categoryLabel: '樞紐旁 / 背包客公寓區',
+          color: '#f43f5e',
+          iconText: '🏠',
+          lat: -27.4585,
+          lng: 153.0245,
+          distance: 'CBD 正北方（步行 5–15 分鐘進市中心）',
+          carNeeded: '完全不需開車',
+          features: '緊貼市中心北側的住宅與醫療文教區，有許多背包客分租公寓與長短租套房。優點是「完全免通勤費」直接走路進市區上班；缺點是地形坡度較陡，夜晚部分小巷較安靜，晚歸需留意安全。',
+          jobs: ['CBD 零售店員', '診所/商業大樓清潔', '咖啡廳與早午餐外場', '飯店廚房助手'],
+          transit: '步行即可進城，另有免費市區環狀公車（Spring Hill Loop / City Loop）可搭。',
+          rentHint: '市區公寓雙人房每人約 AUD $180–$230/週，單人房約 $260–$320/週。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Spring+Hill+QLD+4000'
+        },
+        {
+          id: 'cbd',
+          name: '布里斯本市中心 (Brisbane CBD)',
+          enName: 'Brisbane City (CBD)',
+          category: 'cbd',
+          categoryLabel: '市中心商業核心',
+          color: '#0ea5e9',
+          iconText: '🏙️',
+          lat: -27.4698,
+          lng: 153.0251,
+          distance: '地理正中心（Queen Street Mall 商圈）',
+          carNeeded: '不建議開車（停車費極貴）',
+          features: '商業與購物心臟，銀行總行、大型百貨（Myer, David Jones）及辦公大樓林立。白人與國際客群為主，英文練習機會多，適合帶著紙本履歷避開尖峰時段（09:30–11:00）逐店掃街投遞。',
+          jobs: ['百貨美食街餐飲', '精品/快時尚零售', '星級飯店房務與宴會廳', '商辦夜間清潔'],
+          transit: '所有公車、火車與 CityCat 渡輪終點匯集處，全區大眾運輸單趟僅 AUD $0.50。',
+          rentHint: '高樓公寓為主，客廳隔間多、租金高，多數打工客會選擇住南區搭公車進城。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Queen+Street+Mall+Brisbane+CBD'
+        },
+        {
+          id: 'fortitude-valley',
+          name: '毅力谷區 (Fortitude Valley)',
+          enName: 'Fortitude Valley',
+          category: 'cbd',
+          categoryLabel: '夜生活 / 唐人街商圈',
+          color: '#0ea5e9',
+          iconText: '🍸',
+          lat: -27.4565,
+          lng: 153.0355,
+          distance: 'CBD 東北方約 1.5 公里（火車 1 站 / 步行 15 分鐘）',
+          carNeeded: '不需開車',
+          features: '布里斯本著名夜生活娛樂區、酒吧街與傳統唐人街所在地，James Street 則有高質感精品與文青餐廳。餐飲與晚班職缺極多，但週末深夜酒客較多，女生單獨夜歸建議結伴或搭車。',
+          jobs: ['酒吧 Bartender (需 RSA 證照)', '中餐廳外場與廚房', '精品飯店房務', '夜店/活動現場人員'],
+          transit: 'Fortitude Valley 火車站（北線必經大站）及多線公車直達，單程 AUD $0.50。',
+          rentHint: '現代公寓多，雙人房每人約 AUD $180–$220/週。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Fortitude+Valley+QLD+4006'
+        },
+        {
+          id: 'south-bank',
+          name: '南岸與西區 (South Bank & West End)',
+          enName: 'South Bank & West End',
+          category: 'cbd',
+          categoryLabel: '河岸文青 / 異國餐飲區',
+          color: '#0ea5e9',
+          iconText: '☕',
+          lat: -27.4805,
+          lng: 153.0215,
+          distance: 'CBD 河對岸正南方（過 Victoria Bridge 步行 10 分鐘）',
+          carNeeded: '不需開車',
+          features: '人造海灘公園、博物館與異國美食餐廳聚集地，West End 則充滿波希米亞文青咖啡館與週末農夫市集。環境優美安全，適合具備基本英文溝通能力、想找白人咖啡廳或西餐廳外場的人。',
+          jobs: ['早午餐店咖啡師 (Barista)', '河岸景觀西餐廳外場', '博物館/會展中心餐飲', '手工烘焙坊助手'],
+          transit: 'South Brisbane 火車站、Cultural Centre 公車總站（Busway 核心站）及 CityCat 渡輪站。',
+          rentHint: '學區與文青住宅區，單人雅房約 AUD $220–$270/週。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=South+Bank+Parklands+Brisbane'
+        },
+        {
+          id: 'sunnybank',
+          name: '森尼班克 (Sunnybank 小台北)',
+          enName: 'Sunnybank',
+          category: 'south',
+          categoryLabel: '南區華人生活與手搖重鎮',
+          color: '#f59e0b',
+          iconText: '🧋',
+          lat: -27.5715,
+          lng: 153.0615,
+          distance: 'CBD 東南方約 13 公里（Busway 快線公車約 20–25 分鐘）',
+          carNeeded: '不需開車（公車極密集）',
+          features: '布里斯本最核心的台灣與華人生活圈（Market Square、Sunnybank Plaza、Sunny Park 三大商場匯聚）。全台知名手搖飲、台式小吃、亞洲超市與診所一應俱全，中文即可無痛生活與上工，是剛落地快速賺錢的首選。',
+          jobs: ['台灣手搖飲調茶師', '台式/港式/火鍋餐廳內外場', '華人超市理貨與收銀', '亞洲烘焙坊與按摩店'],
+          transit: '搭公車 130、140、139 走高架專用道（Busway）直達市中心，尖峰 5 分鐘一班，單趟只要 AUD $0.50！',
+          rentHint: '生活便利搶手，House 單人雅房約 AUD $190–$230/週，雙人房約 $260–$300/週。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Market+Square+Sunnybank+QLD'
+        },
+        {
+          id: 'upper-mt-gravatt',
+          name: '上芒特格拉瓦特 (Garden City 商圈)',
+          enName: 'Upper Mount Gravatt',
+          category: 'south',
+          categoryLabel: '南區最大百貨與公車總站',
+          color: '#f59e0b',
+          iconText: '🛍️',
+          lat: -27.5618,
+          lng: 153.0815,
+          distance: 'Sunnybank 東北側 3 公里（公車 8 分鐘 / 進 CBD 約 20 分鐘）',
+          carNeeded: '不需開車',
+          features: '擁有南區最大購物中心 Westfield Mt Gravatt（俗稱 Garden City）及南區最大公車轉運站。兼顧本地大型連鎖零售與亞洲餐飲，生活機能極強，也非常適合作為無車族的居住與找工基地。',
+          jobs: ['商場連鎖快餐/咖啡店', '超市補貨與收銀 (Coles/Woolworths)', '購物中心日間/夜間清潔', '亞洲餐飲連鎖店'],
+          transit: 'Upper Mount Gravatt 公車總站（111, 130, 140, 160 等數十條路線交會），單程 AUD $0.50。',
+          rentHint: '單人雅房約 AUD $185–$220/週，選擇多且治安良好。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Westfield+Mt+Gravatt+QLD'
+        },
+        {
+          id: 'runcorn-emp',
+          name: '朗科恩與八里坪 (Runcorn & Eight Mile Plains)',
+          enName: 'Runcorn & Eight Mile Plains',
+          category: 'south',
+          categoryLabel: '南區高 CP 值純住宅租屋區',
+          color: '#f59e0b',
+          iconText: '🏡',
+          lat: -27.5885,
+          lng: 153.0765,
+          distance: '緊鄰 Sunnybank 南側與東側（公車 5–10 分鐘至 Sunnybank）',
+          carNeeded: '無車可住（近公車站或火車站即可）',
+          features: '因為 Sunnybank 核心區房租較高，許多在 Sunnybank 或市中心上班的台灣背包客會選擇住在 Runcorn 或 Eight Mile Plains。社區安靜整潔、新式透天 House 多，是南區長住存錢的黃金住宿區。',
+          jobs: ['主要作為居住基地，通勤至 Sunnybank、Garden City 或市區上班', 'Eight Mile Plains 科技園區商業清潔'],
+          transit: 'Eight Mile Plains 公車總站（111, 150 直達市區）及 Runcorn / Fruitgrove 火車站，單程 AUD $0.50。',
+          rentHint: 'CP 值極高！單人雅房約 AUD $170–$200/週（含水電網），雙人房每人約 $130–$150/週。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Runcorn+QLD+4113'
+        },
+        {
+          id: 'acacia-ridge',
+          name: '南區重工業帶 (Acacia Ridge & Rocklea)',
+          enName: 'Acacia Ridge & Rocklea',
+          category: 'industrial',
+          categoryLabel: '南區高時薪工廠與蔬果批發帶',
+          color: '#059669',
+          iconText: '🏭',
+          lat: -27.5750,
+          lng: 153.0150,
+          distance: 'Sunnybank 西側約 10 分鐘車程（距離 CBD 南方約 14 公里）',
+          carNeeded: '強烈建議自駕（從南區開車僅 10 分鐘）',
+          features: '布里斯本南區核心工業與物流心臟，擁有全昆士蘭最大的蔬果批發市場（Brisbane Markets at Rocklea）、冷凍倉儲、肉品加工與大型製造廠。時薪高、工時穩定，適合有駕照、想存第一桶金的雙人組合。',
+          jobs: ['蔬果包裝與分級理貨 (Packer)', '冷鏈倉儲揀貨員 (Picker/Packer)', '食品加工廠作業員', '堆高機操作員 (需 Forklift 證照)'],
+          transit: 'Rocklea 火車站可達外圍，但廠區腹地廣大且常有清晨 5–6 點早班，開車最穩妥。',
+          rentHint: '工廠區本身不適合居住，建議住在隔壁的 Sunnybank、Runcorn 或 Coopers Plains 開車通勤。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Acacia+Ridge+Industrial+Area+QLD'
+        },
+        {
+          id: 'eagle-farm',
+          name: '北區機場工業帶 (Eagle Farm & Pinkenba)',
+          enName: 'Eagle Farm & Pinkenba',
+          category: 'industrial',
+          categoryLabel: '北區高薪冷鏈與航空餐廚工廠',
+          color: '#059669',
+          iconText: '✈️',
+          lat: -27.4285,
+          lng: 153.0955,
+          distance: 'CBD 東北方約 10 公里（緊鄰布里斯本機場）',
+          carNeeded: '強烈建議自駕（早晚班公車班次極少）',
+          features: '緊鄰布里斯本國際/國內機場的大型物流與食品製造園區，聚集知名航空配餐廠（如 Gate Gourmet）、生鮮電商倉庫與冷鏈物流中心。法定高時薪（通常 AUD $32–$40+/hr）且排班制度完善。',
+          jobs: ['航空餐點組裝與包裝', '生鮮冷鏈物流理貨', '大型食品烘焙/加工廠作業員', '機場周邊倉儲物流'],
+          transit: 'Doomben 火車線可達附近，但廠區內部公車班次少，有車族（雙人輪流開）極具競爭優勢。',
+          rentHint: '可住北區 Nundah、Clayfield 或 Hamilton 一帶，開車 5–10 分鐘即達廠區。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Eagle+Farm+QLD+4009'
+        },
+        {
+          id: 'chermside',
+          name: '徹姆賽德 (Chermside 北區最大商圈)',
+          enName: 'Chermside',
+          category: 'cbd',
+          categoryLabel: '北區白人大型生活商圈',
+          color: '#0ea5e9',
+          iconText: '🏢',
+          lat: -27.3858,
+          lng: 153.0315,
+          distance: 'CBD 正北方約 10 公里（快線公車約 20–25 分鐘）',
+          carNeeded: '不需開車（北區公車總站樞紐）',
+          features: '擁有全昆士蘭規模最大的購物中心 Westfield Chermside。與南區 Sunnybank 相反，這裡以澳洲本地白人家庭為主，華人較少，適合想沉浸在純英文環境、在大型連鎖品牌打工的背包客。',
+          jobs: ['大型百貨零售與服飾店', '連鎖速食與美式餐廳', '電影院與娛樂中心兼職', '商場清潔與保全'],
+          transit: 'Chermside 公車轉運站（330, 333, 340 等高頻快線直達 CBD），單程 AUD $0.50。',
+          rentHint: '北區公寓與 Unit 多，單人雅房約 AUD $190–$230/週。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Westfield+Chermside+QLD'
+        },
+        {
+          id: 'indooroopilly',
+          name: '因杜羅皮利 (Indooroopilly 西區學區)',
+          enName: 'Indooroopilly',
+          category: 'cbd',
+          categoryLabel: '西區安全學區 / 大型商場',
+          color: '#0ea5e9',
+          iconText: '🎓',
+          lat: -27.4995,
+          lng: 152.9735,
+          distance: 'CBD 西南方約 7 公里（火車約 12 分鐘）',
+          carNeeded: '不需開車',
+          features: '鄰近昆士蘭大學（UQ St Lucia 校區）的優質住宅與大型購物中心區，治安極佳、環境綠意盎然。學生客群多，商場內餐飲與零售職缺穩定，交通兼具火車與公車雙優勢。',
+          jobs: ['Shopping Centre 餐飲與咖啡廳', '超市與藥妝零售', '學區餐廳外場', '居家與商業清潔'],
+          transit: 'Indooroopilly 火車站及公車總站（往返 CBD 與 UQ 僅 10 分鐘），單程 AUD $0.50。',
+          rentHint: '學區房源搶手，單人雅房約 AUD $200–$250/週。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Indooroopilly+Shopping+Centre+QLD'
+        }
+      ];
+
+      var bMap = null;
+      var mapMarkers = {};
+      var currentMapFilter = 'all';
+      var selectedMapLocationId = null;
+
+      function getMapUserData(id) {
+        if (!appState.mapSavedData) appState.mapSavedData = {};
+        if (!appState.mapSavedData[id]) {
+          appState.mapSavedData[id] = { jobs: [], note: '' };
+        }
+        return appState.mapSavedData[id];
+      }
+
+      function hasMapSavedContent(id) {
+        if (!appState.mapSavedData) return false;
+        var d = appState.mapSavedData[id];
+        if (!d) return false;
+        return (d.jobs && d.jobs.length > 0) || (d.note && d.note.trim().length > 0);
+      }
+
+      function updateMapSavedBadge() {
+        var count = brisbaneLocations.filter(function(l) { return hasMapSavedContent(l.id); }).length;
+        var badge = document.getElementById('map-saved-count-badge');
+        if (badge) badge.textContent = count;
+      }
+
+      function escapeMapHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, function(tag) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag];
+        });
+      }
+
+      function createMapCustomIcon(loc, isActive) {
+        var hasSaved = hasMapSavedContent(loc.id);
+        return L.divIcon({
+          className: 'custom-div-icon',
+          html: '<div class="custom-pin ' + (isActive ? 'active' : '') + '" style="background-color: ' + loc.color + '; width: 34px; height: 34px; font-size: 15px;">' +
+                  loc.iconText +
+                  (hasSaved ? '<span class="pin-badge" title="已有收藏工作網址或筆記"></span>' : '') +
+                '</div>',
+          iconSize: [34, 34],
+          iconAnchor: [17, 17],
+          popupAnchor: [0, -17]
+        });
+      }
+
+      function refreshAllMapMarkerBadges() {
+        Object.keys(mapMarkers).forEach(function(key) {
+          var item = brisbaneLocations.find(function(l) { return l.id === key; });
+          if (item && mapMarkers[key]) {
+            mapMarkers[key].setIcon(createMapCustomIcon(item, key === selectedMapLocationId));
+          }
+        });
+      }
+
+      function saveMapStateAndSync() {
+        updateMapSavedBadge();
+        refreshAllMapMarkerBadges();
+        saveState();
+      }
+
+      function renderMapSavedJobsHTML(locationId) {
+        var uData = getMapUserData(locationId);
+        if (!uData.jobs || uData.jobs.length === 0) {
+          return '<p class="text-[11px] text-stone-400 italic py-1">尚未加入工作網址，可將 SEEK / Indeed / 社團職缺貼在上方儲存。</p>';
+        }
+        return uData.jobs.map(function(job, idx) {
+          return '<div class="flex items-center justify-between gap-2 bg-white p-2 rounded-xl border border-indigo-100 shadow-2xs">' +
+            '<a href="' + escapeMapHTML(job.url) + '" target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0 flex items-center gap-2 text-indigo-700 hover:text-indigo-900">' +
+              '<span class="bg-indigo-100 text-indigo-700 p-1 rounded-lg shrink-0 text-xs">🔗</span>' +
+              '<div class="truncate">' +
+                '<div class="text-xs font-bold truncate underline decoration-indigo-300 underline-offset-2">' + escapeMapHTML(job.title || '未命名職缺連結') + '</div>' +
+                '<div class="text-[10px] text-stone-400 truncate">' + escapeMapHTML(job.url) + '</div>' +
+              '</div>' +
+            '</a>' +
+            '<button type="button" onclick="deleteMapSavedJob(\'' + locationId + '\', ' + idx + ')" title="刪除此連結" class="text-stone-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0 cursor-pointer">✕</button>' +
+          '</div>';
+        }).join('');
+      }
+
+      window.addMapSavedJob = function(locationId) {
+        var titleInput = document.getElementById('map-new-job-title');
+        var urlInput = document.getElementById('map-new-job-url');
+        var url = urlInput.value.trim();
+        var title = titleInput.value.trim();
+
+        if (!url) {
+          showGlobalToast('⚠️ 請先貼上工作網址！');
+          urlInput.focus();
+          return;
+        }
+        if (!/^https?:\/\//i.test(url)) {
+          url = 'https://' + url;
+        }
+
+        var domainTitle = '工作職缺連結';
+        try {
+          domainTitle = (new URL(url).hostname.replace('www.', '')) + ' 職缺連結';
+        } catch (e) {}
+
+        var uData = getMapUserData(locationId);
+        uData.jobs.unshift({
+          id: Date.now(),
+          title: title || domainTitle,
+          url: url
+        });
+        saveMapStateAndSync();
+
+        titleInput.value = '';
+        urlInput.value = '';
+        document.getElementById('map-saved-jobs-list').innerHTML = renderMapSavedJobsHTML(locationId);
+        showGlobalToast('✅ 已收藏工作網址並同步！');
+      };
+
+      window.deleteMapSavedJob = function(locationId, index) {
+        var uData = getMapUserData(locationId);
+        uData.jobs.splice(index, 1);
+        saveMapStateAndSync();
+        document.getElementById('map-saved-jobs-list').innerHTML = renderMapSavedJobsHTML(locationId);
+        showGlobalToast('🗑️ 已移除該筆工作網址');
+      };
+
+      window.saveMapLocationNote = function(locationId) {
+        var noteInput = document.getElementById('map-location-note-input');
+        var uData = getMapUserData(locationId);
+        uData.note = noteInput.value;
+        saveMapStateAndSync();
+        showGlobalToast('💾 個人筆記與備註已儲存並同步！');
+      };
+
+      window.selectMapLocation = function(id, flyTo) {
+        if (flyTo === undefined) flyTo = true;
+        var loc = brisbaneLocations.find(function(l) { return l.id === id; });
+        if (!loc) return;
+        selectedMapLocationId = id;
+
+        refreshAllMapMarkerBadges();
+
+        if (bMap && flyTo) {
+          bMap.flyTo([loc.lat, loc.lng], 13, { duration: 0.8 });
+          if (mapMarkers[id]) mapMarkers[id].openPopup();
+        }
+
+        var uData = getMapUserData(id);
+        var detailPanel = document.getElementById('map-detail-panel');
+        if (!detailPanel) return;
+
+        detailPanel.innerHTML =
+          '<div>' +
+            '<button type="button" onclick="resetMapToList()" class="inline-flex items-center gap-1 text-xs font-semibold text-stone-500 hover:text-stone-800 mb-2.5 transition cursor-pointer">' +
+              '← 返回所有區域列表' +
+            '</button>' +
+
+            '<div class="flex items-start justify-between gap-2 mb-3">' +
+              '<div>' +
+                '<span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full text-white mb-1" style="background-color: ' + loc.color + '">' +
+                  loc.categoryLabel +
+                '</span>' +
+                '<h3 class="text-base sm:text-lg font-bold text-stone-900 leading-snug">' + loc.name + '</h3>' +
+                '<p class="text-[11px] text-stone-500 font-medium mt-0.5">📍 ' + loc.distance + '</p>' +
+              '</div>' +
+              '<div class="text-xl bg-stone-100 p-2 rounded-xl">' + loc.iconText + '</div>' +
+            '</div>' +
+
+            '<div class="flex flex-wrap gap-1.5 mb-3.5">' +
+              '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-lg ' + (loc.carNeeded.includes('不需') ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200') + '">' +
+                (loc.carNeeded.includes('不需') ? '✅ ' + loc.carNeeded : '⚠️ ' + loc.carNeeded) +
+              '</span>' +
+              '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200">' +
+                '🎫 大眾運輸 AUD $0.50/趟' +
+              '</span>' +
+            '</div>' +
+
+            '<!-- 互動功能區 1：我的工作網址收藏 -->' +
+            '<div class="bg-indigo-50/70 rounded-xl p-3 border border-indigo-200 mb-3">' +
+              '<div class="flex items-center justify-between mb-1.5">' +
+                '<h4 class="text-xs font-bold text-indigo-950">🔗 我的工作網址收藏</h4>' +
+                '<span class="text-[10px] text-indigo-600 font-medium">同步儲存</span>' +
+              '</div>' +
+              '<div class="space-y-1.5 mb-2.5">' +
+                '<input type="text" id="map-new-job-title" placeholder="職缺名稱或公司（選填，例：Sunnybank 日出茶太）" class="w-full text-xs bg-white border border-indigo-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500">' +
+                '<div class="flex gap-1.5">' +
+                  '<input type="url" id="map-new-job-url" placeholder="貼上 SEEK / Indeed / FB 徵才網址..." class="flex-1 text-xs bg-white border border-indigo-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500">' +
+                  '<button type="button" onclick="addMapSavedJob(\'' + loc.id + '\')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition shrink-0 cursor-pointer">＋ 新增</button>' +
+                '</div>' +
+              '</div>' +
+              '<div id="map-saved-jobs-list" class="space-y-1.5">' + renderMapSavedJobsHTML(loc.id) + '</div>' +
+            '</div>' +
+
+            '<!-- 互動功能區 2：個人筆記與備註 -->' +
+            '<div class="bg-amber-50/70 rounded-xl p-3 border border-amber-200 mb-3.5">' +
+              '<div class="flex items-center justify-between mb-1.5">' +
+                '<h4 class="text-xs font-bold text-amber-950">📝 個人筆記與備註</h4>' +
+                '<button type="button" onclick="saveMapLocationNote(\'' + loc.id + '\')" class="px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white text-[11px] font-bold rounded-lg transition cursor-pointer">儲存備註</button>' +
+              '</div>' +
+              '<textarea id="map-location-note-input" rows="3" placeholder="在此記錄仲介聯絡方式、時薪細節、看房預約時間或交通注意事項..." class="w-full text-xs bg-white border border-amber-200 rounded-lg p-2 text-stone-700 focus:outline-none focus:border-amber-600 leading-relaxed">' + escapeMapHTML(uData.note || '') + '</textarea>' +
+            '</div>' +
+
+            '<div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-2.5">' +
+              '<h4 class="text-[11px] font-bold text-stone-800 uppercase tracking-wider mb-1">✨ 區域特色與生活機能</h4>' +
+              '<p class="text-xs text-stone-600 leading-relaxed">' + loc.features + '</p>' +
+            '</div>' +
+
+            '<div class="bg-teal-50/60 rounded-xl p-3 border border-teal-200/80 mb-2.5">' +
+              '<h4 class="text-[11px] font-bold text-teal-900 uppercase tracking-wider mb-1.5">💼 常見打工職缺類型</h4>' +
+              '<div class="flex flex-wrap gap-1.5">' +
+                loc.jobs.map(function(job) { return '<span class="text-[11px] font-medium bg-white text-teal-800 border border-teal-200 px-2 py-0.5 rounded-md">' + job + '</span>'; }).join('') +
+              '</div>' +
+            '</div>' +
+
+            '<div class="space-y-2 mb-3.5">' +
+              '<div class="bg-white rounded-xl p-2.5 border border-stone-200">' +
+                '<div class="text-[11px] font-bold text-stone-800 mb-0.5">🚌 交通路徑與車站</div>' +
+                '<p class="text-xs text-stone-600 leading-relaxed">' + loc.transit + '</p>' +
+              '</div>' +
+              '<div class="bg-white rounded-xl p-2.5 border border-stone-200">' +
+                '<div class="text-[11px] font-bold text-stone-800 mb-0.5">🛏️ 租屋參考行情</div>' +
+                '<p class="text-xs text-stone-600 leading-relaxed">' + loc.rentHint + '</p>' +
+              '</div>' +
+            '</div>' +
+
+            '<a href="' + loc.googleMapsUrl + '" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-2">' +
+              '<span>🗺️ 在 Google Maps 中開啟定位與路線導航 ↗</span>' +
+            '</a>' +
+          '</div>';
+
+        detailPanel.scrollTop = 0;
+      };
+
+      function renderMapLocationList(filter) {
+        var listContainer = document.getElementById('map-location-list');
+        if (!listContainer) return;
+
+        var filtered = brisbaneLocations;
+        if (filter === 'saved') {
+          filtered = brisbaneLocations.filter(function(l) { return hasMapSavedContent(l.id); });
+        } else if (filter !== 'all') {
+          filtered = brisbaneLocations.filter(function(l) { return l.category === filter; });
+        }
+
+        if (filtered.length === 0) {
+          listContainer.innerHTML =
+            '<div class="text-center py-8 px-4 bg-stone-50 rounded-2xl border border-dashed border-stone-300">' +
+              '<p class="text-xs font-semibold text-stone-600 mb-1">目前尚無收藏紀錄</p>' +
+              '<p class="text-[11px] text-stone-400">點擊地圖上任一區域地標，即可加入工作網址與個人筆記！</p>' +
+            '</div>';
+          return;
+        }
+
+        listContainer.innerHTML = filtered.map(function(loc) {
+          var uData = getMapUserData(loc.id);
+          var jobCount = uData.jobs ? uData.jobs.length : 0;
+          var hasNote = uData.note && uData.note.trim().length > 0;
+
+          return '<button type="button" onclick="selectMapLocation(\'' + loc.id + '\', true)" class="w-full text-left p-2.5 rounded-xl border ' + (hasMapSavedContent(loc.id) ? 'border-rose-200 bg-rose-50/20' : 'border-stone-200') + ' hover:border-amber-700/50 hover:bg-amber-50/30 transition flex items-start gap-2.5 group cursor-pointer">' +
+            '<div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 text-white shadow-2xs relative" style="background-color: ' + loc.color + '">' +
+              loc.iconText +
+              (hasMapSavedContent(loc.id) ? '<span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full"></span>' : '') +
+            '</div>' +
+            '<div class="flex-1 min-w-0">' +
+              '<div class="flex items-center justify-between gap-1">' +
+                '<h4 class="font-bold text-xs text-stone-900 truncate group-hover:text-amber-900">' + loc.name + '</h4>' +
+                '<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-stone-100 text-stone-600 shrink-0">' + (loc.carNeeded.includes('不需') ? '🚌 無車可' : '🚗 需開車') + '</span>' +
+              '</div>' +
+              '<p class="text-[11px] text-stone-500 truncate mt-0.5">' + loc.distance + '</p>' +
+              ((jobCount > 0 || hasNote) ?
+                '<div class="flex items-center gap-1.5 mt-1">' +
+                  (jobCount > 0 ? '<span class="text-[10px] font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.2 rounded border border-indigo-200">🔗 已存 ' + jobCount + ' 筆職缺</span>' : '') +
+                  (hasNote ? '<span class="text-[10px] font-semibold bg-amber-50 text-amber-800 px-1.5 py-0.2 rounded border border-amber-200">📝 有個人筆記</span>' : '') +
+                '</div>' : '') +
+            '</div>' +
+          '</button>';
+        }).join('');
+      }
+
+      window.resetMapToList = function() {
+        selectedMapLocationId = null;
+        refreshAllMapMarkerBadges();
+        Object.keys(mapMarkers).forEach(function(key) {
+          if (mapMarkers[key]) mapMarkers[key].closePopup();
+        });
+        if (bMap) bMap.flyTo([-27.495, 153.035], 11, { duration: 0.6 });
+
+        var detailPanel = document.getElementById('map-detail-panel');
+        if (!detailPanel) return;
+        detailPanel.innerHTML =
+          '<div class="bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl p-3.5 mb-3.5">' +
+            '<div class="flex items-center gap-1.5 text-teal-800 font-bold text-xs mb-1">' +
+              '<span>💡 黃金 20 天落地找工策略</span>' +
+            '</div>' +
+            '<p class="text-[11px] text-teal-700 leading-relaxed">' +
+              '先落腳 <strong>Roma Street YHA / Spring Hill</strong> 辦妥開戶與稅號。點擊下方任一區域，即可將找到的<strong>職缺網址與仲介備註</strong>直接存進該地點！' +
+            '</p>' +
+          '</div>' +
+          '<h3 class="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-2">點擊下方區域或地圖標記查看詳情與筆記</h3>' +
+          '<div id="map-location-list" class="space-y-2"></div>';
+        renderMapLocationList(currentMapFilter);
+      };
+
+      function setupLeafletMapInstance() {
+        if (bMap) return;
+        var mapEl = document.getElementById('brisbaneLeafletMap');
+        if (!mapEl) return;
+
+        bMap = L.map('brisbaneLeafletMap', {
+          center: [-27.495, 153.035],
+          zoom: 11,
+          zoomControl: false
+        });
+
+        L.control.zoom({ position: 'bottomright' }).addTo(bMap);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          subdomains: 'abcd',
+          maxZoom: 18
+        }).addTo(bMap);
+
+        // 1. 南區公車專用道
+        var buswayCoords = [
+          [-27.4698, 153.0251], [-27.4805, 153.0215], [-27.5150, 153.0450],
+          [-27.5618, 153.0815], [-27.5715, 153.0615], [-27.5850, 153.0850]
+        ];
+        var buswayLayer = L.polyline(buswayCoords, {
+          color: '#f97316', weight: 5, opacity: 0.85, dashArray: '10, 6'
+        }).addTo(bMap);
+        buswayLayer.bindTooltip('🚌 南區公車專用道 (130 / 140 / 111) · 單趟 $0.50', { sticky: true, className: 'transit-label' });
+
+        // 2. 南區火車線
+        var southTrainCoords = [
+          [-27.4658, 153.0185], [-27.4805, 153.0215], [-27.5250, 153.0180],
+          [-27.5600, 153.0120], [-27.5885, 153.0765]
+        ];
+        var southTrainLayer = L.polyline(southTrainCoords, {
+          color: '#2563eb', weight: 4, opacity: 0.75
+        }).addTo(bMap);
+        southTrainLayer.bindTooltip('🚆 南區火車線 (Beenleigh Line) · 單趟 $0.50', { sticky: true, className: 'transit-label' });
+
+        // 3. 北區與機場線
+        var northTrainCoords = [
+          [-27.4658, 153.0185], [-27.4565, 153.0355], [-27.4350, 153.0550],
+          [-27.4285, 153.0955], [-27.3858, 153.0315]
+        ];
+        var northTrainLayer = L.polyline(northTrainCoords, {
+          color: '#9333ea', weight: 4, opacity: 0.75
+        }).addTo(bMap);
+        northTrainLayer.bindTooltip('🚆 北區與機場線 (Airport / North Coast Line)', { sticky: true, className: 'transit-label' });
+
+        document.getElementById('toggle-busway').addEventListener('change', function(e) {
+          e.target.checked ? bMap.addLayer(buswayLayer) : bMap.removeLayer(buswayLayer);
+        });
+        document.getElementById('toggle-south-train').addEventListener('change', function(e) {
+          e.target.checked ? bMap.addLayer(southTrainLayer) : bMap.removeLayer(southTrainLayer);
+        });
+        document.getElementById('toggle-north-train').addEventListener('change', function(e) {
+          e.target.checked ? bMap.addLayer(northTrainLayer) : bMap.removeLayer(northTrainLayer);
+        });
+
+        brisbaneLocations.forEach(function(loc) {
+          var marker = L.marker([loc.lat, loc.lng], {
+            icon: createMapCustomIcon(loc, false)
+          }).addTo(bMap);
+
+          marker.bindPopup(
+            '<div class="min-w-[180px]">' +
+              '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style="background:' + loc.color + '">' + loc.categoryLabel + '</span>' +
+              '<h4 class="font-bold text-xs text-stone-900 mt-1">' + loc.name + '</h4>' +
+              '<p class="text-[10px] text-stone-500 mt-0.5">' + loc.distance + '</p>' +
+              '<button type="button" onclick="selectMapLocation(\'' + loc.id + '\', false)" class="mt-2 w-full py-1 bg-stone-800 text-white text-[11px] font-semibold rounded-lg hover:bg-stone-700 transition cursor-pointer">開啟詳情與工作筆記 →</button>' +
+            '</div>'
+          );
+
+          marker.on('click', function() {
+            selectMapLocation(loc.id, false);
+          });
+
+          mapMarkers[loc.id] = marker;
+        });
+
+        // 篩選器事件綁定
+        document.querySelectorAll('.map-filter-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            document.querySelectorAll('.map-filter-btn').forEach(function(b) {
+              b.classList.remove('active', 'bg-stone-800', 'text-white');
+              if (b.getAttribute('data-filter') === 'saved') {
+                b.classList.add('bg-rose-50', 'text-rose-700');
+              } else {
+                b.classList.add('bg-white', 'text-stone-700');
+              }
+            });
+            btn.classList.add('active', 'bg-stone-800', 'text-white');
+            btn.classList.remove('bg-white', 'text-stone-700', 'bg-rose-50', 'text-rose-700');
+
+            currentMapFilter = btn.getAttribute('data-filter');
+
+            brisbaneLocations.forEach(function(loc) {
+              var show = false;
+              if (currentMapFilter === 'all') show = true;
+              else if (currentMapFilter === 'saved') show = hasMapSavedContent(loc.id);
+              else show = loc.category === currentMapFilter;
+
+              if (show) {
+                if (!bMap.hasLayer(mapMarkers[loc.id])) bMap.addLayer(mapMarkers[loc.id]);
+              } else {
+                if (bMap.hasLayer(mapMarkers[loc.id])) bMap.removeLayer(mapMarkers[loc.id]);
+              }
+            });
+
+            resetMapToList();
+          });
+        });
+
+        updateMapSavedBadge();
+        resetMapToList();
+      }
+
+      window.initOrRefreshBrisbaneMap = function() {
+        setupLeafletMapInstance();
+        setTimeout(function() {
+          if (bMap) bMap.invalidateSize();
+        }, 120);
+      };
+
+      window.syncMapUIWithAppState = function() {
+        updateMapSavedBadge();
+        refreshAllMapMarkerBadges();
+        if (selectedMapLocationId) {
+          selectMapLocation(selectedMapLocationId, false);
+        } else {
+          renderMapLocationList(currentMapFilter);
+        }
+      };
+
+      window.exportMapRecords = function() {
+        var dataStr = JSON.stringify(appState.mapSavedData || {}, null, 2);
+        var blob = new Blob([dataStr], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'brisbane_whv_notes_' + (new Date().toISOString().slice(0, 10)) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showGlobalToast('📥 已匯出地圖工作網址與筆記備份檔！');
+      };
+
+      window.importMapRecords = function(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            var imported = JSON.parse(e.target.result);
+            if (typeof imported === 'object' && imported !== null) {
+              appState.mapSavedData = imported;
+              saveMapStateAndSync();
+              window.syncMapUIWithAppState();
+              showGlobalToast('✅ 成功匯入地圖紀錄並已同步！');
+            }
+          } catch (err) {
+            showGlobalToast('❌ 檔案格式錯誤，請選擇正確的 JSON 備份檔');
+          }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+      };
+
+      window.addEventListener('resize', function() {
+        if (bMap) bMap.invalidateSize();
       });
     })();
 
