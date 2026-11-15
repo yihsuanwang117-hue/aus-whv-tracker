@@ -776,17 +776,14 @@
 
   
   <!-- MODAL: 新增/編輯日曆事項 -->
+<!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
-      <!-- 1. 固定頂部標題列 -->
       <div class="flex justify-between items-center px-5 py-3.5 border-b border-stone-100 shrink-0 bg-white">
         <h3 id="eventModalTitle" class="text-base font-bold text-stone-900">待辦事項</h3>
-        <button type="button" onclick="closeModal('eventModal')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer !min-h-0" title="關閉視窗">✕</button>
+        <button type="button" onclick="closeModal('eventModal')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer !min-h-0">✕</button>
       </div>
-
-      <!-- 2. 表單包覆中央捲動區與固定底部列 -->
       <form onsubmit="handleSaveEvent(event)" class="flex flex-col flex-1 overflow-hidden">
-        <!-- 中央獨立捲動區 -->
         <div class="p-5 overflow-y-auto flex-1 space-y-3 text-xs">
           <input type="hidden" id="eventId">
           <div>
@@ -1075,13 +1072,14 @@
               <span>📲 手機行事曆</span>
             </button>
           </div>
-        </div>
+       </div>
 
-        <div class="pt-2 flex justify-between items-center border-t border-stone-100">
-          <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-2.5 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 cursor-pointer hidden">刪除</button>
+        <!-- 3. 固定底部操作列 -->
+        <div class="px-5 py-3 flex justify-between items-center border-t border-stone-200 bg-stone-50 shrink-0 text-xs">
+          <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg hover:bg-rose-100 font-semibold cursor-pointer hidden !min-h-0">刪除</button>
           <div class="flex gap-2 ml-auto">
-            <button type="button" onclick="closeModal('eventModal')" class="px-3 py-1.5 bg-stone-100 rounded cursor-pointer">取消</button>
-            <button type="submit" class="px-4 py-1.5 bg-amber-800 text-white rounded font-bold cursor-pointer">儲存事項</button>
+            <button type="button" onclick="closeModal('eventModal')" class="px-3.5 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-semibold cursor-pointer !min-h-0">取消</button>
+            <button type="submit" class="px-4 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg font-bold cursor-pointer shadow-xs !min-h-0">儲存事項</button>
           </div>
         </div>
       </form>
