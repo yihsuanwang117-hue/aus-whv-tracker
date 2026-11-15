@@ -33,6 +33,13 @@
     .cat-btn-active { background-color: #8C3B07 !important; color: #ffffff !important; }
 
     /* 手機專屬戶外觸控與視覺優化 */
+    /* 電腦與手機通用彈出視窗防壓縮架構 */
+    .modal-sheet > div {
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
     @media (max-width: 640px) {
       body {
         overflow-x: hidden;
@@ -452,6 +459,19 @@
             <div>週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div>週六</div>
           </div>
           <div id="calendarGrid" class="grid grid-cols-7 gap-px bg-stone-200 text-xs"></div>
+          <!-- 手機版/點選日期後顯示：選定日期的完整行程明細卡片區 -->
+        <div id="mobileSelectedDayAgenda" class="mt-4 bg-stone-50 rounded-xl border border-stone-200 p-3.5 sm:p-4">
+          <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-stone-200/80">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">選定日期行程明細</span>
+              <h3 id="selectedDayAgendaTitle" class="text-sm font-bold text-stone-900 mt-0.5">--</h3>
+            </div>
+            <button type="button" onclick="openAddEventForSelectedDate()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold cursor-pointer">
+              ＋ 在此日新增
+            </button>
+          </div>
+          <div id="selectedDayAgendaList" class="mt-3 space-y-2.5"></div>
+        </div>
         </div>
       </div>
     </div>
@@ -756,7 +776,35 @@
 
   <!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+   <!-- MODAL: 新增/編輯日曆事項 -->
+  <div id="eventModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+      <!-- 1. 固定頂部標題列 -->
+      <div class="flex justify-between items-center px-5 py-3.5 border-b border-stone-100 shrink-0 bg-white">
+        <h3 id="eventModalTitle" class="text-base font-bold text-stone-900">待辦事項</h3>
+        <button type="button" onclick="closeModal('eventModal')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer">✕</button>
+      </div>
+
+      <!-- 2. 表單包覆中央捲動區與固定底部列 -->
+      <form onsubmit="handleSaveEvent(event)" class="flex flex-col flex-1 overflow-hidden">
+        <!-- 中央獨立捲動區（把原本所有的輸入欄位放在這個 div 裡面） -->
+        <div class="p-5 overflow-y-auto flex-1 space-y-3 text-xs">
+          
+          <!-- ⚠️ 這裡保留你原本所有的 <input id="eventId"> 到 <div id="eventActionsArea">...</div> 的內容，完全不用改！ -->
+
+        </div>
+
+        <!-- 3. 固定底部操作列 -->
+        <div class="px-5 py-3 flex justify-between items-center border-t border-stone-200 bg-stone-50 shrink-0 text-xs">
+          <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg hover:bg-rose-100 font-semibold cursor-pointer hidden">刪除</button>
+          <div class="flex gap-2 ml-auto">
+            <button type="button" onclick="closeModal('eventModal')" class="px-3.5 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-semibold cursor-pointer">取消</button>
+            <button type="submit" class="px-4 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg font-bold cursor-pointer">儲存事項</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
       <div class="flex justify-between items-center pb-2 border-b border-stone-100">
         <h3 id="eventModalTitle" class="text-base font-bold text-stone-900">待辦事項</h3>
         <button type="button" onclick="closeModal('eventModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
@@ -1078,6 +1126,7 @@
     };
 
     var calendarDate = new Date();
+    var selectedCalendarDateStr = new Date().toISOString().split('T')[0]; // 新增這行
     var currentEditingEventId = null;
     var currentSelectedGearCategory = "ALL";
     var chartPeriod = "month";
@@ -1231,16 +1280,16 @@
       document.getElementById("txNote").value = "跨國電匯實收 (扣除中轉手續費 $" + foreignFee + " " + pCurr + "，出匯費 NT$" + homeFee + ")";
     };
 
-    function getColorBadgeClass(color) {
+    function getDotColorClass(color) {
       switch (color) {
-        case 'rose': return 'bg-rose-100 text-rose-800 border-rose-300';
-        case 'amber': return 'bg-amber-100 text-amber-900 border-amber-300';
-        case 'purple': return 'bg-purple-100 text-purple-800 border-purple-300';
-        case 'emerald': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-        case 'blue': return 'bg-blue-100 text-blue-800 border-blue-300';
-        case 'pink': return 'bg-pink-100 text-pink-800 border-pink-300';
-        case 'cyan': return 'bg-cyan-100 text-cyan-800 border-cyan-300';
-        default: return 'bg-stone-100 text-stone-800 border-stone-300';
+        case 'rose': return 'bg-rose-500';
+        case 'amber': return 'bg-amber-500';
+        case 'purple': return 'bg-purple-500';
+        case 'emerald': return 'bg-emerald-500';
+        case 'blue': return 'bg-blue-500';
+        case 'pink': return 'bg-pink-500';
+        case 'cyan': return 'bg-cyan-500';
+        default: return 'bg-stone-500';
       }
     }
 
@@ -2404,7 +2453,78 @@
       }
     };
 
-    // --- 日曆渲染 ---
+function getEventsForDate(dStr) {
+      return (appState.events || []).filter(function(e) {
+        if (e.endDate && e.endDate > e.date) {
+          return dStr >= e.date && dStr <= e.endDate;
+        }
+        return e.date === dStr;
+      });
+    }
+
+    function renderSelectedDayAgenda() {
+      var titleEl = document.getElementById("selectedDayAgendaTitle");
+      var listEl = document.getElementById("selectedDayAgendaList");
+      if (!titleEl || !listEl) return;
+
+      var dStr = selectedCalendarDateStr;
+      var parts = dStr.split('-').map(Number);
+      var dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      var weekDays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+      titleEl.textContent = dStr + " (" + weekDays[dateObj.getDay()] + ")";
+
+      var evs = getEventsForDate(dStr);
+      var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+
+      if (evs.length === 0) {
+        listEl.innerHTML = '<div class="py-4 text-center text-xs text-stone-400">該日目前沒有任何待辦事項，點擊右上角「＋ 在此日新增」即可建立。</div>';
+        return;
+      }
+
+      listEl.innerHTML = evs.map(function(e) {
+        var tag = (appState.tags || []).find(function(t) { return t.id === e.tagId; }) || { name: '待辦', color: 'rose' };
+        var locVal = e.location || e.mapUrl || "";
+        var hasLocation = Boolean(locVal && locVal.trim());
+        var isCancelled = e.status === "cancelled";
+        var isCompleted = e.status === "completed";
+
+        var timeInfo = "";
+        if (e.time) {
+          var times = calculateEventTimes(e, activeUserZone);
+          timeInfo = '<span class="inline-flex items-center gap-1 font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-stone-200 text-stone-700 font-bold">⏰ 當地 ' + times.localTime + ' <span class="text-blue-700 font-normal">(台灣 ' + times.twTime + ')</span></span>';
+        } else if (e.endDate && e.endDate > e.date) {
+          timeInfo = '<span class="inline-flex items-center gap-1 font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-stone-200 text-stone-600">🗓️ ' + e.date + ' ~ ' + e.endDate + '</span>';
+        }
+
+        return '<div onclick="openEditEvent(\'' + e.id + '\', event)" class="p-3 rounded-xl border bg-white hover:border-amber-700/50 transition cursor-pointer ' + (isCancelled ? 'opacity-60' : '') + '">' +
+          '<div class="flex items-start justify-between gap-2">' +
+            '<div class="space-y-1 flex-1 min-w-0">' +
+              '<div class="flex flex-wrap items-center gap-1.5">' +
+                '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ' + getColorBadgeClass(tag.color) + '">● ' + tag.name + '</span>' +
+                (isCompleted ? '<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">✅ 已完成</span>' : '') +
+                (isCancelled ? '<span class="px-1.5 py-0.5 rounded bg-stone-200 text-stone-600 text-[10px] font-bold">❌ 已取消</span>' : '') +
+              '</div>' +
+              '<h4 class="text-sm font-bold text-stone-900 ' + (isCancelled ? 'line-through text-stone-400' : '') + '">' + e.title + '</h4>' +
+              (timeInfo ? '<div class="pt-0.5">' + timeInfo + '</div>' : '') +
+              (hasLocation ? '<div class="text-xs text-blue-700 font-medium flex items-center gap-1 pt-0.5">📍 ' + locVal + '</div>' : '') +
+              (e.desc ? '<p class="text-xs text-stone-500 leading-relaxed pt-0.5">' + e.desc + '</p>' : '') +
+            '</div>' +
+            '<span class="text-xs text-amber-800 font-bold shrink-0 px-2 py-1 bg-amber-50 rounded-lg">編輯 ✏️</span>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.selectCalendarDay = function(dStr) {
+      selectedCalendarDateStr = dStr;
+      renderCalendar();
+    };
+
+    window.openAddEventForSelectedDate = function() {
+      openAddEventModal();
+      document.getElementById("eventDate").value = selectedCalendarDateStr || new Date().toISOString().split('T')[0];
+    };
+
     function renderCalendar() {
       var year = calendarDate.getFullYear();
       var month = calendarDate.getMonth();
@@ -2428,22 +2548,20 @@
       var firstDay = new Date(year, month, 1).getDay();
       var totalDays = new Date(year, month + 1, 0).getDate();
       var prevTotalDays = new Date(year, month, 0).getDate();
+      var todayStr = new Date().toISOString().split('T')[0];
 
       for (var i = firstDay - 1; i >= 0; i--) {
-        grid.innerHTML += '<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">' + (prevTotalDays - i) + '</span></div>';
+        grid.innerHTML += '<div class="bg-stone-50 min-h-[54px] sm:min-h-[92px] p-1 sm:p-1.5 opacity-40"><span class="font-mono text-stone-400 text-[11px] sm:text-xs">' + (prevTotalDays - i) + '</span></div>';
       }
 
       for (var day = 1; day <= totalDays; day++) {
         var dStr = year + "-" + String(month + 1).padStart(2, '0') + "-" + String(day).padStart(2, '0');
-        
-        var evs = (appState.events || []).filter(function(e) {
-          if (e.endDate && e.endDate > e.date) {
-            return dStr >= e.date && dStr <= e.endDate;
-          }
-          return e.date === dStr;
-        });
+        var evs = getEventsForDate(dStr);
+        var isSelected = (dStr === selectedCalendarDateStr);
+        var isToday = (dStr === todayStr);
 
-        var dayEventsHtml = evs.map(function(e) {
+        // 桌面版：顯示完整標題文字
+        var desktopEventsHtml = evs.map(function(e) {
           var tag = (appState.tags || []).find(function(t) { return t.id === e.tagId; }) || { name: '待辦', color: 'rose' };
           var locVal = e.location || e.mapUrl || "";
           var hasLocation = Boolean(locVal && locVal.trim());
@@ -2476,23 +2594,49 @@
           '</div>';
         }).join('');
 
-        grid.innerHTML += '<div onclick="openAddEventForDate(\'' + dStr + '\')" class="bg-white min-h-[90px] p-1.5 hover:bg-stone-50 transition cursor-pointer flex flex-col justify-between">' +
-          '<div>' +
-            '<span class="font-mono text-xs font-semibold text-stone-700">' + day + '</span>' +
-            '<div class="mt-1 space-y-1">' + dayEventsHtml + '</div>' +
-          '</div>' +
-        '</div>';
+        // 手機版：顯示彩色圓點
+        var mobileDotsHtml = evs.slice(0, 4).map(function(e) {
+          var tag = (appState.tags || []).find(function(t) { return t.id === e.tagId; }) || { color: 'rose' };
+          var dotColor = e.status === 'cancelled' ? 'bg-stone-400' : (e.status === 'completed' ? 'bg-emerald-600' : getDotColorClass(tag.color));
+          return '<span class="w-2 h-2 rounded-full ' + dotColor + '"></span>';
+        }).join('');
+        if (evs.length > 4) {
+          mobileDotsHtml += '<span class="text-[9px] font-bold text-stone-500 leading-none">+</span>';
+        }
+
+        var cellBgClass = isSelected 
+          ? 'bg-amber-50/90 ring-2 ring-inset ring-amber-700' 
+          : 'bg-white hover:bg-stone-50';
+
+        var dayNumClass = isToday
+          ? 'inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-800 text-white font-bold text-[11px]'
+          : 'font-mono text-[11px] sm:text-xs font-semibold text-stone-700';
+
+        grid.innerHTML +=
+          '<div onclick="selectCalendarDay(\'' + dStr + '\')" ondblclick="openAddEventForDate(\'' + dStr + '\')" class="' + cellBgClass + ' min-h-[54px] sm:min-h-[92px] p-1 sm:p-1.5 transition cursor-pointer flex flex-col justify-between">' +
+            '<div class="flex items-center justify-between">' +
+              '<span class="' + dayNumClass + '">' + day + '</span>' +
+              (evs.length > 0 ? '<span class="sm:hidden text-[9px] font-bold text-amber-900 bg-amber-100/80 px-1 rounded">' + evs.length + '</span>' : '') +
+            '</div>' +
+            '<div class="hidden sm:block mt-1 space-y-1">' + desktopEventsHtml + '</div>' +
+            '<div class="flex sm:hidden flex-wrap items-center justify-center gap-1 mt-1.5 min-h-[10px]">' + mobileDotsHtml + '</div>' +
+          '</div>';
       }
 
       var currentCellCount = firstDay + totalDays;
       var nextMonthDays = (7 - (currentCellCount % 7)) % 7;
       for (var j = 1; j <= nextMonthDays; j++) {
-        grid.innerHTML += '<div class="bg-stone-50 min-h-[90px] p-1.5 opacity-40"><span class="font-mono text-stone-400">' + j + '</span></div>';
+        grid.innerHTML += '<div class="bg-stone-50 min-h-[54px] sm:min-h-[92px] p-1 sm:p-1.5 opacity-40"><span class="font-mono text-stone-400 text-[11px] sm:text-xs">' + j + '</span></div>';
       }
+
+      renderSelectedDayAgenda();
     }
 
     window.changeMonth = function(d) {
-      if (d === 0) calendarDate = new Date();
+      if (d === 0) {
+        calendarDate = new Date();
+        selectedCalendarDateStr = calendarDate.toISOString().split('T')[0];
+      }
       else calendarDate.setMonth(calendarDate.getMonth() + d);
       renderCalendar();
     };
@@ -2504,8 +2648,7 @@
       document.getElementById("eventStatus").value = "pending";
       document.getElementById("rescheduleGroup").classList.add("hidden");
       document.getElementById("eventRescheduleDate").value = "";
-      document.getElementById("eventDate").value = new Date().toISOString().split('T')[0];
-      document.getElementById("eventEndDate").value = "";
+document.getElementById("eventDate").value = selectedCalendarDateStr || new Date().toISOString().split('T')[0];      document.getElementById("eventEndDate").value = "";
       document.getElementById("eventStartTime").value = "";
       document.getElementById("eventBaseZone").value = "LOCAL";
       document.getElementById("eventCustomUtcOffset").value = "3";
@@ -2629,7 +2772,8 @@
       } else {
         appState.events.push(newEv);
       }
-
+      
+      selectedCalendarDateStr = startDate;
       saveState();
       closeModal("eventModal");
       renderCalendar();
