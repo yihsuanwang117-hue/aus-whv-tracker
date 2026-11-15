@@ -775,15 +775,18 @@
   </div>
 
   
-  <!-- MODAL: 新增/編輯日曆事項 -->
 <!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+      <!-- 1. 固定頂部標題列 -->
       <div class="flex justify-between items-center px-5 py-3.5 border-b border-stone-100 shrink-0 bg-white">
         <h3 id="eventModalTitle" class="text-base font-bold text-stone-900">待辦事項</h3>
-        <button type="button" onclick="closeModal('eventModal')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer !min-h-0">✕</button>
+        <button type="button" onclick="closeModal('eventModal')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer !min-h-0" title="關閉視窗">✕</button>
       </div>
+
+      <!-- 2. 表單包覆中央捲動區與固定底部列 -->
       <form onsubmit="handleSaveEvent(event)" class="flex flex-col flex-1 overflow-hidden">
+        <!-- 中央獨立捲動區 -->
         <div class="p-5 overflow-y-auto flex-1 space-y-3 text-xs">
           <input type="hidden" id="eventId">
           <div>
@@ -921,158 +924,6 @@
             </div>
           </div>
         </div>
-
-        <!-- 3. 固定底部操作列 -->
-        <div class="px-5 py-3 flex justify-between items-center border-t border-stone-200 bg-stone-50 shrink-0 text-xs">
-          <button type="button" id="eventDeleteBtn" onclick="deleteCurrentEvent()" class="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg hover:bg-rose-100 font-semibold cursor-pointer hidden !min-h-0">刪除</button>
-          <div class="flex gap-2 ml-auto">
-            <button type="button" onclick="closeModal('eventModal')" class="px-3.5 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-semibold cursor-pointer !min-h-0">取消</button>
-            <button type="submit" class="px-4 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg font-bold cursor-pointer shadow-xs !min-h-0">儲存事項</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-      <div class="flex justify-between items-center pb-2 border-b border-stone-100">
-        <h3 id="eventModalTitle" class="text-base font-bold text-stone-900">待辦事項</h3>
-        <button type="button" onclick="closeModal('eventModal')" class="text-stone-400 hover:text-stone-600 text-sm font-bold cursor-pointer">✕</button>
-      </div>
-      <form onsubmit="handleSaveEvent(event)" class="space-y-3 text-xs mt-3">
-        <input type="hidden" id="eventId">
-        <div>
-          <label class="block font-semibold mb-1">事項名稱</label>
-          <input type="text" id="eventTitle" required placeholder="例如：德協面談、線上中文課、YHA 入住" class="w-full p-2 border rounded">
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold mb-1">狀態</label>
-            <select id="eventStatus" class="w-full p-2 border rounded font-bold text-stone-800" onchange="handleEventStatusChange()">
-              <option value="pending">進行中 / 待辦</option>
-              <option value="completed">✅ 已完成</option>
-              <option value="cancelled">❌ 已取消 (劃線灰色)</option>
-              <option value="rescheduled">🔄 已改期</option>
-            </select>
-          </div>
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="font-semibold">標籤類別</label>
-              <button type="button" onclick="openManageTagsModal()" class="text-amber-800 hover:underline text-[10px] font-bold cursor-pointer">＋管理</button>
-            </div>
-            <select id="eventTagSelect" class="w-full p-2 border rounded font-semibold text-stone-800"></select>
-          </div>
-        </div>
-
-        <!-- 改期選項 -->
-        <div id="rescheduleGroup" class="p-2.5 bg-amber-50 border border-amber-300 rounded-lg space-y-1.5 hidden">
-          <label class="block font-bold text-amber-900">🗓️ 改期至新日期 (原日期將自動寫入備註)：</label>
-          <input type="date" id="eventRescheduleDate" class="w-full p-1.5 border rounded bg-white font-mono">
-        </div>
-        
-        <!-- 日期區間與時間 -->
-        <div class="space-y-2">
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold mb-1">開始日期 (必填)</label>
-              <input type="date" id="eventDate" required class="w-full p-2 border rounded" onchange="updateEventTimePreview()">
-            </div>
-            <div>
-              <label class="block font-semibold mb-1">結束日期 <span class="text-stone-400 font-normal">(跨日區間選填)</span></label>
-              <input type="date" id="eventEndDate" class="w-full p-2 border rounded">
-            </div>
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">開始時間 <span class="text-stone-400 font-normal">(選填，住宿或全天免填)</span></label>
-            <input type="time" id="eventStartTime" class="w-full p-2 border rounded" onchange="updateEventTimePreview()">
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="font-semibold">此時間的基準依據：</label>
-            <div id="customUtcInputGroup" class="hidden flex items-center gap-1">
-              <span class="text-stone-500 font-mono text-[11px]">UTC</span>
-              <select id="eventCustomUtcOffset" class="p-1 border rounded text-[11px] font-bold font-mono" onchange="updateEventTimePreview()">
-                <option value="-12">-12</option><option value="-11">-11</option><option value="-10">-10</option>
-                <option value="-9">-09</option><option value="-8">-08</option><option value="-7">-07</option>
-                <option value="-6">-06</option><option value="-5">-05</option><option value="-4">-04</option>
-                <option value="-3">-03</option><option value="-2">-02</option><option value="-1">-01</option>
-                <option value="0">+00</option><option value="1">+01</option><option value="2">+02</option>
-                <option value="3" selected>+03 (土耳其)</option><option value="4">+04</option><option value="5">+05</option>
-                <option value="6">+06</option><option value="7">+07</option><option value="8">+08 (台灣)</option>
-                <option value="9">+09 (日韓)</option><option value="10">+10</option><option value="11">+11</option>
-                <option value="12">+12</option><option value="13">+13</option><option value="14">+14</option>
-              </select>
-            </div>
-          </div>
-          <select id="eventBaseZone" class="w-full p-1.5 border rounded text-xs font-medium text-stone-800" onchange="handleBaseZoneChange()">
-            <option value="LOCAL">📍 以我當前所在城市時間為準</option>
-            <option value="Asia/Taipei">🇹🇼 以台灣時間為準 (UTC+8)</option>
-            <option value="CUSTOM_UTC">🌐 自訂時區 (選擇 UTC 偏移量)</option>
-          </select>
-        </div>
-
-        <!-- 即時時間換算預覽條 -->
-        <div id="timezoneConvertPreview" class="hidden p-2.5 bg-amber-50/80 border border-amber-200 rounded-lg text-[11px] space-y-1">
-          <span class="font-bold text-amber-900 block">🌐 多國時間即時對齊預覽：</span>
-          <div class="grid grid-cols-3 gap-1 text-center font-mono">
-            <div class="bg-white p-1 rounded border border-amber-200">
-              <span class="block text-stone-400 text-[9px]">當地時間</span>
-              <span id="previewLocalTime" class="font-bold text-stone-800">--:--</span>
-            </div>
-            <div class="bg-white p-1 rounded border border-amber-200">
-              <span class="block text-stone-400 text-[9px]">台灣 (UTC+8)</span>
-              <span id="previewTwTime" class="font-bold text-blue-700">--:--</span>
-            </div>
-            <div class="bg-white p-1 rounded border border-amber-200">
-              <span id="previewThirdZoneLabel" class="block text-stone-400 text-[9px]">自訂時區</span>
-              <span id="previewTrTime" class="font-bold text-emerald-700">--:--</span>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="font-semibold text-stone-800">📍 地點位置 (地標名稱 或 網址)</label>
-            <button type="button" onclick="previewLocationSearch()" class="text-[11px] text-blue-600 hover:underline font-bold cursor-pointer">🔍 測試搜尋預覽</button>
-          </div>
-          <input type="text" id="eventLocationInput" placeholder="例如：烏魯魯渡假村、雪梨歌劇院，或貼上 Maps 網址" class="w-full p-2 border rounded border-amber-300 bg-amber-50/40 text-stone-800">
-        </div>
-
-        <div>
-          <label class="block font-semibold mb-1">備註說明 (選填)</label>
-          <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded">
-        </div>
-
-        <!-- 複製行程快捷操作列 -->
-        <div id="eventCopyMoveArea" class="p-2.5 bg-stone-50 border border-stone-200 rounded-xl space-y-2 hidden">
-          <span class="block font-bold text-stone-700 text-[11px]">🔄 行程複製 / 快速排課</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button" onclick="duplicateEventQuick(7)" class="flex-1 py-1 px-2 bg-white hover:bg-stone-100 border border-stone-300 rounded font-semibold text-[11px] text-stone-700 cursor-pointer" title="直接複製至下週同一時間">
-              ＋ 複製到下週 (+7天)
-            </button>
-            <button type="button" onclick="duplicateEventQuick(1)" class="py-1 px-2.5 bg-white hover:bg-stone-100 border border-stone-300 rounded font-semibold text-[11px] text-stone-700 cursor-pointer" title="複製到隔天">
-              ＋ 次日 (+1天)
-            </button>
-            <button type="button" onclick="duplicateEventCustomPrompt()" class="py-1 px-2.5 bg-white hover:bg-stone-100 border border-stone-300 rounded font-semibold text-[11px] text-stone-700 cursor-pointer" title="複製到特定日期">
-              指定日期...
-            </button>
-          </div>
-        </div>
-
-        <div id="eventActionsArea" class="pt-2 border-t border-stone-100 flex flex-col gap-2 hidden">
-          <a id="eventMapDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition">
-            <span id="eventMapDirectLinkText">🗺️ 開啟 Google Maps 導航 ↗</span>
-          </a>
-          <div class="grid grid-cols-2 gap-2">
-            <button type="button" onclick="addToGoogleCalendarFromModal()" class="px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer">
-              <span>📅 Google 日曆</span>
-            </button>
-            <button type="button" onclick="downloadIcsFileFromModal()" class="px-2 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer">
-              <span>📲 手機行事曆</span>
-            </button>
-          </div>
-       </div>
 
         <!-- 3. 固定底部操作列 -->
         <div class="px-5 py-3 flex justify-between items-center border-t border-stone-200 bg-stone-50 shrink-0 text-xs">
