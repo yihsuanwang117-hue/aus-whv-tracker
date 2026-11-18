@@ -991,11 +991,18 @@
           </div>
         </div>
 
-        <div>
-          <label class="block font-semibold mb-1">金額</label>
+       <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-semibold">金額</label>
+            <div class="flex items-center gap-1">
+              <span class="text-[10px] text-stone-400 mr-0.5">均分:</span>
+              <button type="button" onclick="splitTxAmount(2)" class="px-1.5 py-0.5 text-[11px] font-mono text-stone-500 bg-stone-100 hover:bg-stone-200 hover:text-stone-800 border border-stone-200 rounded transition cursor-pointer !min-h-0" title="金額除以 2">÷2</button>
+              <button type="button" onclick="splitTxAmount(3)" class="px-1.5 py-0.5 text-[11px] font-mono text-stone-500 bg-stone-100 hover:bg-stone-200 hover:text-stone-800 border border-stone-200 rounded transition cursor-pointer !min-h-0" title="金額除以 3">÷3</button>
+              <button type="button" onclick="splitTxAmountCustom()" class="px-1.5 py-0.5 text-[11px] font-mono text-stone-500 bg-stone-100 hover:bg-stone-200 hover:text-stone-800 border border-stone-200 rounded transition cursor-pointer !min-h-0" title="自訂平分人數">÷N</button>
+            </div>
+          </div>
           <input type="number" id="txAmount" step="0.01" required placeholder="0.00" class="w-full p-2.5 text-base font-bold border rounded font-mono">
         </div>
-
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="font-semibold">大分類項目</label>
@@ -2405,6 +2412,36 @@ function renderTransactions() {
 
   tbody.innerHTML = summaryRow + rowsHtml;
 }
+    window.splitTxAmount = function(divisor) {
+      var amtInput = document.getElementById("txAmount");
+      var val = parseFloat(amtInput.value);
+      if (!val || val <= 0 || !divisor || divisor <= 0) return;
+
+      var result = Math.round((val / divisor) * 100) / 100;
+      amtInput.value = result;
+
+      // 自動在備註後面補上平分紀錄，方便日後對帳
+      var noteInput = document.getElementById("txNote");
+      var tag = "(原價 $" + val + " ÷ " + divisor + ")";
+      if (noteInput && !noteInput.value.includes("÷")) {
+        noteInput.value = (noteInput.value.trim() + " " + tag).trim();
+      }
+    };
+
+    window.splitTxAmountCustom = function() {
+      var amtInput = document.getElementById("txAmount");
+      var val = parseFloat(amtInput.value);
+      if (!val || val <= 0) {
+        alert("請先輸入總金額再進行均分！");
+        amtInput.focus();
+        return;
+      }
+      var n = prompt("請問這筆金額要除以幾？（輸入人數或除數）：", "4");
+      var divisor = parseFloat(n);
+      if (divisor > 0) {
+        splitTxAmount(divisor);
+      }
+    };
     window.openTxModal = function(type, existingTx) {
       document.getElementById("txId").value = existingTx ? existingTx.id : "";
       document.getElementById("txType").value = existingTx ? existingTx.type : type;
