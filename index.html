@@ -395,12 +395,36 @@
         </div>
       </div>
 
-      <!-- 收支表格 (支援修改與刪除) -->
-      <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-stone-100 font-bold text-sm text-stone-800 flex justify-between items-center">
-          <span>收支紀錄明細</span>
-          <span class="text-xs text-stone-400 font-normal">點擊「✏️」即可直接修改已登記紀錄</span>
-        </div>
+<!-- 替換原本的收支紀錄明細標頭區 -->
+<div class="p-4 border-b border-stone-100 space-y-3">
+  <div class="flex justify-between items-center">
+    <span class="font-bold text-sm text-stone-800">收支紀錄明細</span>
+    <span class="text-xs text-stone-400 font-normal">點擊「✏️」即可直接修改已登記紀錄</span>
+  </div>
+  
+  <!-- 新增篩選控制列 -->
+  <div class="flex flex-wrap items-center gap-2 text-xs bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+    <select id="txFilterType" onchange="onTxFilterTypeChange()" class="p-1.5 border rounded-lg bg-white font-semibold">
+      <option value="ALL">全部收支</option>
+      <option value="expense">僅看支出</option>
+      <option value="income">僅看收入</option>
+    </select>
+
+    <select id="txFilterCategory" onchange="renderTransactions()" class="p-1.5 border rounded-lg bg-white font-semibold">
+      <option value="ALL">所有分類</option>
+    </select>
+
+    <div class="flex items-center gap-1">
+      <input type="date" id="txFilterStartDate" onchange="renderTransactions()" class="p-1.5 border rounded-lg bg-white font-mono">
+      <span class="text-stone-400">~</span>
+      <input type="date" id="txFilterEndDate" onchange="renderTransactions()" class="p-1.5 border rounded-lg bg-white font-mono">
+    </div>
+
+    <button type="button" onclick="resetTxFilters()" class="px-2.5 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-semibold ml-auto cursor-pointer">
+      清除篩選
+    </button>
+  </div>
+</div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
@@ -2096,6 +2120,7 @@ function getColorBadgeClass(color) {
 
     function renderAll() {
       renderAvatar();
+      updateTxFilterCategoryOptions();
       renderFinance();
       renderTransactions();
       renderCalendar();
@@ -2284,42 +2309,102 @@ function getColorBadgeClass(color) {
       }).join('');
     }
 
-    // --- 收支表格渲染 ---
-    function renderTransactions() {
-      var tbody = document.getElementById("transactionTableBody");
-      if (!tbody) return;
-      var list = (appState.transactions || []).slice().reverse();
-      if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-stone-400">目前尚無收支紀錄</td></tr>';
-        return;
-      }
-      tbody.innerHTML = list.map(function(t) {
-        var isThird = Boolean(t.isCustomThird);
-        return '<tr class="hover:bg-stone-50">' +
-          '<td class="py-2.5 px-4 font-mono">' + t.date + '</td>' +
-          '<td class="py-2.5 px-3">' +
-            '<span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700') + '">' +
-              (t.type === 'income' ? '收入' : '支出') +
-            '</span>' +
-          '</td>' +
-          '<td class="py-2.5 px-3">' +
-            '<span class="font-bold font-mono ' + (isThird ? 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]' : 'text-stone-700') + '">' +
-              t.currency + (isThird ? '(獨立)' : '') +
-            '</span>' +
-          '</td>' +
-          '<td class="py-2.5 px-3 font-bold text-stone-800">' + t.category + '</td>' +
-          '<td class="py-2.5 px-4 text-stone-600">' + (t.note || '-') + '</td>' +
-          '<td class="py-2.5 px-4 text-right font-mono font-bold ' + (t.type === 'income' ? 'text-emerald-600' : 'text-stone-900') + '">' +
-            (t.type === 'income' ? '+' : '-') + t.amount +
-          '</td>' +
-          '<td class="py-2.5 px-3 text-center whitespace-nowrap">' +
-            '<button type="button" onclick="editTx(\'' + t.id + '\')" class="text-stone-500 hover:text-amber-800 text-xs px-1 cursor-pointer font-medium" title="修改內容">✏️</button>' +
-            '<button type="button" onclick="delTx(\'' + t.id + '\')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer" title="刪除紀錄">✕</button>' +
-          '</td>' +
-        '</tr>';
-      }).join('');
-    }
+   // 動態更新篩選列的分類選項
+function updateTxFilterCategoryOptions() {
+  var typeVal = document.getElementById("txFilterType").value;
+  var catSelect = document.getElementById("txFilterCategory");
+  var currentVal = catSelect.value;
 
+  var cats = [];
+  if (typeVal === "expense") {
+    cats = appState.expenseCategories || DEFAULT_EXPENSE_CATS;
+  } else if (typeVal === "income") {
+    cats = appState.incomeCategories || DEFAULT_INCOME_CATS;
+  } else {
+    // 全部收支時，合併所有出現過的分類
+    var allCats = (appState.expenseCategories || DEFAULT_EXPENSE_CATS).concat(appState.incomeCategories || DEFAULT_INCOME_CATS);
+    cats = allCats.filter(function(item, pos) { return allCats.indexOf(item) === pos; });
+  }
+
+  catSelect.innerHTML = '<option value="ALL">所有分類 (' + cats.length + ')</option>' +
+    cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+  
+  if (cats.includes(currentVal)) catSelect.value = currentVal;
+}
+
+window.onTxFilterTypeChange = function() {
+  updateTxFilterCategoryOptions();
+  renderTransactions();
+};
+
+window.resetTxFilters = function() {
+  document.getElementById("txFilterType").value = "ALL";
+  document.getElementById("txFilterStartDate").value = "";
+  document.getElementById("txFilterEndDate").value = "";
+  updateTxFilterCategoryOptions();
+  document.getElementById("txFilterCategory").value = "ALL";
+  renderTransactions();
+};
+function renderTransactions() {
+  var tbody = document.getElementById("transactionTableBody");
+  if (!tbody) return;
+
+  var fType = document.getElementById("txFilterType") ? document.getElementById("txFilterType").value : "ALL";
+  var fCat = document.getElementById("txFilterCategory") ? document.getElementById("txFilterCategory").value : "ALL";
+  var fStart = document.getElementById("txFilterStartDate") ? document.getElementById("txFilterStartDate").value : "";
+  var fEnd = document.getElementById("txFilterEndDate") ? document.getElementById("txFilterEndDate").value : "";
+
+  // 1. 依日期由新到舊排序，再進行條件過濾
+  var list = (appState.transactions || []).slice().sort(function(a, b) {
+    return b.date.localeCompare(a.date);
+  }).filter(function(t) {
+    if (fType !== "ALL" && t.type !== fType) return false;
+    if (fCat !== "ALL" && t.category !== fCat) return false;
+    if (fStart && t.date < fStart) return false;
+    if (fEnd && t.date > fEnd) return false;
+    return true;
+  });
+
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-stone-400">符合條件的收支紀錄為 0 筆</td></tr>';
+    return;
+  }
+
+  // 2. 計算目前篩選條件的小計（方便核對缺漏）
+  var fx = appState.fxRate || 23.0;
+  var pCurr = appState.primaryCurrency || "AUD";
+  var hCurr = appState.homeCurrency || "TWD";
+  var sumHome = 0;
+  list.forEach(function(t) {
+    if (t.isCustomThird) return;
+    var val = t.currency === pCurr ? (parseFloat(t.amount) * fx) : parseFloat(t.amount);
+    sumHome += (t.type === 'income' ? val : -val);
+  });
+
+  var summaryRow = '<tr class="bg-amber-50/70 border-b border-amber-200 text-amber-950 font-bold">' +
+    '<td colspan="5" class="py-2 px-4 text-xs">📊 目前顯示：共 ' + list.length + ' 筆紀錄</td>' +
+    '<td colspan="2" class="py-2 px-4 text-right font-mono text-xs">淨額約 ' + hCurr + ' ' + Math.round(sumHome).toLocaleString() + '</td>' +
+  '</tr>';
+
+  // 3. 渲染列表（保留您原本的 tr 結構）
+  var rowsHtml = list.map(function(t) {
+    var isThird = Boolean(t.isCustomThird);
+    return '<tr class="hover:bg-stone-50">' +
+      '<td class="py-2.5 px-4 font-mono">' + t.date + '</td>' +
+      '<td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (t.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700') + '">' + (t.type === 'income' ? '收入' : '支出') + '</span></td>' +
+      '<td class="py-2.5 px-3"><span class="font-bold font-mono ' + (isThird ? 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]' : 'text-stone-700') + '">' + t.currency + (isThird ? '(獨立)' : '') + '</span></td>' +
+      '<td class="py-2.5 px-3 font-bold text-stone-800">' + t.category + '</td>' +
+      '<td class="py-2.5 px-4 text-stone-600">' + (t.note || '-') + '</td>' +
+      '<td class="py-2.5 px-4 text-right font-mono font-bold ' + (t.type === 'income' ? 'text-emerald-600' : 'text-stone-900') + '">' + (t.type === 'income' ? '+' : '-') + t.amount + '</td>' +
+      '<td class="py-2.5 px-3 text-center whitespace-nowrap">' +
+        '<button type="button" onclick="editTx(\'' + t.id + '\')" class="text-stone-500 hover:text-amber-800 text-xs px-1 cursor-pointer font-medium" title="修改內容">✏️</button>' +
+        '<button type="button" onclick="delTx(\'' + t.id + '\')" class="text-stone-400 hover:text-rose-600 text-xs px-1 cursor-pointer" title="刪除紀錄">✕</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  tbody.innerHTML = summaryRow + rowsHtml;
+}
     window.openTxModal = function(type, existingTx) {
       document.getElementById("txId").value = existingTx ? existingTx.id : "";
       document.getElementById("txType").value = existingTx ? existingTx.type : type;
