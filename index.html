@@ -3118,8 +3118,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       var el = document.getElementById(id);
       if (el) el.classList.add("hidden");
     };
-
-  // ==========================================
+// ==========================================
     // --- 工時規劃器模組 (Planner Module) ---
     // ==========================================
     (function(){
@@ -3137,9 +3136,9 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
           other: 0,
           ovr: '',
           rows: [
-            { n: '房務', t: 'casual', r: 33.85, wd: 22.5, sa: 0, su: 0, sx: 1.2, ux: 1.4, wk: 26 },
-            { n: '飲料店', t: 'casual', r: 34.76, wd: 0, sa: 6, su: 6, sx: 1.2, ux: 1.2, wk: 26 },
-            { n: '', t: 'casual', r: 0, wd: 0, sa: 0, su: 0, sx: 1.2, ux: 1.4, wk: 26 }
+            { n: '房務', t: 'casual', r: 33.85, wd: 22.5, sa: 0, su: 0, sx: 1.2, ux: 1.4 },
+            { n: '飲料店', t: 'casual', r: 34.76, wd: 0, sa: 6, su: 6, sx: 1.2, ux: 1.2 },
+            { n: '', t: 'casual', r: 0, wd: 0, sa: 0, su: 0, sx: 1.2, ux: 1.4 }
           ]
         };
       };
@@ -3157,6 +3156,16 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         }
         return appState.planner;
       };
+
+      function calcDateSpan(p) {
+        var sParts = (p.startDate || new Date().toISOString().split('T')[0]).split('-').map(Number);
+        var eParts = (p.endDate || (appState && appState.targetEndDate) || '2027-06-30').split('-').map(Number);
+        var sUTC = Date.UTC(sParts[0], sParts[1] - 1, sParts[2]);
+        var eUTC = Date.UTC(eParts[0], eParts[1] - 1, eParts[2]);
+        var diffDays = Math.max(1, Math.round((eUTC - sUTC) / (1000 * 60 * 60 * 24)) + 1);
+        var eff = Math.max(0.1, Number((diffDays / 7).toFixed(1)));
+        return { diffDays: diffDays, eff: eff };
+      }
 
       var timer;
       var save = function() { 
@@ -3203,20 +3212,26 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         return '<input type="date" data-k="' + k + '" value="' + v + '" class="w-full p-1.5 border rounded font-mono bg-white">';
       };
       
-      var rowHtml = function(j, i) {
+      var rowHtml = function(j, i, effWeeks) {
         return '<div class="p-3 rounded-xl border bg-stone-50 space-y-2 text-xs">' +
           '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">' +
-            '<div><label class="' + L + '">工作名稱</label><input type="text" data-k="n" data-i="' + i + '" value="' + j.n + '" class="w-full p-1.5 border rounded"></div>' +
+            '<div><label class="' + L + '">工作名稱</label><input type="text" data-k="n" data-i="' + i + '" value="' + j.n + '" class="w-full p-1.5 border rounded bg-white"></div>' +
             '<div>' +
               '<label class="' + L + '">聘僱類型</label>' +
-              '<select data-k="t" data-i="' + i + '" class="w-full p-1.5 border rounded font-bold">' +
+              '<select data-k="t" data-i="' + i + '" class="w-full p-1.5 border rounded font-bold bg-white">' +
                 '<option value="casual" ' + (j.t === 'casual' ? 'selected' : '') + '>Casual</option>' +
                 '<option value="pt" ' + (j.t === 'pt' ? 'selected' : '') + '>Part-time</option>' +
                 '<option value="ft" ' + (j.t === 'ft' ? 'selected' : '') + '>Full-time</option>' +
               '</select>' +
             '</div>' +
             '<div><label class="' + L + '">平日時薪 (A$)</label>' + num('r', j.r, i) + '</div>' +
-            '<div><label class="' + L + '">預計做幾週</label>' + num('wk', j.wk, i) + '</div>' +
+            '<div>' +
+              '<label class="' + L + '">預計做幾週 <span class="text-amber-700 font-semibold">(自動)</span></label>' +
+              '<div class="pl-auto-wk w-full p-1.5 border border-stone-200 rounded font-mono bg-stone-100 text-stone-700 font-bold flex items-center justify-between">' +
+                '<span>' + effWeeks + ' 週</span>' +
+                '<span class="text-[10px] text-stone-400 font-normal">依日期連動</span>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
           '<div class="grid grid-cols-3 sm:grid-cols-5 gap-2">' +
             '<div><label class="' + L + '">平日時數/週</label>' + num('wd', j.wd, i) + '</div>' +
@@ -3232,12 +3247,13 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         var root = getRoot();
         if (!root) return;
         var p = P();
+        var span = calcDateSpan(p);
         var autoSavedTWD = savedCalc();
 
         root.innerHTML = '<div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">' +
             '<div>' +
               '<h3 class="text-sm font-bold text-stone-900">🧮 工時 & 工作組合規劃器</h3>' +
-              '<p class="text-xs text-stone-500 mt-0.5">輸入預計上工與離職日期，系統自動換算實際工作週數與每週目標時薪。</p>' +
+              '<p class="text-xs text-stone-500 mt-0.5">輸入預計上工與離職日期，系統會自動計算工作週數並同步套用至下方所有工作項目。</p>' +
             '</div>' +
             '<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">' +
               '<div><label class="' + L + '">📅 預計上工日期</label>' + dateInp('startDate', p.startDate) + '</div>' +
@@ -3247,7 +3263,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
               '<div><label class="' + L + '">其他收入/週 (台幣)</label>' + num('other', p.other) + '</div>' +
               '<div><label class="' + L + '">已存金額 (台幣，可覆寫)</label>' + num('ovr', p.ovr, null, '目前約 ' + autoSavedTWD) + '</div>' +
             '</div>' +
-            '<div class="space-y-2">' + p.rows.map(rowHtml).join('') + '</div>' +
+            '<div class="space-y-2">' + p.rows.map(function(j, i) { return rowHtml(j, i, span.eff); }).join('') + '</div>' +
           '</div>' +
           '<div id="pl-out"></div>';
         updatePlanner();
@@ -3262,15 +3278,17 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         var tgt = +a.targetNTD || 400000;
         var have = (p.ovr !== '' && !isNaN(p.ovr)) ? +p.ovr : savedCalc();
 
-        // 精準日期天數與週數計算（含頭尾兩天）
-        var sParts = (p.startDate || new Date().toISOString().split('T')[0]).split('-').map(Number);
-        var eParts = (p.endDate || a.targetEndDate || '2027-06-30').split('-').map(Number);
-        var sUTC = Date.UTC(sParts[0], sParts[1] - 1, sParts[2]);
-        var eUTC = Date.UTC(eParts[0], eParts[1] - 1, eParts[2]);
+        var span = calcDateSpan(p);
+        var diffDays = span.diffDays;
+        var eff = span.eff;
 
-        var diffDays = Math.max(1, Math.round((eUTC - sUTC) / (1000 * 60 * 60 * 24)) + 1);
-        var rawWeeks = diffDays / 7;
-        var eff = Math.max(0.1, Number(rawWeeks.toFixed(1)));
+        // 同步更新各工作列的自動週數顯示
+        var root = getRoot();
+        if (root) {
+          root.querySelectorAll('.pl-auto-wk').forEach(function(el) {
+            el.firstElementChild.textContent = eff + ' 週';
+          });
+        }
 
         var weeklyLive = (+p.rent || 0) + (+p.misc || 0);
         var gapHome = Math.max(0, tgt - have);
@@ -3285,12 +3303,12 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         p.rows.forEach(function(j) {
           var h = (+j.wd || 0) + (+j.sa || 0) + (+j.su || 0);
           if (!(h > 0 && j.r > 0)) return;
-          var w = Math.min(j.wk, eff);
+          var w = eff; // 直接採用上工至離職日期的總週數
           G += j.r * ((+j.wd || 0) + (+j.sa || 0) * (+j.sx || 1) + (+j.su || 0) * (+j.ux || 1)) * w;
-          hrs += h * w / eff;
+          hrs += h;
           best = Math.max(best, +j.r || 0);
-          if (j.wk > 26) {
-            warn.push("「" + (j.n || '工作') + "」預計做 " + j.wk + " 週，已超過同一雇主 6 個月（約 26 週）上限，需安排更換雇主、分店或確認具備豁免資格。");
+          if (w > 26) {
+            warn.push("「" + (j.n || '工作') + "」期間共 " + w + " 週，已超過同一雇主 6 個月（約 26 週）上限，屆時需安排更換雇主、分店或確認具備豁免資格。");
           }
         });
 
@@ -3322,7 +3340,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
               '<span>📐 計算過程與算式明細</span>' +
             '</div>' +
             '<div class="text-[11px] leading-relaxed text-stone-700 space-y-1">' +
-              '<div>• <strong>總工作週數</strong>：' + p.startDate + ' ～ ' + p.endDate + ' ＝ 共 <span class="font-bold text-stone-900">' + diffDays + '</span> 天 ÷ 7 ＝ <span class="font-bold text-amber-900 underline">' + eff + ' 週</span></div>' +
+              '<div>• <strong>總工作週數</strong>：' + p.startDate + ' ～ ' + p.endDate + ' ＝ 共 <span class="font-bold text-stone-900">' + diffDays + '</span> 天 ÷ 7 ＝ <span class="font-bold text-amber-900 underline">' + eff + ' 週</span>（已自動帶入各工作週數）</div>' +
               '<div>• <strong>需淨賺總額</strong>：(目標 NT$' + fmt(tgt) + ' － 已存 NT$' + fmt(have) + ') ÷ 匯率 ' + fx + ' ＋ 每週開銷 A$' + weeklyLive + ' × ' + eff + ' 週' + (otherA > 0 ? (' － 其他收入 A$' + fmt(otherA)) : '') + ' ＝ <span class="font-bold text-stone-900">A$ ' + fmt(need) + '</span></div>' +
               '<div>• <strong>每週需稅前</strong>：反推含稅總額 A$' + fmt(Greq) + ' ÷ ' + eff + ' 週 ＝ <span class="font-bold text-amber-900">A$ ' + fmt(perWk) + ' / 週</span></div>' +
             '</div>' +
@@ -3416,7 +3434,6 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         }
       });
     })();
-
     // ==========================================
     // --- 布里斯本地圖與交通模組 (Brisbane Map Module) ---
     // ==========================================
