@@ -531,14 +531,14 @@
    <!-- TAB 5: 城鎮探索與踩點地圖 (可擴充多城鎮架構) -->
     <div id="content-map" class="space-y-4 hidden">
       
-      <!-- 視圖 1：外層大分類與城鎮總覽 -->
-      <div id="towns-directory-view" class="space-y-5">
+   <!-- 視圖 1：三層式總覽 (國家 ➔ 州/地區分類 ➔ 城鎮列表) -->
+      <div id="towns-directory-view" class="space-y-4">
         <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h2 class="text-base font-bold text-stone-900 flex items-center gap-2">
-              <span>🗺️</span> 澳洲城鎮生活與商店踩點地圖
+              <span>🗺️</span> 世界城鎮生活與商店踩點地圖
             </h2>
-            <p class="text-xs text-stone-500 mt-0.5">選擇大分類與城鎮進入專屬地圖；每去過一間商店即可設為「已踩點」並留下個人評論。</p>
+            <p class="text-xs text-stone-500 mt-0.5">依「國家 ➔ 州/地區分類 ➔ 城鎮」分層管理；分類名稱與城鎮皆可隨時修改或刪除。</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <button type="button" onclick="openAddCustomTownModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold transition cursor-pointer shadow-xs">
@@ -554,10 +554,32 @@
           </div>
         </div>
 
-        <!-- 大分類篩選按鈕列 -->
-        <div id="region-category-tabs" class="flex flex-wrap gap-2 text-xs"></div>
+        <!-- 階層篩選面板：第 1 層國家 + 第 2 層地區分類（附修改/刪除） -->
+        <div class="bg-white rounded-2xl p-4 border border-stone-200 shadow-sm space-y-3">
+          <!-- 第 1 層：國家 -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">1. 選擇國家：</span>
+              <button type="button" onclick="addNewCountryPrompt()" class="text-[11px] text-amber-800 hover:underline font-bold cursor-pointer !min-h-0">＋ 新增國家</button>
+            </div>
+            <div id="country-tabs-container" class="flex flex-wrap gap-2 text-xs"></div>
+          </div>
 
-        <!-- 城鎮卡片列表區 -->
+          <!-- 第 2 層：州 / 地區分類 -->
+          <div class="pt-2.5 border-t border-stone-100">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+              <span class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">2. 選擇州 / 地區分類：</span>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="addNewRegionPrompt()" class="text-[11px] text-amber-800 hover:underline font-bold cursor-pointer !min-h-0">＋ 新增分類</button>
+                <button type="button" id="btn-rename-region" onclick="renameCurrentRegionPrompt()" class="hidden px-2 py-0.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded text-[11px] font-semibold cursor-pointer !min-h-0">✏️ 修改分類名稱</button>
+                <button type="button" id="btn-delete-region" onclick="deleteCurrentRegionPrompt()" class="hidden px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[11px] font-semibold cursor-pointer !min-h-0">🗑️ 刪除分類</button>
+              </div>
+            </div>
+            <div id="region-category-tabs" class="flex flex-wrap gap-2 text-xs"></div>
+          </div>
+        </div>
+
+        <!-- 第 3 層：城鎮卡片列表區 -->
         <div id="towns-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
@@ -3751,18 +3773,19 @@ var newEv = {
       });
     })();
   // ==========================================
-    // --- 城鎮探索與商店踩點地圖模組 (Towns & Mitchell Map) ---
+    // --- 城鎮探索與商店踩點地圖模組 (國家 ➔ 地區分類 ➔ 城鎮) ---
     // ==========================================
     (function() {
       var DEFAULT_TOWNS = [
         {
           id: 'mitchell-qld',
-          regionCategory: '昆士蘭鄉村小鎮',
+          country: '澳洲',
+          regionCategory: 'QLD 昆士蘭',
           name: '米切爾 (Mitchell)',
           stateCode: 'QLD 4465',
           lat: -26.4875,
           lng: 147.9752,
-          zoom: 16,
+          zoom: 15,
           description: '位於昆士蘭 Maranoa 地區、Warrego Highway 上的純樸內陸小鎮（距 Roma 約 87 公里）。幾乎所有商店與生活機能都集中在主街 Cambridge Street 與 Mary Street，步行即可逛完整個鎮！',
           places: [
             {
@@ -3979,6 +4002,7 @@ var newEv = {
 
       var bMap = null;
       var mapMarkers = {};
+      var currentCountryFilter = '澳洲';
       var currentRegionFilter = 'ALL';
       var activeTownId = null;
       var currentPlaceFilter = 'all';
@@ -3988,11 +4012,37 @@ var newEv = {
         if (!appState.mapSavedData) appState.mapSavedData = {};
         if (!appState.customTowns) appState.customTowns = [];
         if (!appState.customPlacesByTown) appState.customPlacesByTown = {};
+        if (!appState.townMetaOverrides) appState.townMetaOverrides = {};
+        if (!appState.deletedDefaultTownIds) appState.deletedDefaultTownIds = [];
+        if (!appState.emptyCountries) appState.emptyCountries = [];
+        if (!appState.emptyRegions) appState.emptyRegions = []; // 格式: [{ country: '澳洲', region: 'NSW 新南威爾斯' }]
       }
 
+      // 取得所有有效城鎮（支援覆寫預設城鎮的國家、分類與名稱）
       function getAllTowns() {
         ensureTownsState();
-        return DEFAULT_TOWNS.concat(appState.customTowns);
+        var list = [];
+
+        DEFAULT_TOWNS.forEach(function(dt) {
+          if (appState.deletedDefaultTownIds.includes(dt.id)) return;
+          var ov = appState.townMetaOverrides[dt.id] || {};
+          list.push(Object.assign({}, dt, {
+            country: ov.country || dt.country || '澳洲',
+            regionCategory: ov.regionCategory || dt.regionCategory || 'QLD 昆士蘭',
+            name: ov.name || dt.name,
+            stateCode: ov.stateCode !== undefined ? ov.stateCode : dt.stateCode,
+            description: ov.description !== undefined ? ov.description : dt.description
+          }));
+        });
+
+        appState.customTowns.forEach(function(ct) {
+          list.push(Object.assign({}, ct, {
+            country: ct.country || '澳洲',
+            regionCategory: ct.regionCategory || '未分類地區'
+          }));
+        });
+
+        return list;
       }
 
       function getTownById(townId) {
@@ -4035,57 +4085,123 @@ var newEv = {
       }
 
       // ==========================================
-      // 視圖 1：外層大分類與城鎮總覽渲染
+      // 視圖 1：三層式總覽 (國家 ➔ 州/地區分類 ➔ 城鎮)
       // ==========================================
       function renderTownsDirectory() {
+        ensureTownsState();
         var towns = getAllTowns();
+        var countryTabsEl = document.getElementById('country-tabs-container');
         var regionTabsEl = document.getElementById('region-category-tabs');
         var gridEl = document.getElementById('towns-grid-container');
-        if (!regionTabsEl || !gridEl) return;
+        if (!countryTabsEl || !regionTabsEl || !gridEl) return;
 
-        // 收集所有不重複的大分類
-        var regions = [];
+        // 1. 收集所有國家
+        var countries = ['澳洲'];
         towns.forEach(function(t) {
-          var r = t.regionCategory || '其他地區';
+          var c = t.country || '澳洲';
+          if (!countries.includes(c)) countries.push(c);
+        });
+        (appState.emptyCountries || []).forEach(function(c) {
+          if (c && !countries.includes(c)) countries.push(c);
+        });
+
+        if (currentCountryFilter !== 'ALL' && !countries.includes(currentCountryFilter)) {
+          currentCountryFilter = countries[0] || 'ALL';
+        }
+
+        // 渲染第 1 層：國家按鈕
+        var countryHtml = '<button type="button" onclick="selectCountryFilter(\'ALL\')" class="px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
+          (currentCountryFilter === 'ALL' ? 'bg-stone-900 text-white border-stone-900' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+          '🌐 全部國家 (' + towns.length + ')' +
+        '</button>';
+
+        countries.forEach(function(cnt) {
+          var cntCount = towns.filter(function(t) { return (t.country || '澳洲') === cnt; }).length;
+          var isAct = currentCountryFilter === cnt;
+          var flag = cnt === '澳洲' ? '🇦🇺 ' : (cnt === '日本' ? '🇯🇵 ' : (cnt === '德國' ? '🇩🇪 ' : (cnt === '紐西蘭' ? '🇳🇿 ' : '🏳️ ')));
+          countryHtml += '<button type="button" onclick="selectCountryFilter(\'' + escapeMapHTML(cnt) + '\')" class="px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
+            (isAct ? 'bg-stone-900 text-white border-stone-900' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+            flag + escapeMapHTML(cnt) + ' (' + cntCount + ')' +
+          '</button>';
+        });
+        countryTabsEl.innerHTML = countryHtml;
+
+        // 2. 收集當前國家底下的所有「州/地區分類」
+        var townsInCountry = currentCountryFilter === 'ALL'
+          ? towns
+          : towns.filter(function(t) { return (t.country || '澳洲') === currentCountryFilter; });
+
+        var regions = [];
+        townsInCountry.forEach(function(t) {
+          var r = t.regionCategory || '未分類地區';
           if (!regions.includes(r)) regions.push(r);
+        });
+        (appState.emptyRegions || []).forEach(function(er) {
+          if (currentCountryFilter === 'ALL' || er.country === currentCountryFilter) {
+            if (er.region && !regions.includes(er.region)) regions.push(er.region);
+          }
         });
 
         if (currentRegionFilter !== 'ALL' && !regions.includes(currentRegionFilter)) {
           currentRegionFilter = 'ALL';
         }
 
-        // 渲染大分類篩選標籤
-        var tabsHtml = '<button type="button" onclick="selectRegionCategory(\'ALL\')" class="px-3 py-1.5 rounded-full border text-xs font-bold transition cursor-pointer ' +
-          (currentRegionFilter === 'ALL' ? 'bg-amber-800 text-white border-amber-800' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
-          '全部大分類 (' + towns.length + ')' +
+        // 控制「修改分類名稱」與「刪除分類」按鈕顯示狀態
+        var btnRename = document.getElementById('btn-rename-region');
+        var btnDelete = document.getElementById('btn-delete-region');
+        if (btnRename && btnDelete) {
+          if (currentRegionFilter !== 'ALL') {
+            btnRename.classList.remove('hidden');
+            btnDelete.classList.remove('hidden');
+          } else {
+            btnRename.classList.add('hidden');
+            btnDelete.classList.add('hidden');
+          }
+        }
+
+        // 渲染第 2 層：地區分類按鈕
+        var regionHtml = '<button type="button" onclick="selectRegionCategory(\'ALL\')" class="px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
+          (currentRegionFilter === 'ALL' ? 'bg-amber-800 text-white border-amber-800' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+          '全部分類 (' + townsInCountry.length + ')' +
         '</button>';
 
         regions.forEach(function(reg) {
-          var count = towns.filter(function(t) { return (t.regionCategory || '其他地區') === reg; }).length;
+          var rCount = townsInCountry.filter(function(t) { return (t.regionCategory || '未分類地區') === reg; }).length;
           var isAct = currentRegionFilter === reg;
-          tabsHtml += '<button type="button" onclick="selectRegionCategory(\'' + escapeMapHTML(reg) + '\')" class="px-3 py-1.5 rounded-full border text-xs font-bold transition cursor-pointer ' +
-            (isAct ? 'bg-amber-800 text-white border-amber-800' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
-            '📂 ' + escapeMapHTML(reg) + ' (' + count + ')' +
+          regionHtml += '<button type="button" onclick="selectRegionCategory(\'' + escapeMapHTML(reg) + '\')" class="px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
+            (isAct ? 'bg-amber-800 text-white border-amber-800' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+            '📂 ' + escapeMapHTML(reg) + ' (' + rCount + ')' +
           '</button>';
         });
-        regionTabsEl.innerHTML = tabsHtml;
+        regionTabsEl.innerHTML = regionHtml;
 
-        // 渲染該大分類下的城鎮卡片
+        // 3. 渲染第 3 層：城鎮卡片列表
         var filteredTowns = currentRegionFilter === 'ALL'
-          ? towns
-          : towns.filter(function(t) { return (t.regionCategory || '其他地區') === currentRegionFilter; });
+          ? townsInCountry
+          : townsInCountry.filter(function(t) { return (t.regionCategory || '未分類地區') === currentRegionFilter; });
+
+        if (filteredTowns.length === 0) {
+          gridEl.innerHTML =
+            '<div class="col-span-full bg-white rounded-2xl p-8 border border-dashed border-stone-300 text-center space-y-2">' +
+              '<p class="text-sm font-bold text-stone-700">此分類底下尚無城鎮地圖</p>' +
+              '<p class="text-xs text-stone-400">點擊右上角「＋ 新增城鎮」，即可在此分類建立新的探索地圖！</p>' +
+            '</div>';
+          return;
+        }
 
         gridEl.innerHTML = filteredTowns.map(function(town) {
           var places = getTownPlaces(town.id);
           var totalCount = places.length;
           var visitedCount = places.filter(function(p) { return isPlaceVisited(p.id); }).length;
           var pct = totalCount > 0 ? Math.round((visitedCount / totalCount) * 100) : 0;
-          var isCustom = town.id.startsWith('custom_town_');
 
           return '<div onclick="openTownMap(\'' + town.id + '\')" class="bg-white rounded-2xl p-5 border border-stone-200 hover:border-amber-700/60 hover:shadow-md transition cursor-pointer flex flex-col justify-between group">' +
             '<div>' +
               '<div class="flex items-center justify-between gap-2 mb-2">' +
-                '<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold">📂 ' + escapeMapHTML(town.regionCategory || '其他地區') + '</span>' +
+                '<div class="flex flex-wrap items-center gap-1">' +
+                  '<span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 text-[10px] font-bold">' + escapeMapHTML(town.country || '澳洲') + '</span>' +
+                  '<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold">📂 ' + escapeMapHTML(town.regionCategory || '未分類地區') + '</span>' +
+                '</div>' +
                 '<span class="text-[11px] font-mono font-bold text-stone-400">' + escapeMapHTML(town.stateCode || '') + '</span>' +
               '</div>' +
               '<h3 class="text-base font-extrabold text-stone-900 group-hover:text-amber-900 transition flex items-center justify-between">' +
@@ -4103,26 +4219,205 @@ var newEv = {
               '<div class="w-full h-2 bg-stone-100 rounded-full overflow-hidden">' +
                 '<div class="h-full bg-emerald-500 rounded-full transition-all" style="width: ' + pct + '%"></div>' +
               '</div>' +
-              (isCustom ? '<div class="mt-2 text-right"><button type="button" onclick="deleteCustomTown(\'' + town.id + '\', event)" class="text-[10px] text-stone-400 hover:text-rose-600 cursor-pointer">🗑️ 刪除此自訂城鎮</button></div>' : '') +
+              '<div class="mt-2.5 flex items-center justify-end gap-2">' +
+                '<button type="button" onclick="editTownMetaPrompt(\'' + town.id + '\', event)" class="text-[11px] text-stone-500 hover:text-amber-800 font-semibold px-1.5 py-0.5 rounded hover:bg-stone-100 cursor-pointer !min-h-0">✏️ 修改城鎮/分類</button>' +
+                '<button type="button" onclick="deleteTownPrompt(\'' + town.id + '\', event)" class="text-[11px] text-stone-400 hover:text-rose-600 font-semibold px-1.5 py-0.5 rounded hover:bg-rose-50 cursor-pointer !min-h-0">🗑️ 刪除</button>' +
+              '</div>' +
             '</div>' +
           '</div>';
         }).join('');
       }
+
+      window.selectCountryFilter = function(cnt) {
+        currentCountryFilter = cnt;
+        currentRegionFilter = 'ALL';
+        renderTownsDirectory();
+      };
 
       window.selectRegionCategory = function(reg) {
         currentRegionFilter = reg;
         renderTownsDirectory();
       };
 
+      // 新增國家
+      window.addNewCountryPrompt = function() {
+        var name = prompt("請輸入新國家名稱（例如：日本、德國、紐西蘭、英國）：");
+        if (!name || !name.trim()) return;
+        ensureTownsState();
+        var clean = name.trim();
+        if (!appState.emptyCountries.includes(clean)) appState.emptyCountries.push(clean);
+        currentCountryFilter = clean;
+        currentRegionFilter = 'ALL';
+        saveState();
+        renderTownsDirectory();
+        showGlobalToast('✅ 已新增國家：「' + clean + '」');
+      };
+
+      // 新增地區分類
+      window.addNewRegionPrompt = function() {
+        var targetCountry = currentCountryFilter === 'ALL' ? '澳洲' : currentCountryFilter;
+        var regName = prompt("要在「" + targetCountry + "」底下新增哪個州/地區分類？（例如：NSW 新南威爾斯、VIC 維多利亞、東京近郊）：");
+        if (!regName || !regName.trim()) return;
+        ensureTownsState();
+        var cleanReg = regName.trim();
+        appState.emptyRegions.push({ country: targetCountry, region: cleanReg });
+        currentCountryFilter = targetCountry;
+        currentRegionFilter = cleanReg;
+        saveState();
+        renderTownsDirectory();
+        showGlobalToast('✅ 已新增分類：「' + cleanReg + '」');
+      };
+
+      // 修改目前選取的地區分類名稱（同時更新該分類下所有城鎮）
+      window.renameCurrentRegionPrompt = function() {
+        if (currentRegionFilter === 'ALL') return;
+        var oldName = currentRegionFilter;
+        var newName = prompt("請輸入「" + oldName + "」的新分類名稱：", oldName);
+        if (!newName || !newName.trim() || newName.trim() === oldName) return;
+        var cleanNew = newName.trim();
+
+        ensureTownsState();
+        // 更新預設城鎮覆寫
+        DEFAULT_TOWNS.forEach(function(dt) {
+          var ov = appState.townMetaOverrides[dt.id] || {};
+          var effCountry = ov.country || dt.country || '澳洲';
+          var effRegion = ov.regionCategory || dt.regionCategory || 'QLD 昆士蘭';
+          if ((currentCountryFilter === 'ALL' || effCountry === currentCountryFilter) && effRegion === oldName) {
+            if (!appState.townMetaOverrides[dt.id]) appState.townMetaOverrides[dt.id] = {};
+            appState.townMetaOverrides[dt.id].regionCategory = cleanNew;
+          }
+        });
+
+        // 更新自訂城鎮
+        (appState.customTowns || []).forEach(function(ct) {
+          var effCountry = ct.country || '澳洲';
+          if ((currentCountryFilter === 'ALL' || effCountry === currentCountryFilter) && ct.regionCategory === oldName) {
+            ct.regionCategory = cleanNew;
+          }
+        });
+
+        // 更新空分類紀錄
+        (appState.emptyRegions || []).forEach(function(er) {
+          if ((currentCountryFilter === 'ALL' || er.country === currentCountryFilter) && er.region === oldName) {
+            er.region = cleanNew;
+          }
+        });
+
+        currentRegionFilter = cleanNew;
+        saveState();
+        renderTownsDirectory();
+        showGlobalToast('✏️ 分類已改名為：「' + cleanNew + '」');
+      };
+
+      // 刪除目前選取的地區分類（安全保留底下城鎮並移至「未分類地區」）
+      window.deleteCurrentRegionPrompt = function() {
+        if (currentRegionFilter === 'ALL') return;
+        var targetReg = currentRegionFilter;
+        if (!confirm("確定要刪除「" + targetReg + "」這個分類嗎？\n（放心，該分類底下的城鎮與踩點紀錄不會被刪除，會自動移至「未分類地區」）")) return;
+
+        ensureTownsState();
+        DEFAULT_TOWNS.forEach(function(dt) {
+          var ov = appState.townMetaOverrides[dt.id] || {};
+          var effCountry = ov.country || dt.country || '澳洲';
+          var effRegion = ov.regionCategory || dt.regionCategory || 'QLD 昆士蘭';
+          if ((currentCountryFilter === 'ALL' || effCountry === currentCountryFilter) && effRegion === targetReg) {
+            if (!appState.townMetaOverrides[dt.id]) appState.townMetaOverrides[dt.id] = {};
+            appState.townMetaOverrides[dt.id].regionCategory = '未分類地區';
+          }
+        });
+
+        (appState.customTowns || []).forEach(function(ct) {
+          var effCountry = ct.country || '澳洲';
+          if ((currentCountryFilter === 'ALL' || effCountry === currentCountryFilter) && ct.regionCategory === targetReg) {
+            ct.regionCategory = '未分類地區';
+          }
+        });
+
+        appState.emptyRegions = (appState.emptyRegions || []).filter(function(er) {
+          return !((currentCountryFilter === 'ALL' || er.country === currentCountryFilter) && er.region === targetReg);
+        });
+
+        currentRegionFilter = 'ALL';
+        saveState();
+        renderTownsDirectory();
+        showGlobalToast('🗑️ 已刪除分類：「' + targetReg + '」');
+      };
+
+      // 修改單一城鎮的名稱、國家或所屬分類
+      window.editTownMetaPrompt = function(townId, e) {
+        if (e) e.stopPropagation();
+        var town = getTownById(townId);
+        if (!town) return;
+
+        var newCountry = prompt("1/3 修改所屬「國家」：", town.country || '澳洲');
+        if (!newCountry || !newCountry.trim()) return;
+
+        var newRegion = prompt("2/3 修改所屬「州/地區分類」：", town.regionCategory || 'QLD 昆士蘭');
+        if (!newRegion || !newRegion.trim()) return;
+
+        var newName = prompt("3/3 修改「城鎮名稱」：", town.name);
+        if (!newName || !newName.trim()) return;
+
+        ensureTownsState();
+        if (townId.startsWith('custom_town_')) {
+          var ct = appState.customTowns.find(function(t) { return t.id === townId; });
+          if (ct) {
+            ct.country = newCountry.trim();
+            ct.regionCategory = newRegion.trim();
+            ct.name = newName.trim();
+          }
+        } else {
+          appState.townMetaOverrides[townId] = Object.assign({}, appState.townMetaOverrides[townId], {
+            country: newCountry.trim(),
+            regionCategory: newRegion.trim(),
+            name: newName.trim()
+          });
+        }
+
+        currentCountryFilter = newCountry.trim();
+        currentRegionFilter = newRegion.trim();
+        saveState();
+        renderTownsDirectory();
+        showGlobalToast('✅ 已更新城鎮資訊：「' + newName.trim() + '」');
+      };
+
+      // 刪除單一城鎮
+      window.deleteTownPrompt = function(townId, e) {
+        if (e) e.stopPropagation();
+        var town = getTownById(townId);
+        if (!town) return;
+        if (!confirm("確定要刪除「" + town.name + "」這座城鎮地圖嗎？")) return;
+
+        ensureTownsState();
+        if (townId.startsWith('custom_town_')) {
+          appState.customTowns = (appState.customTowns || []).filter(function(t) { return t.id !== townId; });
+        } else {
+          if (!appState.deletedDefaultTownIds.includes(townId)) {
+            appState.deletedDefaultTownIds.push(townId);
+          }
+        }
+        delete appState.customPlacesByTown[townId];
+        saveState();
+        renderTownsDirectory();
+        showGlobalToast('🗑️ 已刪除城鎮：「' + town.name + '」');
+      };
+
+      // 新增城鎮（自動帶入目前選取的國家與地區分類）
       window.openAddCustomTownModal = function() {
-        var region = prompt("1/4 請輸入「大分類名稱」（例如：昆士蘭鄉村小鎮、西澳農場區、維州小鎮）：", "昆士蘭鄉村小鎮");
+        var defaultCountry = currentCountryFilter === 'ALL' ? '澳洲' : currentCountryFilter;
+        var defaultRegion = currentRegionFilter === 'ALL' ? 'QLD 昆士蘭' : currentRegionFilter;
+
+        var country = prompt("1/5 請輸入「國家名稱」（例如：澳洲、日本、德國）：", defaultCountry);
+        if (!country || !country.trim()) return;
+
+        var region = prompt("2/5 請輸入「州 / 地區分類」（例如：QLD 昆士蘭、NSW 新南威爾斯）：", defaultRegion);
         if (!region || !region.trim()) return;
 
-        var name = prompt("2/4 請輸入「城鎮名稱」（例如：Roma 羅馬小鎮、Charleville）：");
+        var name = prompt("3/5 請輸入「城鎮名稱」（例如：Roma 羅馬小鎮、Charleville）：");
         if (!name || !name.trim()) return;
 
-        var stateCode = prompt("3/4 請輸入州別與郵遞區號（選填，例如：QLD 4455）：", "QLD");
-        var coordStr = prompt("4/4 請貼上該城鎮中心座標「緯度, 經度」（可從 Google Maps 右鍵複製，例如：-26.5733, 148.7869）：", "-26.5733, 148.7869");
+        var stateCode = prompt("4/5 請輸入州別或郵遞區號（選填，例如：QLD 4455）：", "");
+        var coordStr = prompt("5/5 請貼上該城鎮中心座標「緯度, 經度」（可從 Google Maps 右鍵複製，例如：-26.5733, 148.7869）：", "-26.5733, 148.7869");
         
         var lat = -26.5733, lng = 148.7869;
         if (coordStr && coordStr.includes(',')) {
@@ -4136,6 +4431,7 @@ var newEv = {
         ensureTownsState();
         var newTown = {
           id: 'custom_town_' + Date.now(),
+          country: country.trim(),
           regionCategory: region.trim(),
           name: name.trim(),
           stateCode: (stateCode || '').trim(),
@@ -4147,20 +4443,11 @@ var newEv = {
         };
 
         appState.customTowns.push(newTown);
-        saveState();
+        currentCountryFilter = country.trim();
         currentRegionFilter = region.trim();
+        saveState();
         renderTownsDirectory();
         showGlobalToast('✅ 已新增城鎮：「' + name.trim() + '」');
-      };
-
-      window.deleteCustomTown = function(townId, e) {
-        e.stopPropagation();
-        if (confirm("確定要刪除這個自訂城鎮及其地標嗎？")) {
-          appState.customTowns = (appState.customTowns || []).filter(function(t) { return t.id !== townId; });
-          delete appState.customPlacesByTown[townId];
-          saveState();
-          renderTownsDirectory();
-        }
       };
 
       // ==========================================
@@ -4177,10 +4464,9 @@ var newEv = {
         document.getElementById('towns-directory-view').classList.add('hidden');
         document.getElementById('town-map-detail-view').classList.remove('hidden');
 
-        document.getElementById('active-town-region-badge').textContent = '📂 ' + (town.regionCategory || '城鎮地圖');
+        document.getElementById('active-town-region-badge').textContent = (town.country || '澳洲') + ' › ' + (town.regionCategory || '城鎮地圖');
         document.getElementById('active-town-title').textContent = town.name + (town.stateCode ? ' (' + town.stateCode + ')' : '');
 
-        // 重置篩選按鈕樣式
         document.querySelectorAll('.map-filter-btn').forEach(function(b) {
           b.classList.remove('active', 'bg-stone-800', 'text-white');
           var f = b.getAttribute('data-filter');
@@ -4198,7 +4484,7 @@ var newEv = {
         setTimeout(function() {
           if (bMap) {
             bMap.invalidateSize();
-            bMap.setView([town.lat, town.lng], town.zoom || 16);
+            bMap.setView([town.lat, town.lng], town.zoom || 15);
           }
           renderTownMarkers();
           updateTownProgressBadges();
@@ -4230,7 +4516,7 @@ var newEv = {
       function createPlaceIcon(place, isActive) {
         var visited = isPlaceVisited(place.id);
         var hasNote = hasPlaceNote(place.id);
-        var bg = visited ? '#059669' : place.color; // 已踩點變成翠綠色
+        var bg = visited ? '#059669' : place.color;
         var symbol = visited ? '✓' : place.iconText;
 
         return L.divIcon({
@@ -4248,7 +4534,6 @@ var newEv = {
       function renderTownMarkers() {
         if (!bMap || !activeTownId) return;
 
-        // 清除舊圖釘
         Object.keys(mapMarkers).forEach(function(k) {
           if (mapMarkers[k]) bMap.removeLayer(mapMarkers[k]);
         });
@@ -4367,7 +4652,6 @@ var newEv = {
               '<div class="text-xl bg-stone-100 p-2 rounded-xl">' + place.iconText + '</div>' +
             '</div>' +
 
-            '<!-- 核心功能 1：一鍵踩點打卡按鈕 -->' +
             '<div class="mb-3.5">' +
               '<button type="button" onclick="togglePlaceVisited(\'' + place.id + '\')" class="w-full py-2.5 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-xs ' +
                 (visited ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-stone-100 hover:bg-amber-100 text-stone-800 border border-stone-300') + '">' +
@@ -4375,7 +4659,6 @@ var newEv = {
               '</button>' +
             '</div>' +
 
-            '<!-- 核心功能 2：我的踩點評論與私房筆記 -->' +
             '<div class="bg-amber-50/80 rounded-xl p-3 border border-amber-200 mb-3.5 space-y-2">' +
               '<div class="flex items-center justify-between">' +
                 '<h4 class="text-xs font-bold text-amber-950">📝 我的評論與消費筆記</h4>' +
@@ -4451,7 +4734,7 @@ var newEv = {
           '<div class="space-y-2">' + listHtml + '</div>';
       };
 
-    function setupLeafletMapInstance() {
+      function setupLeafletMapInstance() {
         if (bMap) return;
         var mapEl = document.getElementById('brisbaneLeafletMap');
         if (!mapEl) return;
@@ -4464,13 +4747,12 @@ var newEv = {
 
         L.control.zoom({ position: 'bottomright' }).addTo(bMap);
 
-        // 改用 OpenStreetMap 標準街道圖層（支援澳洲鄉村小鎮街道與門牌顯示，不會變白屏）
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap contributors',
           maxZoom: 19
         }).addTo(bMap);
 
-        // 畫出 Mitchell 小鎮主街商業路線 (Cambridge Street / Warrego Hwy)
+        // Mitchell 主街商業路線
         var mitchellMainRoad = [
           [-26.4894, 147.9715],
           [-26.4883, 147.9726],
@@ -4575,14 +4857,16 @@ var newEv = {
         var payload = {
           mapSavedData: appState.mapSavedData,
           customTowns: appState.customTowns,
-          customPlacesByTown: appState.customPlacesByTown
+          customPlacesByTown: appState.customPlacesByTown,
+          townMetaOverrides: appState.townMetaOverrides,
+          deletedDefaultTownIds: appState.deletedDefaultTownIds
         };
         var dataStr = JSON.stringify(payload, null, 2);
         var blob = new Blob([dataStr], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = 'au_towns_checkin_backup_' + (new Date().toISOString().slice(0, 10)) + '.json';
+        a.download = 'world_towns_checkin_backup_' + (new Date().toISOString().slice(0, 10)) + '.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -4602,6 +4886,8 @@ var newEv = {
               if (imported.mapSavedData) appState.mapSavedData = Object.assign(appState.mapSavedData, imported.mapSavedData);
               if (imported.customTowns) appState.customTowns = imported.customTowns;
               if (imported.customPlacesByTown) appState.customPlacesByTown = Object.assign(appState.customPlacesByTown, imported.customPlacesByTown);
+              if (imported.townMetaOverrides) appState.townMetaOverrides = Object.assign(appState.townMetaOverrides, imported.townMetaOverrides);
+              if (imported.deletedDefaultTownIds) appState.deletedDefaultTownIds = imported.deletedDefaultTownIds;
               saveState();
               window.syncMapUIWithAppState();
               showGlobalToast('✅ 成功匯入踩點紀錄並已同步！');
@@ -4618,7 +4904,6 @@ var newEv = {
         if (bMap) bMap.invalidateSize();
       });
     })();
-
 
 
     window.onload = function() {
