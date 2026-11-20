@@ -165,7 +165,7 @@
       <button type="button" onclick="switchTab('calendar')" id="tab-calendar" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">📅 時程日曆</button>
       <button type="button" onclick="switchTab('gear')" id="tab-gear" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">🎒 裝備清單</button>
       <button type="button" onclick="switchTab('planner')" id="tab-planner" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">🧮 工時規劃</button>
-      <button type="button" onclick="switchTab('map')" id="tab-map" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">🗺️ 布里斯本地圖</button>
+<button type="button" onclick="switchTab('map')" id="tab-map" class="py-2.5 px-1 text-stone-500 hover:text-stone-800 cursor-pointer flex-shrink-0">🗺️ 城鎮地圖</button>
     </div>
   </header>
 
@@ -470,7 +470,8 @@
                 <option value="Asia/Taipei">台灣 (UTC+8)</option>
               </select>
             </div>
-            <button type="button" onclick="openManageTagsModal()" class="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-semibold cursor-pointer">🏷️ 管理標籤</button>
+<button type="button" onclick="openManageTagsModal()" class="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-semibold cursor-pointer">🏷️ 管理標籤</button>
+            <button type="button" onclick="openChecklistModal()" class="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-lg text-xs font-bold cursor-pointer">⭐ 新增任務清單</button>
             <button type="button" onclick="openAddEventModal()" class="px-3 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增待辦事項</button>
           </div>
         </div>
@@ -527,81 +528,93 @@
     <!-- TAB 4: 工時規劃器 -->
     <div id="content-planner" class="space-y-6 hidden"></div>
 
-    <!-- TAB 5: 布里斯本打工度假與交通地圖 -->
+   <!-- TAB 5: 城鎮探索與踩點地圖 (可擴充多城鎮架構) -->
     <div id="content-map" class="space-y-4 hidden">
-      <div id="brisbaneMapContainer" class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex flex-col">
-        <!-- 地圖工具與篩選列 -->
-        <div class="px-3 sm:px-4 py-2.5 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <span class="bg-teal-600 text-white p-1.5 rounded-lg text-sm">🗺️</span>
-            <div>
-              <h2 class="font-bold text-xs sm:text-sm text-stone-900 leading-tight">布里斯本打工度假＆交通地圖</h2>
-              <p class="text-[11px] text-stone-500 hidden sm:block">大眾運輸單趟僅 <span class="font-bold text-emerald-700">AUD $0.50</span> · 點擊區域可收藏工作網址與筆記（支援雲端同步）</p>
-            </div>
+      
+      <!-- 視圖 1：外層大分類與城鎮總覽 -->
+      <div id="towns-directory-view" class="space-y-5">
+        <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h2 class="text-base font-bold text-stone-900 flex items-center gap-2">
+              <span>🗺️</span> 澳洲城鎮生活與商店踩點地圖
+            </h2>
+            <p class="text-xs text-stone-500 mt-0.5">選擇大分類與城鎮進入專屬地圖；每去過一間商店即可設為「已踩點」並留下個人評論。</p>
           </div>
-
-          <!-- 分類篩選按鈕 -->
-          <div class="flex items-center gap-1.5 overflow-x-auto hide-scrollbar max-w-full py-0.5" id="map-filter-bar">
-            <button type="button" data-filter="all" class="map-filter-btn active px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-800 text-white transition whitespace-nowrap cursor-pointer">全部 (12)</button>
-            <button type="button" data-filter="hub" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🚉 樞紐/首週</button>
-            <button type="button" data-filter="cbd" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🏙️ 市區商圈</button>
-            <button type="button" data-filter="south" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🧋 南區華人</button>
-            <button type="button" data-filter="industrial" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🏭 高薪工廠</button>
-            <button type="button" data-filter="saved" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition whitespace-nowrap cursor-pointer">⭐ 已收藏 (<span id="map-saved-count-badge">0</span>)</button>
-          </div>
-
-          <!-- 獨立地圖紀錄匯出/匯入 -->
-          <div class="flex items-center gap-1.5">
-            <button type="button" onclick="exportMapRecords()" title="僅匯出地圖工作網址與筆記備份" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">📥 匯出地圖筆記</button>
-            <label title="匯入地圖 JSON 備份檔" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white text-stone-700 border border-stone-200 hover:bg-stone-100 transition cursor-pointer">
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="openAddCustomTownModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold transition cursor-pointer shadow-xs">
+              ＋ 新增城鎮
+            </button>
+            <button type="button" onclick="exportMapRecords()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+              📥 匯出備份
+            </button>
+            <label class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-stone-50 text-stone-700 border border-stone-200 hover:bg-stone-100 transition cursor-pointer">
               📤 匯入
               <input type="file" id="map-import-file" accept=".json" class="hidden" onchange="importMapRecords(event)">
             </label>
           </div>
         </div>
 
-        <!-- 主視覺區：左側詳細資訊與筆記 + 右側互動地圖 -->
+        <!-- 大分類篩選按鈕列 -->
+        <div id="region-category-tabs" class="flex flex-wrap gap-2 text-xs"></div>
+
+        <!-- 城鎮卡片列表區 -->
+        <div id="towns-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- 視圖 2：單一城鎮專屬互動地圖 (點進 Mitchell 後顯示) -->
+      <div id="town-map-detail-view" class="hidden bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex flex-col">
+        <!-- 頂部麵包屑導航與商店類型篩選 -->
+        <div class="px-3 sm:px-4 py-2.5 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="backToTownsDirectory()" class="px-2.5 py-1 bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1">
+              <span>← 返回大分類</span>
+            </button>
+            <div class="border-l border-stone-300 pl-2.5">
+              <div class="flex items-center gap-1.5">
+                <span id="active-town-region-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">大分類</span>
+                <h2 id="active-town-title" class="font-bold text-xs sm:text-sm text-stone-900">Mitchell 小鎮</h2>
+              </div>
+              <p id="active-town-progress" class="text-[11px] text-emerald-700 font-semibold">踩點進度：0 / 0</p>
+            </div>
+          </div>
+
+          <!-- 商店分類篩選 -->
+          <div class="flex items-center gap-1.5 overflow-x-auto hide-scrollbar max-w-full py-0.5" id="map-filter-bar">
+            <button type="button" data-filter="all" class="map-filter-btn active px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-800 text-white transition whitespace-nowrap cursor-pointer">全部地標</button>
+            <button type="button" data-filter="food" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🍔 餐飲/酒吧</button>
+            <button type="button" data-filter="shop" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">🛒 超市/商店</button>
+            <button type="button" data-filter="service" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">📮 生活/機構</button>
+            <button type="button" data-filter="spot" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 transition whitespace-nowrap cursor-pointer">♨️ 景點/休閒</button>
+            <button type="button" data-filter="visited" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition whitespace-nowrap cursor-pointer">✅ 已踩點 (<span id="map-visited-count-badge">0</span>)</button>
+            <button type="button" data-filter="unvisited" class="map-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition whitespace-nowrap cursor-pointer">📍 未去過</button>
+          </div>
+        </div>
+
+        <!-- 主視覺區：左側商店詳細資訊與踩點評論 + 右側互動地圖 -->
         <div class="flex flex-col-reverse md:flex-row h-[720px] md:h-[620px] relative">
-          <!-- 左側/底部 資訊卡片與區域列表 -->
           <aside class="w-full md:w-[410px] h-[54%] md:h-full bg-white border-t md:border-t-0 md:border-r border-stone-200 flex flex-col z-20 shrink-0">
             <div id="map-detail-panel" class="p-4 overflow-y-auto flex-1"></div>
           </aside>
 
-          <!-- 右側地圖容器 -->
-          <div class="flex-1 h-[46%] md:h-full relative">
+          <div class="flex-1 h-[46%] md:h-full relative" id="brisbaneMapContainer">
             <div id="brisbaneLeafletMap" class="w-full h-full z-10"></div>
 
-            <!-- 地圖右上角：交通路線圖層控制器 -->
-            <div class="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-sm border border-stone-200 rounded-xl p-2.5 shadow-md max-w-[225px]">
-              <div class="text-[11px] font-bold text-stone-800 mb-1.5 flex items-center justify-between">
-                <span>🚆 交通幹道圖層</span>
-                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-semibold">$0.50/趟</span>
+            <!-- 右上角提示：點擊地圖新增地標 -->
+            <div class="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-sm border border-stone-200 rounded-xl px-3 py-2 shadow-md text-[11px] text-stone-700 max-w-[230px]">
+              <div class="font-bold text-stone-900 flex items-center gap-1">
+                <span>📌 自由踩點模式</span>
               </div>
-              <div class="space-y-1 text-[11px]">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="toggle-busway" checked class="rounded text-orange-500 focus:ring-0">
-                  <span class="w-3.5 h-1.5 rounded-full bg-orange-500 inline-block"></span>
-                  <span class="text-stone-700 font-medium">南區公車專用道 (130/140)</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="toggle-south-train" checked class="rounded text-blue-600 focus:ring-0">
-                  <span class="w-3.5 h-1.5 rounded-full bg-blue-600 inline-block"></span>
-                  <span class="text-stone-700 font-medium">南區火車線 (Beenleigh)</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="toggle-north-train" checked class="rounded text-purple-600 focus:ring-0">
-                  <span class="w-3.5 h-1.5 rounded-full bg-purple-600 inline-block"></span>
-                  <span class="text-stone-700 font-medium">機場與北區火車線</span>
-                </label>
-              </div>
+              <p class="text-[10px] text-stone-500 mt-0.5 leading-relaxed">
+                直接<strong>點擊地圖上任意位置</strong>，即可新增你發現的新商店或私房地標！
+              </p>
             </div>
 
-            <!-- 地圖左下角：顏色圖例 -->
+            <!-- 左下角圖例 -->
             <div class="hidden sm:flex absolute bottom-4 left-3 z-20 bg-white/95 backdrop-blur-sm border border-stone-200 rounded-xl px-3 py-1.5 shadow-md gap-3 text-[11px] font-medium text-stone-700">
-              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>樞紐/落腳</div>
-              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block"></span>市區商圈</div>
-              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>南區華人</div>
-              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>高薪工廠</div>
+              <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-600 text-white text-[8px] flex items-center justify-center font-bold">✓</span>已踩點</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>餐飲/酒吧</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block"></span>超市/商店</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>生活/景點</div>
             </div>
           </div>
         </div>
@@ -797,7 +810,62 @@
       </div>
     </div>
   </div>
+<!-- MODAL: 新增/編輯日曆任務清單 (星星標記 + 可排序打勾項目) -->
+  <div id="checklistModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+      <div class="flex justify-between items-center px-5 py-3.5 border-b border-stone-100 shrink-0 bg-white">
+        <h3 id="checklistModalTitle" class="text-base font-bold text-stone-900 flex items-center gap-1.5">
+          <span>⭐</span> 任務準備清單
+        </h3>
+        <button type="button" onclick="closeModal('checklistModal')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer !min-h-0">✕</button>
+      </div>
 
+      <div class="p-5 overflow-y-auto flex-1 space-y-3.5 text-xs">
+        <input type="hidden" id="checklistId">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">清單分類名稱 (必填)</label>
+            <input type="text" id="checklistTitle" placeholder="例如：Mitchell 行前準備" class="w-full p-2 border border-amber-300 bg-amber-50/30 rounded-lg font-bold text-stone-900">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">日曆標記日期 (必填)</label>
+            <input type="date" id="checklistDate" class="w-full p-2 border rounded-lg font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">🔗 相關網址 <span class="text-stone-400 font-normal">(選填，例如：訂票網、裝備購買連結)</span></label>
+          <input type="url" id="checklistUrl" placeholder="https://..." class="w-full p-2 border rounded-lg text-blue-700">
+        </div>
+
+        <!-- 新增細項輸入列 -->
+        <div class="space-y-1.5 pt-1">
+          <label class="block font-semibold text-stone-700">＋ 新增清單項目</label>
+          <div class="flex gap-1.5">
+            <input type="text" id="newChecklistItemInput" placeholder="例如：買車票、買保暖衣物..." class="flex-1 p-2 border rounded-lg" onkeydown="if(event.key==='Enter'){event.preventDefault(); addChecklistItemToDraft();}">
+            <button type="button" onclick="addChecklistItemToDraft()" class="px-3.5 py-1.5 bg-stone-800 hover:bg-stone-900 text-white rounded-lg font-bold cursor-pointer !min-h-0">加入</button>
+          </div>
+        </div>
+
+        <!-- 項目列表（支援打勾與上下調整順序） -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-stone-600">項目清單 (可打勾或點 ▲▼ 調整順序)：</span>
+            <span id="checklistDraftProgress" class="text-[11px] font-bold text-amber-800">0 / 0</span>
+          </div>
+          <div id="checklistDraftItemsContainer" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 flex justify-between items-center border-t border-stone-200 bg-stone-50 shrink-0 text-xs">
+        <button type="button" id="checklistDeleteBtn" onclick="deleteCurrentChecklist()" class="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg hover:bg-rose-100 font-semibold cursor-pointer hidden !min-h-0">刪除整份清單</button>
+        <div class="flex gap-2 ml-auto">
+          <button type="button" onclick="closeModal('checklistModal')" class="px-3.5 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-semibold cursor-pointer !min-h-0">取消</button>
+          <button type="button" onclick="handleSaveChecklist()" class="px-4 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg font-bold cursor-pointer shadow-xs !min-h-0">儲存清單</button>
+        </div>
+      </div>
+    </div>
+  </div>
   
 <!-- MODAL: 新增/編輯日曆事項 -->
   <div id="eventModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
@@ -916,6 +984,10 @@
           <div>
             <label class="block font-semibold mb-1">備註說明 (選填)</label>
             <input type="text" id="eventDesc" placeholder="相關細節備註..." class="w-full p-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">🔗 相關網址 <span class="text-stone-400 font-normal">(選填，例如：會議連結、表單或預約網址)</span></label>
+            <input type="url" id="eventUrl" placeholder="https://..." class="w-full p-2 border rounded-lg text-blue-700">
           </div>
 
           <!-- 複製行程快捷操作列 -->
@@ -2567,7 +2639,9 @@ function renderTransactions() {
       }
     };
 
-function getEventsForDate(dStr) {
+var draftChecklistItems = [];
+
+    function getEventsForDate(dStr) {
       return (appState.events || []).filter(function(e) {
         if (e.endDate && e.endDate > e.date) {
           return dStr >= e.date && dStr <= e.endDate;
@@ -2575,6 +2649,21 @@ function getEventsForDate(dStr) {
         return e.date === dStr;
       });
     }
+
+    function getChecklistsForDate(dStr) {
+      return (appState.checklists || []).filter(function(c) {
+        return c.date === dStr;
+      });
+    }
+
+    window.toggleChecklistItemDirect = function(checklistId, itemIdx, evt) {
+      if (evt) evt.stopPropagation();
+      var cl = (appState.checklists || []).find(function(c) { return c.id === checklistId; });
+      if (!cl || !cl.items || !cl.items[itemIdx]) return;
+      cl.items[itemIdx].checked = !cl.items[itemIdx].checked;
+      saveState();
+      renderCalendar();
+    };
 
     function renderSelectedDayAgenda() {
       var titleEl = document.getElementById("selectedDayAgendaTitle");
@@ -2588,14 +2677,52 @@ function getEventsForDate(dStr) {
       titleEl.textContent = dStr + " (" + weekDays[dateObj.getDay()] + ")";
 
       var evs = getEventsForDate(dStr);
+      var cls = getChecklistsForDate(dStr);
       var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
 
-      if (evs.length === 0) {
-        listEl.innerHTML = '<div class="py-4 text-center text-xs text-stone-400">該日目前沒有任何待辦事項，點擊右上角「＋ 在此日新增」即可建立。</div>';
+      if (evs.length === 0 && cls.length === 0) {
+        listEl.innerHTML = '<div class="py-4 text-center text-xs text-stone-400">該日目前沒有任何待辦事項或任務清單。</div>';
         return;
       }
 
-      listEl.innerHTML = evs.map(function(e) {
+      // 1. 渲染該日的「⭐ 任務清單」卡片（可直接打勾）
+      var checklistsHtml = cls.map(function(cl) {
+        var items = cl.items || [];
+        var doneCount = items.filter(function(it) { return it.checked; }).length;
+        var itemsListHtml = items.length === 0
+          ? '<p class="text-[11px] text-stone-400 italic">尚無細項，點擊右上角編輯新增</p>'
+          : items.map(function(it, idx) {
+              return '<label onclick="event.stopPropagation()" class="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-amber-50/70 cursor-pointer text-xs">' +
+                '<input type="checkbox" onchange="toggleChecklistItemDirect(\'' + cl.id + '\', ' + idx + ', event)" ' + (it.checked ? 'checked' : '') + ' class="rounded text-amber-800 w-3.5 h-3.5 cursor-pointer">' +
+                '<span class="' + (it.checked ? 'line-through text-stone-400' : 'text-stone-800 font-medium') + '">' + it.text + '</span>' +
+              '</label>';
+            }).join('');
+
+var clUrlHtml = (cl.url && cl.url.trim())
+          ? '<div class="mt-2 pt-2 border-t border-amber-200/60">' +
+              '<a href="' + cl.url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">' +
+                '<span>🔗 開啟相關網址 ↗</span>' +
+                '<span class="text-[10px] font-normal text-stone-400 truncate max-w-[200px]">(' + cl.url + ')</span>' +
+              '</a>' +
+            '</div>'
+          : '';
+
+        return '<div onclick="openChecklistModal(\'' + cl.id + '\', event)" class="p-3.5 rounded-xl border-2 border-amber-300/80 bg-amber-50/30 hover:border-amber-500 transition cursor-pointer">' +
+          '<div class="flex items-center justify-between gap-2 pb-2 border-b border-amber-200/60">' +
+            '<div class="flex items-center gap-1.5">' +
+              '<span class="text-sm">⭐</span>' +
+              '<h4 class="text-sm font-extrabold text-amber-950">' + cl.title + '</h4>' +
+              '<span class="px-1.5 py-0.5 rounded-full bg-amber-200/80 text-amber-950 text-[10px] font-bold font-mono">' + doneCount + '/' + items.length + '</span>' +
+            '</div>' +
+            '<span class="text-xs text-amber-800 font-bold shrink-0 px-2 py-0.5 bg-white border border-amber-200 rounded-lg">調整順序/編輯 ✏️</span>' +
+          '</div>' +
+          '<div class="mt-2 space-y-0.5">' + itemsListHtml + '</div>' +
+          clUrlHtml +
+        '</div>';
+      }).join('');
+
+      // 2. 渲染該日的「一般待辦事項」卡片
+      var eventsHtml = evs.map(function(e) {
         var tag = (appState.tags || []).find(function(t) { return t.id === e.tagId; }) || { name: '待辦', color: 'rose' };
         var locVal = e.location || e.mapUrl || "";
         var hasLocation = Boolean(locVal && locVal.trim());
@@ -2620,13 +2747,16 @@ function getEventsForDate(dStr) {
               '</div>' +
               '<h4 class="text-sm font-bold text-stone-900 ' + (isCancelled ? 'line-through text-stone-400' : '') + '">' + e.title + '</h4>' +
               (timeInfo ? '<div class="pt-0.5">' + timeInfo + '</div>' : '') +
-              (hasLocation ? '<div class="text-xs text-blue-700 font-medium flex items-center gap-1 pt-0.5">📍 ' + locVal + '</div>' : '') +
+             (hasLocation ? '<div class="text-xs text-blue-700 font-medium flex items-center gap-1 pt-0.5">📍 ' + locVal + '</div>' : '') +
               (e.desc ? '<p class="text-xs text-stone-500 leading-relaxed pt-0.5">' + e.desc + '</p>' : '') +
+              ((e.url && e.url.trim()) ? '<div class="pt-1"><a href="' + e.url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">🔗 開啟相關網址 ↗</a></div>' : '') +
             '</div>' +
             '<span class="text-xs text-amber-800 font-bold shrink-0 px-2 py-1 bg-amber-50 rounded-lg">編輯 ✏️</span>' +
           '</div>' +
         '</div>';
       }).join('');
+
+      listEl.innerHTML = checklistsHtml + eventsHtml;
     }
 
     window.selectCalendarDay = function(dStr) {
@@ -2654,7 +2784,8 @@ function getEventsForDate(dStr) {
 
       var legendEl = document.getElementById("eventCategoryLegend");
       if (legendEl) {
-        legendEl.innerHTML = (appState.tags || []).map(function(t) {
+        var starLegend = '<span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-amber-100 text-amber-950 border-amber-400">⭐ 任務準備清單</span>';
+        legendEl.innerHTML = starLegend + (appState.tags || []).map(function(t) {
           return '<span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ' + getColorBadgeClass(t.color) + '">● ' + t.name + '</span>';
         }).join('');
       }
@@ -2671,10 +2802,22 @@ function getEventsForDate(dStr) {
       for (var day = 1; day <= totalDays; day++) {
         var dStr = year + "-" + String(month + 1).padStart(2, '0') + "-" + String(day).padStart(2, '0');
         var evs = getEventsForDate(dStr);
+        var cls = getChecklistsForDate(dStr);
         var isSelected = (dStr === selectedCalendarDateStr);
         var isToday = (dStr === todayStr);
 
-        // 桌面版：顯示完整標題文字
+        // 桌面版：星星任務清單標記
+        var desktopChecklistsHtml = cls.map(function(cl) {
+          var items = cl.items || [];
+          var done = items.filter(function(it) { return it.checked; }).length;
+          var allDone = items.length > 0 && done === items.length;
+          return '<div onclick="openChecklistModal(\'' + cl.id + '\', event)" class="px-1.5 py-0.5 rounded text-[10px] border truncate cursor-pointer font-bold ' +
+            (allDone ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-amber-100 text-amber-950 border-amber-400') + '">' +
+            '⭐ ' + cl.title + ' <span class="font-mono text-[9px] opacity-80">(' + done + '/' + items.length + ')</span>' +
+          '</div>';
+        }).join('');
+
+        // 桌面版：一般待辦事項
         var desktopEventsHtml = evs.map(function(e) {
           var tag = (appState.tags || []).find(function(t) { return t.id === e.tagId; }) || { name: '待辦', color: 'rose' };
           var locVal = e.location || e.mapUrl || "";
@@ -2708,7 +2851,11 @@ function getEventsForDate(dStr) {
           '</div>';
         }).join('');
 
-        // 手機版：顯示彩色圓點
+        // 手機版：星星圖示 + 彩色圓點
+        var mobileStarsHtml = cls.map(function() {
+          return '<span class="text-[10px] leading-none">⭐</span>';
+        }).join('');
+
         var mobileDotsHtml = evs.slice(0, 4).map(function(e) {
           var tag = (appState.tags || []).find(function(t) { return t.id === e.tagId; }) || { color: 'rose' };
           var dotColor = e.status === 'cancelled' ? 'bg-stone-400' : (e.status === 'completed' ? 'bg-emerald-600' : getDotColorClass(tag.color));
@@ -2726,14 +2873,16 @@ function getEventsForDate(dStr) {
           ? 'inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-800 text-white font-bold text-[11px]'
           : 'font-mono text-[11px] sm:text-xs font-semibold text-stone-700';
 
+        var totalItemsCount = evs.length + cls.length;
+
         grid.innerHTML +=
           '<div onclick="selectCalendarDay(\'' + dStr + '\')" ondblclick="openAddEventForDate(\'' + dStr + '\')" class="' + cellBgClass + ' min-h-[54px] sm:min-h-[92px] p-1 sm:p-1.5 transition cursor-pointer flex flex-col justify-between">' +
             '<div class="flex items-center justify-between">' +
               '<span class="' + dayNumClass + '">' + day + '</span>' +
-              (evs.length > 0 ? '<span class="sm:hidden text-[9px] font-bold text-amber-900 bg-amber-100/80 px-1 rounded">' + evs.length + '</span>' : '') +
+              (totalItemsCount > 0 ? '<span class="sm:hidden text-[9px] font-bold text-amber-900 bg-amber-100/80 px-1 rounded">' + totalItemsCount + '</span>' : '') +
             '</div>' +
-            '<div class="hidden sm:block mt-1 space-y-1">' + desktopEventsHtml + '</div>' +
-            '<div class="flex sm:hidden flex-wrap items-center justify-center gap-1 mt-1.5 min-h-[10px]">' + mobileDotsHtml + '</div>' +
+            '<div class="hidden sm:block mt-1 space-y-1">' + desktopChecklistsHtml + desktopEventsHtml + '</div>' +
+            '<div class="flex sm:hidden flex-wrap items-center justify-center gap-1 mt-1.5 min-h-[12px]">' + mobileStarsHtml + mobileDotsHtml + '</div>' +
           '</div>';
       }
 
@@ -2745,7 +2894,6 @@ function getEventsForDate(dStr) {
 
       renderSelectedDayAgenda();
     }
-
     window.changeMonth = function(d) {
       if (d === 0) {
         calendarDate = new Date();
@@ -2769,6 +2917,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       document.getElementById("customUtcInputGroup").classList.add("hidden");
       document.getElementById("eventLocationInput").value = "";
       document.getElementById("eventDesc").value = "";
+      document.getElementById("eventUrl").value = "";
       document.getElementById("eventModalTitle").textContent = "新增待辦 / 行程區間";
       document.getElementById("eventDeleteBtn").classList.add("hidden");
       document.getElementById("eventCopyMoveArea").classList.add("hidden");
@@ -2811,6 +2960,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       var locVal = ev.location || ev.mapUrl || "";
       document.getElementById("eventLocationInput").value = locVal;
       document.getElementById("eventDesc").value = ev.desc || "";
+      document.getElementById("eventUrl").value = ev.url || "";
       document.getElementById("eventModalTitle").textContent = "編輯行程事項";
       document.getElementById("eventDeleteBtn").classList.remove("hidden");
       document.getElementById("eventCopyMoveArea").classList.remove("hidden");
@@ -2862,8 +3012,9 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       if (endDate && endDate < startDate) {
         endDate = startDate;
       }
-
-      var newEv = {
+var rawEvUrl = document.getElementById("eventUrl").value.trim();
+      if (rawEvUrl && !/^https?:\/\//i.test(rawEvUrl)) rawEvUrl = "https://" + rawEvUrl;
+var newEv = {
         id: id || ("ev_" + Date.now()),
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
@@ -2876,7 +3027,8 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         createdInZone: activeUserZone,
         location: loc,
         mapUrl: loc,
-        desc: desc
+        desc: desc,
+        url: rawEvUrl // <--- 就是像這樣換行放在 desc: desc 的下面（注意上一行結尾要有逗號）
       };
 
       if (!appState.events) appState.events = [];
@@ -2903,7 +3055,140 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         checkSmartReminders();
       }
     };
+// --- 日曆星星任務清單模組 (Checklist Modal) ---
+    window.openChecklistModal = function(checklistId, evt) {
+      if (evt) evt.stopPropagation();
+      var existing = checklistId ? (appState.checklists || []).find(function(c) { return c.id === checklistId; }) : null;
 
+      document.getElementById("checklistId").value = existing ? existing.id : "";
+      document.getElementById("checklistTitle").value = existing ? existing.title : "";
+      document.getElementById("checklistDate").value = existing ? existing.date : (selectedCalendarDateStr || new Date().toISOString().split('T')[0]);
+      document.getElementById("checklistUrl").value = existing && existing.url ? existing.url : "";
+      document.getElementById("newChecklistItemInput").value = "";
+      document.getElementById("checklistModalTitle").innerHTML = existing ? '<span>⭐</span> 編輯任務準備清單' : '<span>⭐</span> 新增任務準備清單';
+
+      var delBtn = document.getElementById("checklistDeleteBtn");
+      if (existing) delBtn.classList.remove("hidden");
+      else delBtn.classList.add("hidden");
+
+      // 深拷貝項目列表避免未儲存前改動到原始資料
+      draftChecklistItems = existing && existing.items ? JSON.parse(JSON.stringify(existing.items)) : [];
+      renderChecklistDraftItems();
+      document.getElementById("checklistModal").classList.remove("hidden");
+    };
+
+    function renderChecklistDraftItems() {
+      var container = document.getElementById("checklistDraftItemsContainer");
+      var progEl = document.getElementById("checklistDraftProgress");
+      if (!container) return;
+
+      var total = draftChecklistItems.length;
+      var done = draftChecklistItems.filter(function(it) { return it.checked; }).length;
+      if (progEl) progEl.textContent = done + " / " + total;
+
+      if (total === 0) {
+        container.innerHTML = '<div class="p-4 text-center text-stone-400 text-xs bg-stone-50 rounded-xl border border-dashed border-stone-200">尚未加入任何項目，請在上方輸入（例如：買車票、買保暖衣物）</div>';
+        return;
+      }
+
+      container.innerHTML = draftChecklistItems.map(function(item, idx) {
+        return '<div class="flex items-center justify-between gap-2 p-2 rounded-lg border bg-stone-50 hover:bg-white transition">' +
+          '<label class="flex items-center gap-2 cursor-pointer flex-1 min-w-0">' +
+            '<input type="checkbox" onchange="toggleDraftChecklistItem(' + idx + ')" ' + (item.checked ? 'checked' : '') + ' class="rounded text-amber-800 w-4 h-4 cursor-pointer shrink-0">' +
+            '<span class="text-xs truncate ' + (item.checked ? 'line-through text-stone-400' : 'text-stone-800 font-semibold') + '">' + item.text + '</span>' +
+          '</label>' +
+          '<div class="flex items-center gap-0.5 shrink-0">' +
+            '<button type="button" onclick="moveDraftChecklistItem(' + idx + ', -1)" ' + (idx === 0 ? 'disabled' : '') + ' class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold !min-h-0" title="往上移">▲</button>' +
+            '<button type="button" onclick="moveDraftChecklistItem(' + idx + ', 1)" ' + (idx === total - 1 ? 'disabled' : '') + ' class="px-1.5 py-0.5 text-stone-500 hover:text-stone-900 text-xs disabled:opacity-20 cursor-pointer font-bold !min-h-0" title="往下移">▼</button>' +
+            '<button type="button" onclick="removeDraftChecklistItem(' + idx + ')" class="text-stone-400 hover:text-rose-600 text-xs px-1.5 py-0.5 cursor-pointer ml-1 !min-h-0" title="移除">✕</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.addChecklistItemToDraft = function() {
+      var input = document.getElementById("newChecklistItemInput");
+      var text = input.value.trim();
+      if (!text) return;
+      draftChecklistItems.push({ text: text, checked: false });
+      input.value = "";
+      input.focus();
+      renderChecklistDraftItems();
+    };
+
+    window.toggleDraftChecklistItem = function(idx) {
+      if (draftChecklistItems[idx]) {
+        draftChecklistItems[idx].checked = !draftChecklistItems[idx].checked;
+        renderChecklistDraftItems();
+      }
+    };
+
+    window.moveDraftChecklistItem = function(idx, delta) {
+      var target = idx + delta;
+      if (target < 0 || target >= draftChecklistItems.length) return;
+      var moved = draftChecklistItems.splice(idx, 1)[0];
+      draftChecklistItems.splice(target, 0, moved);
+      renderChecklistDraftItems();
+    };
+
+    window.removeDraftChecklistItem = function(idx) {
+      draftChecklistItems.splice(idx, 1);
+      renderChecklistDraftItems();
+    };
+
+    window.handleSaveChecklist = function() {
+      var id = document.getElementById("checklistId").value;
+      var title = document.getElementById("checklistTitle").value.trim();
+      var dateStr = document.getElementById("checklistDate").value;
+
+      if (!title || !dateStr) {
+        alert("請填寫「清單分類名稱」與「日曆標記日期」！");
+        return;
+      }
+
+      // 若輸入框還有尚未按加入的文字，自動幫使用者補進清單
+      var pendingText = document.getElementById("newChecklistItemInput").value.trim();
+      if (pendingText) {
+        draftChecklistItems.push({ text: pendingText, checked: false });
+      }
+
+      if (!appState.checklists) appState.checklists = [];
+
+      var rawClUrl = document.getElementById("checklistUrl").value.trim();
+      if (rawClUrl && !/^https?:\/\//i.test(rawClUrl)) rawClUrl = "https://" + rawClUrl;
+
+      var payload = {
+        id: id || ("cl_" + Date.now()),
+        title: title,
+        date: dateStr,
+        url: rawClUrl,
+        items: draftChecklistItems
+      };
+
+      if (id) {
+        var idx = appState.checklists.findIndex(function(c) { return c.id === id; });
+        if (idx !== -1) appState.checklists[idx] = payload;
+      } else {
+        appState.checklists.push(payload);
+      }
+
+      selectedCalendarDateStr = dateStr;
+      saveState();
+      closeModal("checklistModal");
+      renderCalendar();
+      showGlobalToast("⭐ 已儲存任務清單：「" + title + "」");
+    };
+
+    window.deleteCurrentChecklist = function() {
+      var id = document.getElementById("checklistId").value;
+      if (id && confirm("確定要刪除整份任務清單嗎？")) {
+        appState.checklists = (appState.checklists || []).filter(function(c) { return c.id !== id; });
+        saveState();
+        closeModal("checklistModal");
+        renderCalendar();
+        showGlobalToast("🗑️ 已刪除任務清單");
+      }
+    };
     // --- 裝備清單渲染模組 ---
     function renderGear() {
       var tabsContainer = document.getElementById("gearCategoryTabs");
@@ -3450,269 +3735,494 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         }
       });
     })();
-    // ==========================================
-    // --- 布里斯本地圖與交通模組 (Brisbane Map Module) ---
+  // ==========================================
+    // --- 城鎮探索與商店踩點地圖模組 (Towns & Mitchell Map) ---
     // ==========================================
     (function() {
-      var brisbaneLocations = [
+      var DEFAULT_TOWNS = [
         {
-          id: 'roma-street',
-          name: 'Roma Street Station & YHA 區',
-          enName: 'Roma Street Precinct',
-          category: 'hub',
-          categoryLabel: '交通樞紐 / 首週落腳',
-          color: '#f43f5e',
-          iconText: '🚉',
-          lat: -27.4658,
-          lng: 153.0185,
-          distance: 'CBD 西側核心大站（步行 5 分鐘至市中心）',
-          carNeeded: '完全不需開車',
-          features: '布里斯本最重要的火車與公車總轉運站，機場快線（Airtrain）直達。周邊有多家大型青年旅館（如 Roma Street YHA），適合落地前 1～3 週短租，辦銀行開戶、稅號（TFN）與前往各區面試極度方便。',
-          jobs: ['飯店房務 (Housekeeping)', '車站周邊咖啡廳', '市區連鎖餐飲', '活動場館兼職'],
-          transit: '全線火車交會站（Airport Line, Beenleigh Line 等）及各大公車轉運站。單程票價 AUD $0.50（機場快線除外）。',
-          rentHint: '青旅床位約 AUD $45–$65/晚；短租套房較貴，建議確定工作後搬離。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Roma+Street+Station+Brisbane+QLD'
-        },
-        {
-          id: 'spring-hill',
-          name: '斯普林希爾 (Spring Hill)',
-          enName: 'Spring Hill',
-          category: 'hub',
-          categoryLabel: '樞紐旁 / 背包客公寓區',
-          color: '#f43f5e',
-          iconText: '🏠',
-          lat: -27.4585,
-          lng: 153.0245,
-          distance: 'CBD 正北方（步行 5–15 分鐘進市中心）',
-          carNeeded: '完全不需開車',
-          features: '緊貼市中心北側的住宅與醫療文教區，有許多背包客分租公寓與長短租套房。優點是「完全免通勤費」直接走路進市區上班；缺點是地形坡度較陡，夜晚部分小巷較安靜，晚歸需留意安全。',
-          jobs: ['CBD 零售店員', '診所/商業大樓清潔', '咖啡廳與早午餐外場', '飯店廚房助手'],
-          transit: '步行即可進城，另有免費市區環狀公車（Spring Hill Loop / City Loop）可搭。',
-          rentHint: '市區公寓雙人房每人約 AUD $180–$230/週，單人房約 $260–$320/週。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Spring+Hill+QLD+4000'
-        },
-        {
-          id: 'cbd',
-          name: '布里斯本市中心 (Brisbane CBD)',
-          enName: 'Brisbane City (CBD)',
-          category: 'cbd',
-          categoryLabel: '市中心商業核心',
-          color: '#0ea5e9',
-          iconText: '🏙️',
-          lat: -27.4698,
-          lng: 153.0251,
-          distance: '地理正中心（Queen Street Mall 商圈）',
-          carNeeded: '不建議開車（停車費極貴）',
-          features: '商業與購物心臟，銀行總行、大型百貨（Myer, David Jones）及辦公大樓林立。白人與國際客群為主，英文練習機會多，適合帶著紙本履歷避開尖峰時段（09:30–11:00）逐店掃街投遞。',
-          jobs: ['百貨美食街餐飲', '精品/快時尚零售', '星級飯店房務與宴會廳', '商辦夜間清潔'],
-          transit: '所有公車、火車與 CityCat 渡輪終點匯集處，全區大眾運輸單趟僅 AUD $0.50。',
-          rentHint: '高樓公寓為主，客廳隔間多、租金高，多數打工客會選擇住南區搭公車進城。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Queen+Street+Mall+Brisbane+CBD'
-        },
-        {
-          id: 'fortitude-valley',
-          name: '毅力谷區 (Fortitude Valley)',
-          enName: 'Fortitude Valley',
-          category: 'cbd',
-          categoryLabel: '夜生活 / 唐人街商圈',
-          color: '#0ea5e9',
-          iconText: '🍸',
-          lat: -27.4565,
-          lng: 153.0355,
-          distance: 'CBD 東北方約 1.5 公里（火車 1 站 / 步行 15 分鐘）',
-          carNeeded: '不需開車',
-          features: '布里斯本著名夜生活娛樂區、酒吧街與傳統唐人街所在地，James Street 則有高質感精品與文青餐廳。餐飲與晚班職缺極多，但週末深夜酒客較多，女生單獨夜歸建議結伴或搭車。',
-          jobs: ['酒吧 Bartender (需 RSA 證照)', '中餐廳外場與廚房', '精品飯店房務', '夜店/活動現場人員'],
-          transit: 'Fortitude Valley 火車站（北線必經大站）及多線公車直達，單程 AUD $0.50。',
-          rentHint: '現代公寓多，雙人房每人約 AUD $180–$220/週。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Fortitude+Valley+QLD+4006'
-        },
-        {
-          id: 'south-bank',
-          name: '南岸與西區 (South Bank & West End)',
-          enName: 'South Bank & West End',
-          category: 'cbd',
-          categoryLabel: '河岸文青 / 異國餐飲區',
-          color: '#0ea5e9',
-          iconText: '☕',
-          lat: -27.4805,
-          lng: 153.0215,
-          distance: 'CBD 河對岸正南方（過 Victoria Bridge 步行 10 分鐘）',
-          carNeeded: '不需開車',
-          features: '人造海灘公園、博物館與異國美食餐廳聚集地，West End 則充滿波希米亞文青咖啡館與週末農夫市集。環境優美安全，適合具備基本英文溝通能力、想找白人咖啡廳或西餐廳外場的人。',
-          jobs: ['早午餐店咖啡師 (Barista)', '河岸景觀西餐廳外場', '博物館/會展中心餐飲', '手工烘焙坊助手'],
-          transit: 'South Brisbane 火車站、Cultural Centre 公車總站（Busway 核心站）及 CityCat 渡輪站。',
-          rentHint: '學區與文青住宅區，單人雅房約 AUD $220–$270/週。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=South+Bank+Parklands+Brisbane'
-        },
-        {
-          id: 'sunnybank',
-          name: '森尼班克 (Sunnybank 小台北)',
-          enName: 'Sunnybank',
-          category: 'south',
-          categoryLabel: '南區華人生活與手搖重鎮',
-          color: '#f59e0b',
-          iconText: '🧋',
-          lat: -27.5715,
-          lng: 153.0615,
-          distance: 'CBD 東南方約 13 公里（Busway 快線公車約 20–25 分鐘）',
-          carNeeded: '不需開車（公車極密集）',
-          features: '布里斯本最核心的台灣與華人生活圈（Market Square、Sunnybank Plaza、Sunny Park 三大商場匯聚）。全台知名手搖飲、台式小吃、亞洲超市與診所一應俱全，中文即可無痛生活與上工，是剛落地快速賺錢的首選。',
-          jobs: ['台灣手搖飲調茶師', '台式/港式/火鍋餐廳內外場', '華人超市理貨與收銀', '亞洲烘焙坊與按摩店'],
-          transit: '搭公車 130、140、139 走高架專用道（Busway）直達市中心，尖峰 5 分鐘一班，單趟只要 AUD $0.50！',
-          rentHint: '生活便利搶手，House 單人雅房約 AUD $190–$230/週，雙人房約 $260–$300/週。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Market+Square+Sunnybank+QLD'
-        },
-        {
-          id: 'upper-mt-gravatt',
-          name: '上芒特格拉瓦特 (Garden City 商圈)',
-          enName: 'Upper Mount Gravatt',
-          category: 'south',
-          categoryLabel: '南區最大百貨與公車總站',
-          color: '#f59e0b',
-          iconText: '🛍️',
-          lat: -27.5618,
-          lng: 153.0815,
-          distance: 'Sunnybank 東北側 3 公里（公車 8 分鐘 / 進 CBD 約 20 分鐘）',
-          carNeeded: '不需開車',
-          features: '擁有南區最大購物中心 Westfield Mt Gravatt（俗稱 Garden City）及南區最大公車轉運站。兼顧本地大型連鎖零售與亞洲餐飲，生活機能極強，也非常適合作為無車族的居住與找工基地。',
-          jobs: ['商場連鎖快餐/咖啡店', '超市補貨與收銀 (Coles/Woolworths)', '購物中心日間/夜間清潔', '亞洲餐飲連鎖店'],
-          transit: 'Upper Mount Gravatt 公車總站（111, 130, 140, 160 等數十條路線交會），單程 AUD $0.50。',
-          rentHint: '單人雅房約 AUD $185–$220/週，選擇多且治安良好。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Westfield+Mt+Gravatt+QLD'
-        },
-        {
-          id: 'runcorn-emp',
-          name: '朗科恩與八里坪 (Runcorn & Eight Mile Plains)',
-          enName: 'Runcorn & Eight Mile Plains',
-          category: 'south',
-          categoryLabel: '南區高 CP 值純住宅租屋區',
-          color: '#f59e0b',
-          iconText: '🏡',
-          lat: -27.5885,
-          lng: 153.0765,
-          distance: '緊鄰 Sunnybank 南側與東側（公車 5–10 分鐘至 Sunnybank）',
-          carNeeded: '無車可住（近公車站或火車站即可）',
-          features: '因為 Sunnybank 核心區房租較高，許多在 Sunnybank 或市中心上班的台灣背包客會選擇住在 Runcorn 或 Eight Mile Plains。社區安靜整潔、新式透天 House 多，是南區長住存錢的黃金住宿區。',
-          jobs: ['主要作為居住基地，通勤至 Sunnybank、Garden City 或市區上班', 'Eight Mile Plains 科技園區商業清潔'],
-          transit: 'Eight Mile Plains 公車總站（111, 150 直達市區）及 Runcorn / Fruitgrove 火車站，單程 AUD $0.50。',
-          rentHint: 'CP 值極高！單人雅房約 AUD $170–$200/週（含水電網），雙人房每人約 $130–$150/週。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Runcorn+QLD+4113'
-        },
-        {
-          id: 'acacia-ridge',
-          name: '南區重工業帶 (Acacia Ridge & Rocklea)',
-          enName: 'Acacia Ridge & Rocklea',
-          category: 'industrial',
-          categoryLabel: '南區高時薪工廠與蔬果批發帶',
-          color: '#059669',
-          iconText: '🏭',
-          lat: -27.5750,
-          lng: 153.0150,
-          distance: 'Sunnybank 西側約 10 分鐘車程（距離 CBD 南方約 14 公里）',
-          carNeeded: '強烈建議自駕（從南區開車僅 10 分鐘）',
-          features: '布里斯本南區核心工業與物流心臟，擁有全昆士蘭最大的蔬果批發市場（Brisbane Markets at Rocklea）、冷凍倉儲、肉品加工與大型製造廠。時薪高、工時穩定，適合有駕照、想存第一桶金的雙人組合。',
-          jobs: ['蔬果包裝與分級理貨 (Packer)', '冷鏈倉儲揀貨員 (Picker/Packer)', '食品加工廠作業員', '堆高機操作員 (需 Forklift 證照)'],
-          transit: 'Rocklea 火車站可達外圍，但廠區腹地廣大且常有清晨 5–6 點早班，開車最穩妥。',
-          rentHint: '工廠區本身不適合居住，建議住在隔壁的 Sunnybank、Runcorn 或 Coopers Plains 開車通勤。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Acacia+Ridge+Industrial+Area+QLD'
-        },
-        {
-          id: 'eagle-farm',
-          name: '北區機場工業帶 (Eagle Farm & Pinkenba)',
-          enName: 'Eagle Farm & Pinkenba',
-          category: 'industrial',
-          categoryLabel: '北區高薪冷鏈與航空餐廚工廠',
-          color: '#059669',
-          iconText: '✈️',
-          lat: -27.4285,
-          lng: 153.0955,
-          distance: 'CBD 東北方約 10 公里（緊鄰布里斯本機場）',
-          carNeeded: '強烈建議自駕（早晚班公車班次極少）',
-          features: '緊鄰布里斯本國際/國內機場的大型物流與食品製造園區，聚集知名航空配餐廠（如 Gate Gourmet）、生鮮電商倉庫與冷鏈物流中心。法定高時薪（通常 AUD $32–$40+/hr）且排班制度完善。',
-          jobs: ['航空餐點組裝與包裝', '生鮮冷鏈物流理貨', '大型食品烘焙/加工廠作業員', '機場周邊倉儲物流'],
-          transit: 'Doomben 火車線可達附近，但廠區內部公車班次少，有車族（雙人輪流開）極具競爭優勢。',
-          rentHint: '可住北區 Nundah、Clayfield 或 Hamilton 一帶，開車 5–10 分鐘即達廠區。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Eagle+Farm+QLD+4009'
-        },
-        {
-          id: 'chermside',
-          name: '徹姆賽德 (Chermside 北區最大商圈)',
-          enName: 'Chermside',
-          category: 'cbd',
-          categoryLabel: '北區白人大型生活商圈',
-          color: '#0ea5e9',
-          iconText: '🏢',
-          lat: -27.3858,
-          lng: 153.0315,
-          distance: 'CBD 正北方約 10 公里（快線公車約 20–25 分鐘）',
-          carNeeded: '不需開車（北區公車總站樞紐）',
-          features: '擁有全昆士蘭規模最大的購物中心 Westfield Chermside。與南區 Sunnybank 相反，這裡以澳洲本地白人家庭為主，華人較少，適合想沉浸在純英文環境、在大型連鎖品牌打工的背包客。',
-          jobs: ['大型百貨零售與服飾店', '連鎖速食與美式餐廳', '電影院與娛樂中心兼職', '商場清潔與保全'],
-          transit: 'Chermside 公車轉運站（330, 333, 340 等高頻快線直達 CBD），單程 AUD $0.50。',
-          rentHint: '北區公寓與 Unit 多，單人雅房約 AUD $190–$230/週。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Westfield+Chermside+QLD'
-        },
-        {
-          id: 'indooroopilly',
-          name: '因杜羅皮利 (Indooroopilly 西區學區)',
-          enName: 'Indooroopilly',
-          category: 'cbd',
-          categoryLabel: '西區安全學區 / 大型商場',
-          color: '#0ea5e9',
-          iconText: '🎓',
-          lat: -27.4995,
-          lng: 152.9735,
-          distance: 'CBD 西南方約 7 公里（火車約 12 分鐘）',
-          carNeeded: '不需開車',
-          features: '鄰近昆士蘭大學（UQ St Lucia 校區）的優質住宅與大型購物中心區，治安極佳、環境綠意盎然。學生客群多，商場內餐飲與零售職缺穩定，交通兼具火車與公車雙優勢。',
-          jobs: ['Shopping Centre 餐飲與咖啡廳', '超市與藥妝零售', '學區餐廳外場', '居家與商業清潔'],
-          transit: 'Indooroopilly 火車站及公車總站（往返 CBD 與 UQ 僅 10 分鐘），單程 AUD $0.50。',
-          rentHint: '學區房源搶手，單人雅房約 AUD $200–$250/週。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Indooroopilly+Shopping+Centre+QLD'
+          id: 'mitchell-qld',
+          regionCategory: '昆士蘭鄉村小鎮',
+          name: '米切爾 (Mitchell)',
+          stateCode: 'QLD 4465',
+          lat: -26.4875,
+          lng: 147.9752,
+          zoom: 16,
+          description: '位於昆士蘭 Maranoa 地區、Warrego Highway 上的純樸內陸小鎮（距 Roma 約 87 公里）。幾乎所有商店與生活機能都集中在主街 Cambridge Street 與 Mary Street，步行即可逛完整個鎮！',
+          places: [
+            {
+              id: 'm-foodworks',
+              name: 'FoodWorks Mitchell 超市 (Dobbins Family Store)',
+              category: 'shop',
+              categoryLabel: '生鮮超市 / 日用品',
+              color: '#0ea5e9',
+              iconText: '🛒',
+              lat: -26.4879,
+              lng: 147.9746,
+              address: '82 Cambridge St, Mitchell QLD 4465',
+              features: '鎮上最主要的生鮮雜貨超市，蔬菜水果、肉品、冷凍食品與日常用品一應俱全，是日常採買的核心基地。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=FoodWorks+82+Cambridge+St+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-bakery',
+              name: 'Mitchell Bakery 鎮上麵包店',
+              category: 'food',
+              categoryLabel: '麵包烘焙 / 輕食咖啡',
+              color: '#f59e0b',
+              iconText: '🥐',
+              lat: -26.4878,
+              lng: 147.9749,
+              address: '80 Cambridge St, Mitchell QLD 4465',
+              features: '緊鄰超市的傳統澳式鄉村麵包店，招牌肉派（Meat Pie）、香腸捲、現烤麵包與咖啡，早晨非常熱鬧。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=80+Cambridge+St+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-butcher',
+              name: 'Mitchell Butcher 傳統肉舖',
+              category: 'shop',
+              categoryLabel: '新鮮肉舖',
+              color: '#0ea5e9',
+              iconText: '🥩',
+              lat: -26.4877,
+              lng: 147.9752,
+              address: '78 Cambridge St, Mitchell QLD 4465',
+              features: '就在麵包店旁邊的本地肉店，提供新鮮牛排、香腸、BBQ 肉品與醃製肉類，品質比連鎖超市更道地。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=78+Cambridge+St+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-chemist',
+              name: 'Mitchell Pharmacy / Chemist 藥局',
+              category: 'service',
+              categoryLabel: '藥局 / 保健美妝',
+              color: '#8b5cf6',
+              iconText: '💊',
+              lat: -26.4881,
+              lng: 147.9739,
+              address: '88 Cambridge St, Mitchell QLD 4465',
+              features: '主街上的社區藥局，可領處方藥、購買常備成藥、防曬防蚊用品與基礎護膚品。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=88+Cambridge+St+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-hotel-richards',
+              name: 'Hotel Richards 經典鄉村酒吧飯店',
+              category: 'food',
+              categoryLabel: '餐酒館 / 住宿',
+              color: '#f59e0b',
+              iconText: '🍺',
+              lat: -26.4874,
+              lng: 147.9765,
+              address: '67 Cambridge St, Mitchell QLD 4465',
+              features: '鎮上指標性的百年鄉村 Pub 與餐廳，提供道地澳式牛排晚餐、炸魚薯條與冰啤酒，也是當地人下班聚會中心。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Hotel+Richards+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-western-hotel',
+              name: 'Western Hotel Mitchell 西部飯店酒吧',
+              category: 'food',
+              categoryLabel: '餐酒館 / 酒吧',
+              color: '#f59e0b',
+              iconText: '🍻',
+              lat: -26.4882,
+              lng: 147.9732,
+              address: '93-95 Cambridge St, Mitchell QLD 4465',
+              features: '位於主街西段的另一間經典 Pub，有 Bistro 餐點、撞球桌與啤酒花園，氣氛輕鬆。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Western+Hotel+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-post-office-hotel',
+              name: 'Post Office Hotel Mitchell',
+              category: 'food',
+              categoryLabel: '餐酒館 / 簡餐',
+              color: '#f59e0b',
+              iconText: '🍽️',
+              lat: -26.4875,
+              lng: 147.9776,
+              address: 'Cambridge St & Mary St 路口附近, Mitchell QLD',
+              features: '翻新過的鄉村餐酒館，午晚餐供應牛排三明治、Chicken Kiev 與每日特餐，份量十足。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Post+Office+Hotel+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-post-office',
+              name: 'Australia Post Mitchell 郵局',
+              category: 'service',
+              categoryLabel: '郵政 / 銀行代辦',
+              color: '#8b5cf6',
+              iconText: '📮',
+              lat: -26.4881,
+              lng: 147.9779,
+              address: '87 Mary St, Mitchell QLD 4465',
+              features: '寄收包裹、購買郵票、帳單繳費與證件拍照，部分銀行業務也可在郵局櫃檯辦理（Bank@Post）。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Australia+Post+87+Mary+St+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-newsagency',
+              name: 'Mitchell Newsagency 書報文具店',
+              category: 'shop',
+              categoryLabel: '文具 / 報紙 / 禮品',
+              color: '#0ea5e9',
+              iconText: '📰',
+              lat: -26.4876,
+              lng: 147.9756,
+              address: 'Cambridge St, Mitchell QLD 4465',
+              features: '販售報紙雜誌、文具用品、卡片、彩券與簡易生活百貨。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Mitchell+Newsagency+QLD+4465'
+            },
+            {
+              id: 'm-mitre10',
+              name: 'Mitre 10 居家五金修繕店',
+              category: 'shop',
+              categoryLabel: '五金 / 園藝 / 工具',
+              color: '#0ea5e9',
+              iconText: '🛠️',
+              lat: -26.4883,
+              lng: 147.9726,
+              address: 'Cambridge St, Mitchell QLD 4465',
+              features: '澳洲知名五金連鎖，修繕工具、油漆、延長線、露營與園藝用品都能在這裡找到。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Mitre+10+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-samios',
+              name: 'Samios Trading Post 百貨雜貨舖',
+              category: 'shop',
+              categoryLabel: '服飾 / 生活百貨',
+              color: '#0ea5e9',
+              iconText: '👕',
+              lat: -26.4869,
+              lng: 147.9795,
+              address: '36-40 Cambridge St, Mitchell QLD 4465',
+              features: '主街東段的老字號綜合百貨商行，販售工作服、帽子、鞋靴、家居用品與禮品。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=36+Cambridge+St+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-laundromat',
+              name: 'Mitchell Laundromat 自助洗衣店',
+              category: 'service',
+              categoryLabel: '自助洗衣 / 烘衣',
+              color: '#8b5cf6',
+              iconText: '🧺',
+              lat: -26.4873,
+              lng: 147.9768,
+              address: '64 Cambridge St, Mitchell QLD 4465',
+              features: '主街上的投幣式自助洗衣與大型烘衣機，洗被單或厚重衣物非常方便。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=64+Cambridge+St+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-spa',
+              name: 'Great Artesian Spa 大自流井天然溫泉',
+              category: 'spot',
+              categoryLabel: '鎮上必訪 / 礦物溫泉',
+              color: '#f43f5e',
+              iconText: '♨️',
+              lat: -26.4862,
+              lng: 147.9822,
+              address: '2 Cambridge St, Mitchell QLD 4465 (近 Maranoa 河橋邊)',
+              features: 'Mitchell 最著名的招牌景點！引自地下大自流井的天然礦物溫泉，有溫水池與冷水池，下班後去泡湯超放鬆。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Great+Artesian+Spa+Mitchell+QLD'
+            },
+            {
+              id: 'm-library-arts',
+              name: 'Mitchell Library & Maranoa Arts Gallery',
+              category: 'spot',
+              categoryLabel: '圖書館 / 藝廊 / 免費 Wi-Fi',
+              color: '#f43f5e',
+              iconText: '📚',
+              lat: -26.4877,
+              lng: 147.9742,
+              address: 'Cambridge St, Mitchell QLD 4465',
+              features: '鎮上圖書館與藝術展覽空間，冷氣開放、環境安靜，可免費使用電腦、列印文件與高速 Wi-Fi。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Mitchell+Library+QLD+4465'
+            },
+            {
+              id: 'm-bp',
+              name: 'BP Roadhouse 加油站 & ATM',
+              category: 'service',
+              categoryLabel: '24H 加油 / 提款 / 熱食',
+              color: '#8b5cf6',
+              iconText: '⛽',
+              lat: -26.4892,
+              lng: 147.9762,
+              address: '9 Caroline St, Mitchell QLD 4465',
+              features: 'Highway 旁的公路休息站，提供汽柴油、ATM 提款機、便利商店零食與外帶熱食。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=BP+9+Caroline+St+Mitchell+QLD+4465'
+            },
+            {
+              id: 'm-hospital',
+              name: 'Mitchell Hospital & Medical Centre 醫院診所',
+              category: 'service',
+              categoryLabel: '公立醫院 / 門診',
+              color: '#8b5cf6',
+              iconText: '🏥',
+              lat: -26.4901,
+              lng: 147.9722,
+              address: '95 Ann St, Mitchell QLD 4465',
+              features: '鎮上的醫療中心與公立醫院，身體不適、看診或緊急醫療需求都在此處。',
+              googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Mitchell+Hospital+95+Ann+St+QLD'
+            }
+          ]
         }
       ];
 
       var bMap = null;
       var mapMarkers = {};
-      var currentMapFilter = 'all';
-      var selectedMapLocationId = null;
+      var currentRegionFilter = 'ALL';
+      var activeTownId = null;
+      var currentPlaceFilter = 'all';
+      var selectedPlaceId = null;
 
-      function getMapUserData(id) {
+      function ensureTownsState() {
         if (!appState.mapSavedData) appState.mapSavedData = {};
-        if (!appState.mapSavedData[id]) {
-          appState.mapSavedData[id] = { jobs: [], note: '' };
+        if (!appState.customTowns) appState.customTowns = [];
+        if (!appState.customPlacesByTown) appState.customPlacesByTown = {};
+      }
+
+      function getAllTowns() {
+        ensureTownsState();
+        return DEFAULT_TOWNS.concat(appState.customTowns);
+      }
+
+      function getTownById(townId) {
+        return getAllTowns().find(function(t) { return t.id === townId; });
+      }
+
+      function getTownPlaces(townId) {
+        ensureTownsState();
+        var town = getTownById(townId);
+        var base = (town && town.places) ? town.places : [];
+        var custom = appState.customPlacesByTown[townId] || [];
+        return base.concat(custom);
+      }
+
+      function getPlaceUserData(placeId) {
+        ensureTownsState();
+        if (!appState.mapSavedData[placeId]) {
+          appState.mapSavedData[placeId] = { visited: false, visitedDate: '', note: '', rating: 0 };
         }
-        return appState.mapSavedData[id];
+        return appState.mapSavedData[placeId];
       }
 
-      function hasMapSavedContent(id) {
-        if (!appState.mapSavedData) return false;
-        var d = appState.mapSavedData[id];
-        if (!d) return false;
-        return (d.jobs && d.jobs.length > 0) || (d.note && d.note.trim().length > 0);
+      function isPlaceVisited(placeId) {
+        ensureTownsState();
+        var d = appState.mapSavedData[placeId];
+        return Boolean(d && d.visited);
       }
 
-      function updateMapSavedBadge() {
-        var count = brisbaneLocations.filter(function(l) { return hasMapSavedContent(l.id); }).length;
-        var badge = document.getElementById('map-saved-count-badge');
-        if (badge) badge.textContent = count;
+      function hasPlaceNote(placeId) {
+        ensureTownsState();
+        var d = appState.mapSavedData[placeId];
+        return Boolean(d && d.note && d.note.trim().length > 0);
       }
 
       function escapeMapHTML(str) {
         if (!str) return '';
-        return str.replace(/[&<>'"]/g, function(tag) {
+        return String(str).replace(/[&<>'"]/g, function(tag) {
           return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag];
         });
       }
 
-      function createMapCustomIcon(loc, isActive) {
-        var hasSaved = hasMapSavedContent(loc.id);
+      // ==========================================
+      // 視圖 1：外層大分類與城鎮總覽渲染
+      // ==========================================
+      function renderTownsDirectory() {
+        var towns = getAllTowns();
+        var regionTabsEl = document.getElementById('region-category-tabs');
+        var gridEl = document.getElementById('towns-grid-container');
+        if (!regionTabsEl || !gridEl) return;
+
+        // 收集所有不重複的大分類
+        var regions = [];
+        towns.forEach(function(t) {
+          var r = t.regionCategory || '其他地區';
+          if (!regions.includes(r)) regions.push(r);
+        });
+
+        if (currentRegionFilter !== 'ALL' && !regions.includes(currentRegionFilter)) {
+          currentRegionFilter = 'ALL';
+        }
+
+        // 渲染大分類篩選標籤
+        var tabsHtml = '<button type="button" onclick="selectRegionCategory(\'ALL\')" class="px-3 py-1.5 rounded-full border text-xs font-bold transition cursor-pointer ' +
+          (currentRegionFilter === 'ALL' ? 'bg-amber-800 text-white border-amber-800' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+          '全部大分類 (' + towns.length + ')' +
+        '</button>';
+
+        regions.forEach(function(reg) {
+          var count = towns.filter(function(t) { return (t.regionCategory || '其他地區') === reg; }).length;
+          var isAct = currentRegionFilter === reg;
+          tabsHtml += '<button type="button" onclick="selectRegionCategory(\'' + escapeMapHTML(reg) + '\')" class="px-3 py-1.5 rounded-full border text-xs font-bold transition cursor-pointer ' +
+            (isAct ? 'bg-amber-800 text-white border-amber-800' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+            '📂 ' + escapeMapHTML(reg) + ' (' + count + ')' +
+          '</button>';
+        });
+        regionTabsEl.innerHTML = tabsHtml;
+
+        // 渲染該大分類下的城鎮卡片
+        var filteredTowns = currentRegionFilter === 'ALL'
+          ? towns
+          : towns.filter(function(t) { return (t.regionCategory || '其他地區') === currentRegionFilter; });
+
+        gridEl.innerHTML = filteredTowns.map(function(town) {
+          var places = getTownPlaces(town.id);
+          var totalCount = places.length;
+          var visitedCount = places.filter(function(p) { return isPlaceVisited(p.id); }).length;
+          var pct = totalCount > 0 ? Math.round((visitedCount / totalCount) * 100) : 0;
+          var isCustom = town.id.startsWith('custom_town_');
+
+          return '<div onclick="openTownMap(\'' + town.id + '\')" class="bg-white rounded-2xl p-5 border border-stone-200 hover:border-amber-700/60 hover:shadow-md transition cursor-pointer flex flex-col justify-between group">' +
+            '<div>' +
+              '<div class="flex items-center justify-between gap-2 mb-2">' +
+                '<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold">📂 ' + escapeMapHTML(town.regionCategory || '其他地區') + '</span>' +
+                '<span class="text-[11px] font-mono font-bold text-stone-400">' + escapeMapHTML(town.stateCode || '') + '</span>' +
+              '</div>' +
+              '<h3 class="text-base font-extrabold text-stone-900 group-hover:text-amber-900 transition flex items-center justify-between">' +
+                '<span>🏘️ ' + escapeMapHTML(town.name) + '</span>' +
+                '<span class="text-xs text-amber-800 font-bold">進入地圖 ➔</span>' +
+              '</h3>' +
+              '<p class="text-xs text-stone-500 mt-2 line-clamp-2 leading-relaxed">' + escapeMapHTML(town.description || '點擊進入城鎮地圖開始踩點紀錄。') + '</p>' +
+            '</div>' +
+
+            '<div class="mt-4 pt-3 border-t border-stone-100">' +
+              '<div class="flex justify-between items-center text-[11px] mb-1">' +
+                '<span class="font-bold text-emerald-700">✅ 已踩點：' + visitedCount + ' / ' + totalCount + ' 處</span>' +
+                '<span class="font-mono font-bold text-stone-600">' + pct + '%</span>' +
+              '</div>' +
+              '<div class="w-full h-2 bg-stone-100 rounded-full overflow-hidden">' +
+                '<div class="h-full bg-emerald-500 rounded-full transition-all" style="width: ' + pct + '%"></div>' +
+              '</div>' +
+              (isCustom ? '<div class="mt-2 text-right"><button type="button" onclick="deleteCustomTown(\'' + town.id + '\', event)" class="text-[10px] text-stone-400 hover:text-rose-600 cursor-pointer">🗑️ 刪除此自訂城鎮</button></div>' : '') +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+
+      window.selectRegionCategory = function(reg) {
+        currentRegionFilter = reg;
+        renderTownsDirectory();
+      };
+
+      window.openAddCustomTownModal = function() {
+        var region = prompt("1/4 請輸入「大分類名稱」（例如：昆士蘭鄉村小鎮、西澳農場區、維州小鎮）：", "昆士蘭鄉村小鎮");
+        if (!region || !region.trim()) return;
+
+        var name = prompt("2/4 請輸入「城鎮名稱」（例如：Roma 羅馬小鎮、Charleville）：");
+        if (!name || !name.trim()) return;
+
+        var stateCode = prompt("3/4 請輸入州別與郵遞區號（選填，例如：QLD 4455）：", "QLD");
+        var coordStr = prompt("4/4 請貼上該城鎮中心座標「緯度, 經度」（可從 Google Maps 右鍵複製，例如：-26.5733, 148.7869）：", "-26.5733, 148.7869");
+        
+        var lat = -26.5733, lng = 148.7869;
+        if (coordStr && coordStr.includes(',')) {
+          var parts = coordStr.split(',').map(Number);
+          if (!isNaN(parts[0]) && !isNaN(parts[1])) {
+            lat = parts[0];
+            lng = parts[1];
+          }
+        }
+
+        ensureTownsState();
+        var newTown = {
+          id: 'custom_town_' + Date.now(),
+          regionCategory: region.trim(),
+          name: name.trim(),
+          stateCode: (stateCode || '').trim(),
+          lat: lat,
+          lng: lng,
+          zoom: 15,
+          description: '自訂新增的城鎮探索地圖，可直接點擊地圖任意處新增商店地標與踩點評論。',
+          places: []
+        };
+
+        appState.customTowns.push(newTown);
+        saveState();
+        currentRegionFilter = region.trim();
+        renderTownsDirectory();
+        showGlobalToast('✅ 已新增城鎮：「' + name.trim() + '」');
+      };
+
+      window.deleteCustomTown = function(townId, e) {
+        e.stopPropagation();
+        if (confirm("確定要刪除這個自訂城鎮及其地標嗎？")) {
+          appState.customTowns = (appState.customTowns || []).filter(function(t) { return t.id !== townId; });
+          delete appState.customPlacesByTown[townId];
+          saveState();
+          renderTownsDirectory();
+        }
+      };
+
+      // ==========================================
+      // 視圖 2：進入單一城鎮地圖與商店踩點
+      // ==========================================
+      window.openTownMap = function(townId) {
+        var town = getTownById(townId);
+        if (!town) return;
+
+        activeTownId = townId;
+        selectedPlaceId = null;
+        currentPlaceFilter = 'all';
+
+        document.getElementById('towns-directory-view').classList.add('hidden');
+        document.getElementById('town-map-detail-view').classList.remove('hidden');
+
+        document.getElementById('active-town-region-badge').textContent = '📂 ' + (town.regionCategory || '城鎮地圖');
+        document.getElementById('active-town-title').textContent = town.name + (town.stateCode ? ' (' + town.stateCode + ')' : '');
+
+        // 重置篩選按鈕樣式
+        document.querySelectorAll('.map-filter-btn').forEach(function(b) {
+          b.classList.remove('active', 'bg-stone-800', 'text-white');
+          var f = b.getAttribute('data-filter');
+          if (f === 'visited') b.classList.add('bg-emerald-50', 'text-emerald-800');
+          else if (f === 'unvisited') b.classList.add('bg-amber-50', 'text-amber-800');
+          else b.classList.add('bg-white', 'text-stone-700');
+        });
+        var allBtn = document.querySelector('.map-filter-btn[data-filter="all"]');
+        if (allBtn) {
+          allBtn.classList.add('active', 'bg-stone-800', 'text-white');
+          allBtn.classList.remove('bg-white', 'text-stone-700');
+        }
+
+        setupLeafletMapInstance();
+        setTimeout(function() {
+          if (bMap) {
+            bMap.invalidateSize();
+            bMap.setView([town.lat, town.lng], town.zoom || 16);
+          }
+          renderTownMarkers();
+          updateTownProgressBadges();
+          resetMapToList();
+        }, 100);
+      };
+
+      window.backToTownsDirectory = function() {
+        activeTownId = null;
+        selectedPlaceId = null;
+        document.getElementById('town-map-detail-view').classList.add('hidden');
+        document.getElementById('towns-directory-view').classList.remove('hidden');
+        renderTownsDirectory();
+      };
+
+      function updateTownProgressBadges() {
+        if (!activeTownId) return;
+        var places = getTownPlaces(activeTownId);
+        var total = places.length;
+        var visited = places.filter(function(p) { return isPlaceVisited(p.id); }).length;
+
+        var progEl = document.getElementById('active-town-progress');
+        if (progEl) progEl.textContent = '踩點進度：已去過 ' + visited + ' / ' + total + ' 處';
+
+        var badgeEl = document.getElementById('map-visited-count-badge');
+        if (badgeEl) badgeEl.textContent = visited;
+      }
+
+      function createPlaceIcon(place, isActive) {
+        var visited = isPlaceVisited(place.id);
+        var hasNote = hasPlaceNote(place.id);
+        var bg = visited ? '#059669' : place.color; // 已踩點變成翠綠色
+        var symbol = visited ? '✓' : place.iconText;
+
         return L.divIcon({
           className: 'custom-div-icon',
-          html: '<div class="custom-pin ' + (isActive ? 'active' : '') + '" style="background-color: ' + loc.color + '; width: 34px; height: 34px; font-size: 15px;">' +
-                  loc.iconText +
-                  (hasSaved ? '<span class="pin-badge" title="已有收藏工作網址或筆記"></span>' : '') +
+          html: '<div class="custom-pin ' + (isActive ? 'active' : '') + '" style="background-color: ' + bg + '; width: 34px; height: 34px; font-size: ' + (visited ? '16px' : '15px') + '; color: #fff; font-weight: bold;">' +
+                  symbol +
+                  (hasNote ? '<span class="pin-badge" style="background-color:#f59e0b;" title="已留下評論/筆記"></span>' : '') +
                 '</div>',
           iconSize: [34, 34],
           iconAnchor: [17, 17],
@@ -3720,257 +4230,210 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         });
       }
 
-      function refreshAllMapMarkerBadges() {
-        Object.keys(mapMarkers).forEach(function(key) {
-          var item = brisbaneLocations.find(function(l) { return l.id === key; });
-          if (item && mapMarkers[key]) {
-            mapMarkers[key].setIcon(createMapCustomIcon(item, key === selectedMapLocationId));
-          }
+      function renderTownMarkers() {
+        if (!bMap || !activeTownId) return;
+
+        // 清除舊圖釘
+        Object.keys(mapMarkers).forEach(function(k) {
+          if (mapMarkers[k]) bMap.removeLayer(mapMarkers[k]);
         });
-      }
+        mapMarkers = {};
 
-      function saveMapStateAndSync() {
-        updateMapSavedBadge();
-        refreshAllMapMarkerBadges();
-        saveState();
-      }
+        var places = getTownPlaces(activeTownId);
+        places.forEach(function(place) {
+          var show = false;
+          if (currentPlaceFilter === 'all') show = true;
+          else if (currentPlaceFilter === 'visited') show = isPlaceVisited(place.id);
+          else if (currentPlaceFilter === 'unvisited') show = !isPlaceVisited(place.id);
+          else show = place.category === currentPlaceFilter;
 
-      function renderMapSavedJobsHTML(locationId) {
-        var uData = getMapUserData(locationId);
-        if (!uData.jobs || uData.jobs.length === 0) {
-          return '<p class="text-[11px] text-stone-400 italic py-1">尚未加入工作網址，可將 SEEK / Indeed / 社團職缺貼在上方儲存。</p>';
-        }
-        return uData.jobs.map(function(job, idx) {
-          return '<div class="flex items-center justify-between gap-2 bg-white p-2 rounded-xl border border-indigo-100 shadow-2xs">' +
-            '<a href="' + escapeMapHTML(job.url) + '" target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0 flex items-center gap-2 text-indigo-700 hover:text-indigo-900">' +
-              '<span class="bg-indigo-100 text-indigo-700 p-1 rounded-lg shrink-0 text-xs">🔗</span>' +
-              '<div class="truncate">' +
-                '<div class="text-xs font-bold truncate underline decoration-indigo-300 underline-offset-2">' + escapeMapHTML(job.title || '未命名職缺連結') + '</div>' +
-                '<div class="text-[10px] text-stone-400 truncate">' + escapeMapHTML(job.url) + '</div>' +
+          if (!show) return;
+
+          var visited = isPlaceVisited(place.id);
+          var marker = L.marker([place.lat, place.lng], {
+            icon: createPlaceIcon(place, place.id === selectedPlaceId)
+          }).addTo(bMap);
+
+          marker.bindPopup(
+            '<div class="min-w-[190px]">' +
+              '<div class="flex items-center justify-between gap-1">' +
+                '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style="background:' + (visited ? '#059669' : place.color) + '">' +
+                  (visited ? '✅ 已踩點' : place.categoryLabel) +
+                '</span>' +
               '</div>' +
-            '</a>' +
-            '<button type="button" onclick="deleteMapSavedJob(\'' + locationId + '\', ' + idx + ')" title="刪除此連結" class="text-stone-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0 cursor-pointer">✕</button>' +
-          '</div>';
-        }).join('');
+              '<h4 class="font-bold text-xs text-stone-900 mt-1">' + escapeMapHTML(place.name) + '</h4>' +
+              '<p class="text-[10px] text-stone-500 mt-0.5">' + escapeMapHTML(place.address || '') + '</p>' +
+              '<button type="button" onclick="selectTownPlace(\'' + place.id + '\', false)" class="mt-2 w-full py-1 bg-stone-800 text-white text-[11px] font-semibold rounded-lg hover:bg-stone-700 transition cursor-pointer">踩點打卡與寫評論 →</button>' +
+            '</div>'
+          );
+
+          marker.on('click', function() {
+            selectTownPlace(place.id, false);
+          });
+
+          mapMarkers[place.id] = marker;
+        });
       }
 
-      window.addMapSavedJob = function(locationId) {
-        var titleInput = document.getElementById('map-new-job-title');
-        var urlInput = document.getElementById('map-new-job-url');
-        var url = urlInput.value.trim();
-        var title = titleInput.value.trim();
-
-        if (!url) {
-          showGlobalToast('⚠️ 請先貼上工作網址！');
-          urlInput.focus();
-          return;
+      window.togglePlaceVisited = function(placeId) {
+        var uData = getPlaceUserData(placeId);
+        uData.visited = !uData.visited;
+        if (uData.visited && !uData.visitedDate) {
+          uData.visitedDate = new Date().toISOString().split('T')[0];
         }
-        if (!/^https?:\/\//i.test(url)) {
-          url = 'https://' + url;
+        saveState();
+        updateTownProgressBadges();
+        renderTownMarkers();
+        selectTownPlace(placeId, false);
+        showGlobalToast(uData.visited ? '✅ 已設為「踩點完成」並同步！' : '📍 已取消踩點標記');
+      };
+
+      window.savePlaceComment = function(placeId) {
+        var noteInput = document.getElementById('place-comment-input');
+        var dateInput = document.getElementById('place-visited-date');
+        var uData = getPlaceUserData(placeId);
+        uData.note = noteInput ? noteInput.value : '';
+        if (dateInput) uData.visitedDate = dateInput.value;
+        saveState();
+        renderTownMarkers();
+        showGlobalToast('💾 評論與踩點備註已儲存並同步！');
+      };
+
+      window.deleteCustomPlace = function(placeId) {
+        if (!activeTownId) return;
+        if (confirm("確定要刪除這個自訂地標嗎？")) {
+          appState.customPlacesByTown[activeTownId] = (appState.customPlacesByTown[activeTownId] || []).filter(function(p) { return p.id !== placeId; });
+          delete appState.mapSavedData[placeId];
+          saveState();
+          updateTownProgressBadges();
+          renderTownMarkers();
+          resetMapToList();
         }
-
-        var domainTitle = '工作職缺連結';
-        try {
-          domainTitle = (new URL(url).hostname.replace('www.', '')) + ' 職缺連結';
-        } catch (e) {}
-
-        var uData = getMapUserData(locationId);
-        uData.jobs.unshift({
-          id: Date.now(),
-          title: title || domainTitle,
-          url: url
-        });
-        saveMapStateAndSync();
-
-        titleInput.value = '';
-        urlInput.value = '';
-        document.getElementById('map-saved-jobs-list').innerHTML = renderMapSavedJobsHTML(locationId);
-        showGlobalToast('✅ 已收藏工作網址並同步！');
       };
 
-      window.deleteMapSavedJob = function(locationId, index) {
-        var uData = getMapUserData(locationId);
-        uData.jobs.splice(index, 1);
-        saveMapStateAndSync();
-        document.getElementById('map-saved-jobs-list').innerHTML = renderMapSavedJobsHTML(locationId);
-        showGlobalToast('🗑️ 已移除該筆工作網址');
-      };
-
-      window.saveMapLocationNote = function(locationId) {
-        var noteInput = document.getElementById('map-location-note-input');
-        var uData = getMapUserData(locationId);
-        uData.note = noteInput.value;
-        saveMapStateAndSync();
-        showGlobalToast('💾 個人筆記與備註已儲存並同步！');
-      };
-
-      window.selectMapLocation = function(id, flyTo) {
+      window.selectTownPlace = function(placeId, flyTo) {
         if (flyTo === undefined) flyTo = true;
-        var loc = brisbaneLocations.find(function(l) { return l.id === id; });
-        if (!loc) return;
-        selectedMapLocationId = id;
+        if (!activeTownId) return;
+        var places = getTownPlaces(activeTownId);
+        var place = places.find(function(p) { return p.id === placeId; });
+        if (!place) return;
 
-        refreshAllMapMarkerBadges();
+        selectedPlaceId = placeId;
+        renderTownMarkers();
 
         if (bMap && flyTo) {
-          bMap.flyTo([loc.lat, loc.lng], 13, { duration: 0.8 });
-          if (mapMarkers[id]) mapMarkers[id].openPopup();
+          bMap.flyTo([place.lat, place.lng], 17, { duration: 0.6 });
+          if (mapMarkers[placeId]) mapMarkers[placeId].openPopup();
         }
 
-        var uData = getMapUserData(id);
+        var uData = getPlaceUserData(placeId);
+        var visited = Boolean(uData.visited);
+        var isCustom = place.id.startsWith('custom_place_');
         var detailPanel = document.getElementById('map-detail-panel');
         if (!detailPanel) return;
 
         detailPanel.innerHTML =
           '<div>' +
-            '<button type="button" onclick="resetMapToList()" class="inline-flex items-center gap-1 text-xs font-semibold text-stone-500 hover:text-stone-800 mb-2.5 transition cursor-pointer">' +
-              '← 返回所有區域列表' +
-            '</button>' +
+            '<div class="flex items-center justify-between mb-2.5">' +
+              '<button type="button" onclick="resetMapToList()" class="inline-flex items-center gap-1 text-xs font-semibold text-stone-500 hover:text-stone-800 transition cursor-pointer">' +
+                '← 返回本鎮所有商店列表' +
+              '</button>' +
+              (isCustom ? '<button type="button" onclick="deleteCustomPlace(\'' + place.id + '\')" class="text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer">🗑️ 刪除此自訂點</button>' : '') +
+            '</div>' +
 
             '<div class="flex items-start justify-between gap-2 mb-3">' +
               '<div>' +
-                '<span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full text-white mb-1" style="background-color: ' + loc.color + '">' +
-                  loc.categoryLabel +
+                '<span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full text-white mb-1" style="background-color: ' + place.color + '">' +
+                  escapeMapHTML(place.categoryLabel) +
                 '</span>' +
-                '<h3 class="text-base sm:text-lg font-bold text-stone-900 leading-snug">' + loc.name + '</h3>' +
-                '<p class="text-[11px] text-stone-500 font-medium mt-0.5">📍 ' + loc.distance + '</p>' +
+                '<h3 class="text-base font-bold text-stone-900 leading-snug">' + escapeMapHTML(place.name) + '</h3>' +
+                '<p class="text-[11px] text-stone-500 font-medium mt-0.5">📍 ' + escapeMapHTML(place.address || '自訂座標點') + '</p>' +
               '</div>' +
-              '<div class="text-xl bg-stone-100 p-2 rounded-xl">' + loc.iconText + '</div>' +
+              '<div class="text-xl bg-stone-100 p-2 rounded-xl">' + place.iconText + '</div>' +
             '</div>' +
 
-            '<div class="flex flex-wrap gap-1.5 mb-3.5">' +
-              '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-lg ' + (loc.carNeeded.includes('不需') ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200') + '">' +
-                (loc.carNeeded.includes('不需') ? '✅ ' + loc.carNeeded : '⚠️ ' + loc.carNeeded) +
-              '</span>' +
-              '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200">' +
-                '🎫 大眾運輸 AUD $0.50/趟' +
-              '</span>' +
+            '<!-- 核心功能 1：一鍵踩點打卡按鈕 -->' +
+            '<div class="mb-3.5">' +
+              '<button type="button" onclick="togglePlaceVisited(\'' + place.id + '\')" class="w-full py-2.5 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-xs ' +
+                (visited ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-stone-100 hover:bg-amber-100 text-stone-800 border border-stone-300') + '">' +
+                (visited ? '<span>✅ 已踩點完成！（點擊可取消標記）</span>' : '<span>📍 我去過這裡！設為「已踩點」Pin</span>') +
+              '</button>' +
             '</div>' +
 
-            '<!-- 互動功能區 1：我的工作網址收藏 -->' +
-            '<div class="bg-indigo-50/70 rounded-xl p-3 border border-indigo-200 mb-3">' +
-              '<div class="flex items-center justify-between mb-1.5">' +
-                '<h4 class="text-xs font-bold text-indigo-950">🔗 我的工作網址收藏</h4>' +
-                '<span class="text-[10px] text-indigo-600 font-medium">同步儲存</span>' +
+            '<!-- 核心功能 2：我的踩點評論與私房筆記 -->' +
+            '<div class="bg-amber-50/80 rounded-xl p-3 border border-amber-200 mb-3.5 space-y-2">' +
+              '<div class="flex items-center justify-between">' +
+                '<h4 class="text-xs font-bold text-amber-950">📝 我的評論與消費筆記</h4>' +
+                '<button type="button" onclick="savePlaceComment(\'' + place.id + '\')" class="px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white text-[11px] font-bold rounded-lg transition cursor-pointer">儲存評論</button>' +
               '</div>' +
-              '<div class="space-y-1.5 mb-2.5">' +
-                '<input type="text" id="map-new-job-title" placeholder="職缺名稱或公司（選填，例：Sunnybank 日出茶太）" class="w-full text-xs bg-white border border-indigo-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500">' +
-                '<div class="flex gap-1.5">' +
-                  '<input type="url" id="map-new-job-url" placeholder="貼上 SEEK / Indeed / FB 徵才網址..." class="flex-1 text-xs bg-white border border-indigo-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500">' +
-                  '<button type="button" onclick="addMapSavedJob(\'' + loc.id + '\')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition shrink-0 cursor-pointer">＋ 新增</button>' +
-                '</div>' +
+              '<div class="flex items-center gap-2 text-[11px]">' +
+                '<span class="text-stone-600 font-semibold">造訪日期：</span>' +
+                '<input type="date" id="place-visited-date" value="' + escapeMapHTML(uData.visitedDate || '') + '" class="bg-white border border-amber-200 rounded px-2 py-0.5 font-mono text-stone-700">' +
               '</div>' +
-              '<div id="map-saved-jobs-list" class="space-y-1.5">' + renderMapSavedJobsHTML(loc.id) + '</div>' +
+              '<textarea id="place-comment-input" rows="4" placeholder="寫下你的真實評價：例如推薦點哪一道、營業時間雷點、物價貴不貴、店員友不友善..." class="w-full text-xs bg-white border border-amber-200 rounded-lg p-2 text-stone-700 focus:outline-none focus:border-amber-600 leading-relaxed">' + escapeMapHTML(uData.note || '') + '</textarea>' +
             '</div>' +
 
-            '<!-- 互動功能區 2：個人筆記與備註 -->' +
-            '<div class="bg-amber-50/70 rounded-xl p-3 border border-amber-200 mb-3.5">' +
-              '<div class="flex items-center justify-between mb-1.5">' +
-                '<h4 class="text-xs font-bold text-amber-950">📝 個人筆記與備註</h4>' +
-                '<button type="button" onclick="saveMapLocationNote(\'' + loc.id + '\')" class="px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white text-[11px] font-bold rounded-lg transition cursor-pointer">儲存備註</button>' +
-              '</div>' +
-              '<textarea id="map-location-note-input" rows="3" placeholder="在此記錄仲介聯絡方式、時薪細節、看房預約時間或交通注意事項..." class="w-full text-xs bg-white border border-amber-200 rounded-lg p-2 text-stone-700 focus:outline-none focus:border-amber-600 leading-relaxed">' + escapeMapHTML(uData.note || '') + '</textarea>' +
+            '<div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-3">' +
+              '<h4 class="text-[11px] font-bold text-stone-800 uppercase tracking-wider mb-1">✨ 店家介紹與功能</h4>' +
+              '<p class="text-xs text-stone-600 leading-relaxed">' + escapeMapHTML(place.features || '自訂踩點地標。') + '</p>' +
             '</div>' +
 
-            '<div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-2.5">' +
-              '<h4 class="text-[11px] font-bold text-stone-800 uppercase tracking-wider mb-1">✨ 區域特色與生活機能</h4>' +
-              '<p class="text-xs text-stone-600 leading-relaxed">' + loc.features + '</p>' +
-            '</div>' +
-
-            '<div class="bg-teal-50/60 rounded-xl p-3 border border-teal-200/80 mb-2.5">' +
-              '<h4 class="text-[11px] font-bold text-teal-900 uppercase tracking-wider mb-1.5">💼 常見打工職缺類型</h4>' +
-              '<div class="flex flex-wrap gap-1.5">' +
-                loc.jobs.map(function(job) { return '<span class="text-[11px] font-medium bg-white text-teal-800 border border-teal-200 px-2 py-0.5 rounded-md">' + job + '</span>'; }).join('') +
-              '</div>' +
-            '</div>' +
-
-            '<div class="space-y-2 mb-3.5">' +
-              '<div class="bg-white rounded-xl p-2.5 border border-stone-200">' +
-                '<div class="text-[11px] font-bold text-stone-800 mb-0.5">🚌 交通路徑與車站</div>' +
-                '<p class="text-xs text-stone-600 leading-relaxed">' + loc.transit + '</p>' +
-              '</div>' +
-              '<div class="bg-white rounded-xl p-2.5 border border-stone-200">' +
-                '<div class="text-[11px] font-bold text-stone-800 mb-0.5">🛏️ 租屋參考行情</div>' +
-                '<p class="text-xs text-stone-600 leading-relaxed">' + loc.rentHint + '</p>' +
-              '</div>' +
-            '</div>' +
-
-            '<a href="' + loc.googleMapsUrl + '" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-2">' +
-              '<span>🗺️ 在 Google Maps 中開啟定位與路線導航 ↗</span>' +
+            '<a href="' + place.googleMapsUrl + '" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-2">' +
+              '<span>🗺️ 在 Google Maps 中開啟導航與街景 ↗</span>' +
             '</a>' +
           '</div>';
 
         detailPanel.scrollTop = 0;
       };
 
-      function renderMapLocationList(filter) {
-        var listContainer = document.getElementById('map-location-list');
-        if (!listContainer) return;
-
-        var filtered = brisbaneLocations;
-        if (filter === 'saved') {
-          filtered = brisbaneLocations.filter(function(l) { return hasMapSavedContent(l.id); });
-        } else if (filter !== 'all') {
-          filtered = brisbaneLocations.filter(function(l) { return l.category === filter; });
-        }
-
-        if (filtered.length === 0) {
-          listContainer.innerHTML =
-            '<div class="text-center py-8 px-4 bg-stone-50 rounded-2xl border border-dashed border-stone-300">' +
-              '<p class="text-xs font-semibold text-stone-600 mb-1">目前尚無收藏紀錄</p>' +
-              '<p class="text-[11px] text-stone-400">點擊地圖上任一區域地標，即可加入工作網址與個人筆記！</p>' +
-            '</div>';
-          return;
-        }
-
-        listContainer.innerHTML = filtered.map(function(loc) {
-          var uData = getMapUserData(loc.id);
-          var jobCount = uData.jobs ? uData.jobs.length : 0;
-          var hasNote = uData.note && uData.note.trim().length > 0;
-
-          return '<button type="button" onclick="selectMapLocation(\'' + loc.id + '\', true)" class="w-full text-left p-2.5 rounded-xl border ' + (hasMapSavedContent(loc.id) ? 'border-rose-200 bg-rose-50/20' : 'border-stone-200') + ' hover:border-amber-700/50 hover:bg-amber-50/30 transition flex items-start gap-2.5 group cursor-pointer">' +
-            '<div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 text-white shadow-2xs relative" style="background-color: ' + loc.color + '">' +
-              loc.iconText +
-              (hasMapSavedContent(loc.id) ? '<span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full"></span>' : '') +
-            '</div>' +
-            '<div class="flex-1 min-w-0">' +
-              '<div class="flex items-center justify-between gap-1">' +
-                '<h4 class="font-bold text-xs text-stone-900 truncate group-hover:text-amber-900">' + loc.name + '</h4>' +
-                '<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-stone-100 text-stone-600 shrink-0">' + (loc.carNeeded.includes('不需') ? '🚌 無車可' : '🚗 需開車') + '</span>' +
-              '</div>' +
-              '<p class="text-[11px] text-stone-500 truncate mt-0.5">' + loc.distance + '</p>' +
-              ((jobCount > 0 || hasNote) ?
-                '<div class="flex items-center gap-1.5 mt-1">' +
-                  (jobCount > 0 ? '<span class="text-[10px] font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.2 rounded border border-indigo-200">🔗 已存 ' + jobCount + ' 筆職缺</span>' : '') +
-                  (hasNote ? '<span class="text-[10px] font-semibold bg-amber-50 text-amber-800 px-1.5 py-0.2 rounded border border-amber-200">📝 有個人筆記</span>' : '') +
-                '</div>' : '') +
-            '</div>' +
-          '</button>';
-        }).join('');
-      }
-
       window.resetMapToList = function() {
-        selectedMapLocationId = null;
-        refreshAllMapMarkerBadges();
-        Object.keys(mapMarkers).forEach(function(key) {
-          if (mapMarkers[key]) mapMarkers[key].closePopup();
+        if (!activeTownId) return;
+        selectedPlaceId = null;
+        renderTownMarkers();
+
+        var town = getTownById(activeTownId);
+        var places = getTownPlaces(activeTownId);
+        var filtered = places.filter(function(p) {
+          if (currentPlaceFilter === 'all') return true;
+          if (currentPlaceFilter === 'visited') return isPlaceVisited(p.id);
+          if (currentPlaceFilter === 'unvisited') return !isPlaceVisited(p.id);
+          return p.category === currentPlaceFilter;
         });
-        if (bMap) bMap.flyTo([-27.495, 153.035], 11, { duration: 0.6 });
 
         var detailPanel = document.getElementById('map-detail-panel');
         if (!detailPanel) return;
+
+        var listHtml = filtered.length === 0
+          ? '<div class="text-center py-8 px-4 bg-stone-50 rounded-2xl border border-dashed border-stone-300 text-xs text-stone-500">此篩選條件下尚無地標</div>'
+          : filtered.map(function(p) {
+              var visited = isPlaceVisited(p.id);
+              var uData = getPlaceUserData(p.id);
+              var hasNote = uData.note && uData.note.trim().length > 0;
+
+              return '<button type="button" onclick="selectTownPlace(\'' + p.id + '\', true)" class="w-full text-left p-2.5 rounded-xl border ' + (visited ? 'border-emerald-300 bg-emerald-50/30' : 'border-stone-200') + ' hover:border-amber-700/50 hover:bg-amber-50/30 transition flex items-start gap-2.5 group cursor-pointer">' +
+                '<div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 text-white shadow-2xs font-bold" style="background-color: ' + (visited ? '#059669' : p.color) + '">' +
+                  (visited ? '✓' : p.iconText) +
+                '</div>' +
+                '<div class="flex-1 min-w-0">' +
+                  '<div class="flex items-center justify-between gap-1">' +
+                    '<h4 class="font-bold text-xs text-stone-900 truncate group-hover:text-amber-900">' + escapeMapHTML(p.name) + '</h4>' +
+                    (visited ? '<span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 shrink-0">已踩點</span>' : '<span class="text-[10px] font-medium px-1.5 py-0.2 rounded bg-stone-100 text-stone-500 shrink-0">未去過</span>') +
+                  '</div>' +
+                  '<p class="text-[11px] text-stone-500 truncate mt-0.5">' + escapeMapHTML(p.address || '') + '</p>' +
+                  (hasNote ? '<p class="text-[11px] text-amber-900 bg-amber-50 px-2 py-0.5 rounded mt-1 truncate border border-amber-200/70">💬 ' + escapeMapHTML(uData.note) + '</p>' : '') +
+                '</div>' +
+              '</button>';
+            }).join('');
+
         detailPanel.innerHTML =
-          '<div class="bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl p-3.5 mb-3.5">' +
-            '<div class="flex items-center gap-1.5 text-teal-800 font-bold text-xs mb-1">' +
-              '<span>💡 黃金 20 天落地找工策略</span>' +
-            '</div>' +
-            '<p class="text-[11px] text-teal-700 leading-relaxed">' +
-              '先落腳 <strong>Roma Street YHA / Spring Hill</strong> 辦妥開戶與稅號。點擊下方任一區域，即可將找到的<strong>職缺網址與仲介備註</strong>直接存進該地點！' +
-            '</p>' +
+          '<div class="bg-stone-50 border border-stone-200 rounded-xl p-3 mb-3 text-xs">' +
+            '<p class="text-stone-600 leading-relaxed">' + escapeMapHTML(town ? town.description : '') + '</p>' +
           '</div>' +
-          '<h3 class="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-2">點擊下方區域或地圖標記查看詳情與筆記</h3>' +
-          '<div id="map-location-list" class="space-y-2"></div>';
-        renderMapLocationList(currentMapFilter);
+          '<div class="flex items-center justify-between mb-2">' +
+            '<h3 class="text-[11px] font-bold uppercase tracking-wider text-stone-400">商店與地標列表 (' + filtered.length + ')</h3>' +
+            '<span class="text-[10px] text-amber-800 font-semibold">點地圖空白處可新增店點</span>' +
+          '</div>' +
+          '<div class="space-y-2">' + listHtml + '</div>';
       };
 
       function setupLeafletMapInstance() {
@@ -3979,8 +4442,8 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         if (!mapEl) return;
 
         bMap = L.map('brisbaneLeafletMap', {
-          center: [-27.495, 153.035],
-          zoom: 11,
+          center: [-26.4875, 147.9752],
+          zoom: 16,
           zoomControl: false
         });
 
@@ -3989,68 +4452,50 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
           attribution: '&copy; OpenStreetMap &copy; CARTO',
           subdomains: 'abcd',
-          maxZoom: 18
+          maxZoom: 19
         }).addTo(bMap);
 
-        // 1. 南區公車專用道
-        var buswayCoords = [
-          [-27.4698, 153.0251], [-27.4805, 153.0215], [-27.5150, 153.0450],
-          [-27.5618, 153.0815], [-27.5715, 153.0615], [-27.5850, 153.0850]
-        ];
-        var buswayLayer = L.polyline(buswayCoords, {
-          color: '#f97316', weight: 5, opacity: 0.85, dashArray: '10, 6'
-        }).addTo(bMap);
-        buswayLayer.bindTooltip('🚌 南區公車專用道 (130 / 140 / 111) · 單趟 $0.50', { sticky: true, className: 'transit-label' });
+        // 點擊地圖任意空白處，可新增自訂商店地標
+        bMap.on('click', function(e) {
+          if (!activeTownId) return;
+          var lat = Number(e.latlng.lat.toFixed(6));
+          var lng = Number(e.latlng.lng.toFixed(6));
 
-        // 2. 南區火車線
-        var southTrainCoords = [
-          [-27.4658, 153.0185], [-27.4805, 153.0215], [-27.5250, 153.0180],
-          [-27.5600, 153.0120], [-27.5885, 153.0765]
-        ];
-        var southTrainLayer = L.polyline(southTrainCoords, {
-          color: '#2563eb', weight: 4, opacity: 0.75
-        }).addTo(bMap);
-        southTrainLayer.bindTooltip('🚆 南區火車線 (Beenleigh Line) · 單趟 $0.50', { sticky: true, className: 'transit-label' });
+          var name = prompt("📌 在此座標新增自訂地標！\n請輸入商店或地點名稱（取消則不新增）：");
+          if (!name || !name.trim()) return;
 
-        // 3. 北區與機場線
-        var northTrainCoords = [
-          [-27.4658, 153.0185], [-27.4565, 153.0355], [-27.4350, 153.0550],
-          [-27.4285, 153.0955], [-27.3858, 153.0315]
-        ];
-        var northTrainLayer = L.polyline(northTrainCoords, {
-          color: '#9333ea', weight: 4, opacity: 0.75
-        }).addTo(bMap);
-        northTrainLayer.bindTooltip('🚆 北區與機場線 (Airport / North Coast Line)', { sticky: true, className: 'transit-label' });
+          var catChoice = prompt("請選擇分類代號：\n1 = 餐飲/酒吧\n2 = 超市/商店\n3 = 生活/機構\n4 = 景點/休閒", "1");
+          var catMap = {
+            '1': { category: 'food', label: '餐飲 / 酒吧', color: '#f59e0b', icon: '🍔' },
+            '2': { category: 'shop', label: '超市 / 商店', color: '#0ea5e9', icon: '🛍️' },
+            '3': { category: 'service', label: '生活 / 機構', color: '#8b5cf6', icon: '🏢' },
+            '4': { category: 'spot', label: '景點 / 休閒', color: '#f43f5e', icon: '📍' }
+          };
+          var chosen = catMap[catChoice] || catMap['4'];
 
-        document.getElementById('toggle-busway').addEventListener('change', function(e) {
-          e.target.checked ? bMap.addLayer(buswayLayer) : bMap.removeLayer(buswayLayer);
-        });
-        document.getElementById('toggle-south-train').addEventListener('change', function(e) {
-          e.target.checked ? bMap.addLayer(southTrainLayer) : bMap.removeLayer(southTrainLayer);
-        });
-        document.getElementById('toggle-north-train').addEventListener('change', function(e) {
-          e.target.checked ? bMap.addLayer(northTrainLayer) : bMap.removeLayer(northTrainLayer);
-        });
+          ensureTownsState();
+          if (!appState.customPlacesByTown[activeTownId]) appState.customPlacesByTown[activeTownId] = [];
 
-        brisbaneLocations.forEach(function(loc) {
-          var marker = L.marker([loc.lat, loc.lng], {
-            icon: createMapCustomIcon(loc, false)
-          }).addTo(bMap);
-
-          marker.bindPopup(
-            '<div class="min-w-[180px]">' +
-              '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style="background:' + loc.color + '">' + loc.categoryLabel + '</span>' +
-              '<h4 class="font-bold text-xs text-stone-900 mt-1">' + loc.name + '</h4>' +
-              '<p class="text-[10px] text-stone-500 mt-0.5">' + loc.distance + '</p>' +
-              '<button type="button" onclick="selectMapLocation(\'' + loc.id + '\', false)" class="mt-2 w-full py-1 bg-stone-800 text-white text-[11px] font-semibold rounded-lg hover:bg-stone-700 transition cursor-pointer">開啟詳情與工作筆記 →</button>' +
-            '</div>'
-          );
-
-          marker.on('click', function() {
-            selectMapLocation(loc.id, false);
+          var newPlaceId = 'custom_place_' + Date.now();
+          appState.customPlacesByTown[activeTownId].push({
+            id: newPlaceId,
+            name: name.trim(),
+            category: chosen.category,
+            categoryLabel: chosen.label,
+            color: chosen.color,
+            iconText: chosen.icon,
+            lat: lat,
+            lng: lng,
+            address: '自訂座標 (' + lat + ', ' + lng + ')',
+            features: '手動在地圖上標記的自訂地點。',
+            googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng
           });
 
-          mapMarkers[loc.id] = marker;
+          saveState();
+          updateTownProgressBadges();
+          renderTownMarkers();
+          selectTownPlace(newPlaceId, false);
+          showGlobalToast('✅ 已新增自訂地標：「' + name.trim() + '」');
         });
 
         // 篩選器事件綁定
@@ -4058,67 +4503,60 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
           btn.addEventListener('click', function() {
             document.querySelectorAll('.map-filter-btn').forEach(function(b) {
               b.classList.remove('active', 'bg-stone-800', 'text-white');
-              if (b.getAttribute('data-filter') === 'saved') {
-                b.classList.add('bg-rose-50', 'text-rose-700');
-              } else {
-                b.classList.add('bg-white', 'text-stone-700');
-              }
+              var f = b.getAttribute('data-filter');
+              if (f === 'visited') b.classList.add('bg-emerald-50', 'text-emerald-800');
+              else if (f === 'unvisited') b.classList.add('bg-amber-50', 'text-amber-800');
+              else b.classList.add('bg-white', 'text-stone-700');
             });
             btn.classList.add('active', 'bg-stone-800', 'text-white');
-            btn.classList.remove('bg-white', 'text-stone-700', 'bg-rose-50', 'text-rose-700');
+            btn.classList.remove('bg-white', 'text-stone-700', 'bg-emerald-50', 'text-emerald-800', 'bg-amber-50', 'text-amber-800');
 
-            currentMapFilter = btn.getAttribute('data-filter');
-
-            brisbaneLocations.forEach(function(loc) {
-              var show = false;
-              if (currentMapFilter === 'all') show = true;
-              else if (currentMapFilter === 'saved') show = hasMapSavedContent(loc.id);
-              else show = loc.category === currentMapFilter;
-
-              if (show) {
-                if (!bMap.hasLayer(mapMarkers[loc.id])) bMap.addLayer(mapMarkers[loc.id]);
-              } else {
-                if (bMap.hasLayer(mapMarkers[loc.id])) bMap.removeLayer(mapMarkers[loc.id]);
-              }
-            });
-
+            currentPlaceFilter = btn.getAttribute('data-filter');
+            renderTownMarkers();
             resetMapToList();
           });
         });
-
-        updateMapSavedBadge();
-        resetMapToList();
       }
 
       window.initOrRefreshBrisbaneMap = function() {
-        setupLeafletMapInstance();
-        setTimeout(function() {
-          if (bMap) bMap.invalidateSize();
-        }, 120);
+        if (activeTownId) {
+          setTimeout(function() {
+            if (bMap) bMap.invalidateSize();
+          }, 100);
+        } else {
+          renderTownsDirectory();
+        }
       };
 
       window.syncMapUIWithAppState = function() {
-        updateMapSavedBadge();
-        refreshAllMapMarkerBadges();
-        if (selectedMapLocationId) {
-          selectMapLocation(selectedMapLocationId, false);
+        if (activeTownId) {
+          updateTownProgressBadges();
+          renderTownMarkers();
+          if (selectedPlaceId) selectTownPlace(selectedPlaceId, false);
+          else resetMapToList();
         } else {
-          renderMapLocationList(currentMapFilter);
+          renderTownsDirectory();
         }
       };
 
       window.exportMapRecords = function() {
-        var dataStr = JSON.stringify(appState.mapSavedData || {}, null, 2);
+        ensureTownsState();
+        var payload = {
+          mapSavedData: appState.mapSavedData,
+          customTowns: appState.customTowns,
+          customPlacesByTown: appState.customPlacesByTown
+        };
+        var dataStr = JSON.stringify(payload, null, 2);
         var blob = new Blob([dataStr], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = 'brisbane_whv_notes_' + (new Date().toISOString().slice(0, 10)) + '.json';
+        a.download = 'au_towns_checkin_backup_' + (new Date().toISOString().slice(0, 10)) + '.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showGlobalToast('📥 已匯出地圖工作網址與筆記備份檔！');
+        showGlobalToast('📥 已匯出城鎮踩點與評論備份檔！');
       };
 
       window.importMapRecords = function(event) {
@@ -4129,10 +4567,13 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
           try {
             var imported = JSON.parse(e.target.result);
             if (typeof imported === 'object' && imported !== null) {
-              appState.mapSavedData = imported;
-              saveMapStateAndSync();
+              ensureTownsState();
+              if (imported.mapSavedData) appState.mapSavedData = Object.assign(appState.mapSavedData, imported.mapSavedData);
+              if (imported.customTowns) appState.customTowns = imported.customTowns;
+              if (imported.customPlacesByTown) appState.customPlacesByTown = Object.assign(appState.customPlacesByTown, imported.customPlacesByTown);
+              saveState();
               window.syncMapUIWithAppState();
-              showGlobalToast('✅ 成功匯入地圖紀錄並已同步！');
+              showGlobalToast('✅ 成功匯入踩點紀錄並已同步！');
             }
           } catch (err) {
             showGlobalToast('❌ 檔案格式錯誤，請選擇正確的 JSON 備份檔');
@@ -4141,6 +4582,11 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         reader.readAsText(file);
         event.target.value = '';
       };
+
+      window.addEventListener('resize', function() {
+        if (bMap) bMap.invalidateSize();
+      });
+    })();
 
       window.addEventListener('resize', function() {
         if (bMap) bMap.invalidateSize();
