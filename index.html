@@ -2716,7 +2716,7 @@ var clUrlHtml = (cl.url && cl.url.trim())
             '</div>' +
             '<span class="text-xs text-amber-800 font-bold shrink-0 px-2 py-0.5 bg-white border border-amber-200 rounded-lg">調整順序/編輯 ✏️</span>' +
           '</div>' +
-          '<div class="mt-2 space-y-0.5">' + itemsListHtml + '</div>' +
+         '<div class="mt-2 space-y-0.5">' + itemsListHtml + '</div>' +
           clUrlHtml +
         '</div>';
       }).join('');
@@ -3055,7 +3055,7 @@ var newEv = {
         checkSmartReminders();
       }
     };
-// --- 日曆星星任務清單模組 (Checklist Modal) ---
+// --- 日曆星星任務清單模組 (Checklist Modal) ---//
     window.openChecklistModal = function(checklistId, evt) {
       if (evt) evt.stopPropagation();
       var existing = checklistId ? (appState.checklists || []).find(function(c) { return c.id === checklistId; }) : null;
@@ -4588,10 +4588,7 @@ var newEv = {
       });
     })();
 
-      window.addEventListener('resize', function() {
-        if (bMap) bMap.invalidateSize();
-      });
-    })();
+
 
     window.onload = function() {
       renderCalendar();
