@@ -3137,8 +3137,8 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
           ovr: '',
           rows: [
             { n: '房務', t: 'casual', r: 33.85, wd: 22.5, sa: 0, su: 0, sx: 1.2, ux: 1.4 },
-            { n: '飲料店', t: 'casual', r: 34.76, wd: 0, sa: 6, su: 6, sx: 1.2, ux: 1.2 },
-            { n: '', t: 'casual', r: 0, wd: 0, sa: 0, su: 0, sx: 1.2, ux: 1.4 }
+            { n: '飲料店', t: 'casual', r: 34.76, wd: 0, sa: 6, su: 6, sx: 1.2, ux: 1.2, wk: 16 },
+            { n: '', t: 'casual', r: 0, wd: 0, sa: 0, su: 0, sx: 1.2, ux: 1.4, wk: 12 }
           ]
         };
       };
@@ -3153,6 +3153,11 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
           if (appState.planner.misc === undefined || appState.planner.misc === null) appState.planner.misc = 120;
           if (!appState.planner.startDate) appState.planner.startDate = todayStr;
           if (!appState.planner.endDate) appState.planner.endDate = defaultEnd;
+          // 確保第 2、3 份工作有預設週數
+          if (appState.planner.rows) {
+            if (appState.planner.rows[1] && appState.planner.rows[1].wk === undefined) appState.planner.rows[1].wk = 16;
+            if (appState.planner.rows[2] && appState.planner.rows[2].wk === undefined) appState.planner.rows[2].wk = 12;
+          }
         }
         return appState.planner;
       };
@@ -3205,7 +3210,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       var num = function(k, v, i, placeholder) {
         var ph = placeholder ? ('placeholder="' + placeholder + '"') : '';
         var idx = (i !== null && i !== undefined) ? ('data-i="' + i + '"') : '';
-        return '<input type="number" step="any" data-k="' + k + '" ' + idx + ' value="' + v + '" ' + ph + ' class="w-full p-1.5 border rounded font-mono">';
+        return '<input type="number" step="any" data-k="' + k + '" ' + idx + ' value="' + v + '" ' + ph + ' class="w-full p-1.5 border rounded font-mono bg-white">';
       };
 
       var dateInp = function(k, v) {
@@ -3213,9 +3218,23 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       };
       
       var rowHtml = function(j, i, effWeeks) {
+        // 第 1 份工作 (i === 0) 自動連動日期總週數；第 2、3 份工作可手動輸入週數
+        var weeksFieldHtml = (i === 0)
+          ? '<div>' +
+              '<label class="' + L + '">預計做幾週 <span class="text-amber-700 font-semibold">(主業連動)</span></label>' +
+              '<div class="pl-auto-wk w-full p-1.5 border border-stone-200 rounded font-mono bg-stone-100 text-stone-700 font-bold flex items-center justify-between">' +
+                '<span>' + effWeeks + ' 週</span>' +
+                '<span class="text-[10px] text-stone-400 font-normal">依日期自動</span>' +
+              '</div>' +
+            '</div>'
+          : '<div>' +
+              '<label class="' + L + '">預計做幾週 <span class="text-stone-400">(可自訂)</span></label>' +
+              num('wk', (j.wk !== undefined ? j.wk : 12), i) +
+            '</div>';
+
         return '<div class="p-3 rounded-xl border bg-stone-50 space-y-2 text-xs">' +
           '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">' +
-            '<div><label class="' + L + '">工作名稱</label><input type="text" data-k="n" data-i="' + i + '" value="' + j.n + '" class="w-full p-1.5 border rounded bg-white"></div>' +
+            '<div><label class="' + L + '">工作名稱' + (i === 0 ? ' (主業)' : ' (兼職/額外)') + '</label><input type="text" data-k="n" data-i="' + i + '" value="' + j.n + '" class="w-full p-1.5 border rounded bg-white"></div>' +
             '<div>' +
               '<label class="' + L + '">聘僱類型</label>' +
               '<select data-k="t" data-i="' + i + '" class="w-full p-1.5 border rounded font-bold bg-white">' +
@@ -3225,13 +3244,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
               '</select>' +
             '</div>' +
             '<div><label class="' + L + '">平日時薪 (A$)</label>' + num('r', j.r, i) + '</div>' +
-            '<div>' +
-              '<label class="' + L + '">預計做幾週 <span class="text-amber-700 font-semibold">(自動)</span></label>' +
-              '<div class="pl-auto-wk w-full p-1.5 border border-stone-200 rounded font-mono bg-stone-100 text-stone-700 font-bold flex items-center justify-between">' +
-                '<span>' + effWeeks + ' 週</span>' +
-                '<span class="text-[10px] text-stone-400 font-normal">依日期連動</span>' +
-              '</div>' +
-            '</div>' +
+            weeksFieldHtml +
           '</div>' +
           '<div class="grid grid-cols-3 sm:grid-cols-5 gap-2">' +
             '<div><label class="' + L + '">平日時數/週</label>' + num('wd', j.wd, i) + '</div>' +
@@ -3253,7 +3266,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         root.innerHTML = '<div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">' +
             '<div>' +
               '<h3 class="text-sm font-bold text-stone-900">🧮 工時 & 工作組合規劃器</h3>' +
-              '<p class="text-xs text-stone-500 mt-0.5">輸入預計上工與離職日期，系統會自動計算工作週數並同步套用至下方所有工作項目。</p>' +
+              '<p class="text-xs text-stone-500 mt-0.5">輸入預計上工與離職日期，第 1 份主業會自動同步總週數，其餘額外工作可自行調整預計週數。</p>' +
             '</div>' +
             '<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">' +
               '<div><label class="' + L + '">📅 預計上工日期</label>' + dateInp('startDate', p.startDate) + '</div>' +
@@ -3282,7 +3295,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         var diffDays = span.diffDays;
         var eff = span.eff;
 
-        // 同步更新各工作列的自動週數顯示
+        // 僅同步更新第 1 份工作（主業）的自動週數顯示
         var root = getRoot();
         if (root) {
           root.querySelectorAll('.pl-auto-wk').forEach(function(el) {
@@ -3300,15 +3313,18 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         var G = 0, hrs = 0, best = 0;
         var warn = [];
 
-        p.rows.forEach(function(j) {
+        p.rows.forEach(function(j, idx) {
           var h = (+j.wd || 0) + (+j.sa || 0) + (+j.su || 0);
           if (!(h > 0 && j.r > 0)) return;
-          var w = eff; // 直接採用上工至離職日期的總週數
+          // 第 1 份工作直接使用總週數 eff；其餘工作使用自訂週數（上限不超過總週數 eff）
+          var w = (idx === 0) ? eff : Math.min(+j.wk || 0, eff);
+          if (w <= 0) return;
+
           G += j.r * ((+j.wd || 0) + (+j.sa || 0) * (+j.sx || 1) + (+j.su || 0) * (+j.ux || 1)) * w;
-          hrs += h;
+          hrs += h * w / eff;
           best = Math.max(best, +j.r || 0);
           if (w > 26) {
-            warn.push("「" + (j.n || '工作') + "」期間共 " + w + " 週，已超過同一雇主 6 個月（約 26 週）上限，屆時需安排更換雇主、分店或確認具備豁免資格。");
+            warn.push("「" + (j.n || ('工作 ' + (idx + 1))) + "」預計做 " + w + " 週，已超過同一雇主 6 個月（約 26 週）上限，屆時需安排更換雇主、分店或確認具備豁免資格。");
           }
         });
 
@@ -3340,7 +3356,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
               '<span>📐 計算過程與算式明細</span>' +
             '</div>' +
             '<div class="text-[11px] leading-relaxed text-stone-700 space-y-1">' +
-              '<div>• <strong>總工作週數</strong>：' + p.startDate + ' ～ ' + p.endDate + ' ＝ 共 <span class="font-bold text-stone-900">' + diffDays + '</span> 天 ÷ 7 ＝ <span class="font-bold text-amber-900 underline">' + eff + ' 週</span>（已自動帶入各工作週數）</div>' +
+              '<div>• <strong>總工作週數</strong>：' + p.startDate + ' ～ ' + p.endDate + ' ＝ 共 <span class="font-bold text-stone-900">' + diffDays + '</span> 天 ÷ 7 ＝ <span class="font-bold text-amber-900 underline">' + eff + ' 週</span>（已自動連動第 1 份主業）</div>' +
               '<div>• <strong>需淨賺總額</strong>：(目標 NT$' + fmt(tgt) + ' － 已存 NT$' + fmt(have) + ') ÷ 匯率 ' + fx + ' ＋ 每週開銷 A$' + weeklyLive + ' × ' + eff + ' 週' + (otherA > 0 ? (' － 其他收入 A$' + fmt(otherA)) : '') + ' ＝ <span class="font-bold text-stone-900">A$ ' + fmt(need) + '</span></div>' +
               '<div>• <strong>每週需稅前</strong>：反推含稅總額 A$' + fmt(Greq) + ' ÷ ' + eff + ' 週 ＝ <span class="font-bold text-amber-900">A$ ' + fmt(perWk) + ' / 週</span></div>' +
             '</div>' +
