@@ -4436,24 +4436,40 @@ var newEv = {
           '<div class="space-y-2">' + listHtml + '</div>';
       };
 
-      function setupLeafletMapInstance() {
+    function setupLeafletMapInstance() {
         if (bMap) return;
         var mapEl = document.getElementById('brisbaneLeafletMap');
         if (!mapEl) return;
 
         bMap = L.map('brisbaneLeafletMap', {
           center: [-26.4875, 147.9752],
-          zoom: 16,
+          zoom: 15,
           zoomControl: false
         });
 
         L.control.zoom({ position: 'bottomright' }).addTo(bMap);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; OpenStreetMap &copy; CARTO',
-          subdomains: 'abcd',
+        // 改用 OpenStreetMap 標準街道圖層（支援澳洲鄉村小鎮街道與門牌顯示，不會變白屏）
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
           maxZoom: 19
         }).addTo(bMap);
+
+        // 畫出 Mitchell 小鎮主街商業路線 (Cambridge Street / Warrego Hwy)
+        var mitchellMainRoad = [
+          [-26.4894, 147.9715],
+          [-26.4883, 147.9726],
+          [-26.4879, 147.9746],
+          [-26.4874, 147.9765],
+          [-26.4869, 147.9795],
+          [-26.4862, 147.9822]
+        ];
+        L.polyline(mitchellMainRoad, {
+          color: '#d97706',
+          weight: 5,
+          opacity: 0.75,
+          dashArray: '8, 6'
+        }).addTo(bMap).bindTooltip('🛣️ Cambridge Street 主街商圈路線', { sticky: true, className: 'transit-label' });
 
         // 點擊地圖任意空白處，可新增自訂商店地標
         bMap.on('click', function(e) {
