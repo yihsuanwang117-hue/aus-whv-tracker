@@ -618,19 +618,22 @@
             <div id="map-detail-panel" class="p-4 overflow-y-auto flex-1"></div>
           </aside>
 
-          <div class="flex-1 h-[46%] md:h-full relative" id="brisbaneMapContainer">
+        <div class="flex-1 h-[46%] md:h-full relative" id="brisbaneMapContainer">
             <div id="brisbaneLeafletMap" class="w-full h-full z-10"></div>
 
-            <!-- 右上角提示：點擊地圖新增地標 -->
-            <div class="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-sm border border-stone-200 rounded-xl px-3 py-2 shadow-md text-[11px] text-stone-700 max-w-[230px]">
-              <div class="font-bold text-stone-900 flex items-center gap-1">
-                <span>📌 自由踩點模式</span>
+            <!-- 右上角：搜尋店名/地址並精準設點面板 -->
+            <div class="absolute top-3 right-3 left-3 sm:left-auto z-20 bg-white/95 backdrop-blur-sm border border-stone-200 rounded-xl p-2.5 shadow-md sm:w-[300px] text-xs">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-stone-900 text-[11px]">🔍 搜尋店名或地址設點</span>
+                <span class="text-[10px] text-stone-400">亦可直接點地圖</span>
               </div>
-              <p class="text-[10px] text-stone-500 mt-0.5 leading-relaxed">
-                直接<strong>點擊地圖上任意位置</strong>，即可新增你發現的新商店或私房地標！
-              </p>
+              <div class="flex gap-1.5">
+                <input type="text" id="map-place-search-input" placeholder="輸入店名或地址..." class="flex-1 px-2.5 py-1.5 text-xs bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:border-amber-700 !min-h-0" onkeydown="if(event.key==='Enter'){event.preventDefault(); searchTownPlaceOnMap();}">
+                <button type="button" onclick="searchTownPlaceOnMap()" id="map-place-search-btn" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs rounded-lg transition shrink-0 cursor-pointer !min-h-0">搜尋</button>
+              </div>
+              <!-- 搜尋結果下拉清單 -->
+              <div id="map-place-search-results" class="hidden mt-2 pt-2 border-t border-stone-200 max-h-48 overflow-y-auto space-y-1.5"></div>
             </div>
-
             <!-- 左下角圖例 -->
             <div class="hidden sm:flex absolute bottom-4 left-3 z-20 bg-white/95 backdrop-blur-sm border border-stone-200 rounded-xl px-3 py-1.5 shadow-md gap-3 text-[11px] font-medium text-stone-700">
               <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-600 text-white text-[8px] flex items-center justify-center font-bold">✓</span>已踩點</div>
@@ -4523,9 +4526,166 @@ var newEv = {
         selectedPlaceId = null;
         document.getElementById('town-map-detail-view').classList.add('hidden');
         document.getElementById('towns-directory-view').classList.remove('hidden');
+        closeMapSearchResults();
         renderTownsDirectory();
       };
+// ==========================================
+      // 搜尋店名/地址並精準新增地標 (OpenStreetMap Nominatim)
+      // ==========================================
+      var tempSearchPreviewMarker = null;
+      var lastSearchCandidates = [];
 
+      window.searchTownPlaceOnMap = function() {
+        if (!activeTownId) return;
+        var town = getTownById(activeTownId);
+        var input = document.getElementById('map-place-search-input');
+        var resultsBox = document.getElementById('map-place-search-results');
+        var btn = document.getElementById('map-place-search-btn');
+        var query = input ? input.value.trim() : '';
+
+        if (!query) {
+          showGlobalToast('⚠️ 請先輸入要搜尋的店名或地址！');
+          return;
+        }
+
+        btn.textContent = '...';
+        btn.disabled = true;
+        resultsBox.classList.remove('hidden');
+        resultsBox.innerHTML = '<div class="text-[11px] text-stone-500 py-2 text-center">正在搜尋周邊地點...</div>';
+
+        // 以當前城鎮為中心建立約 ±0.25 度（約 25 公里）優先搜尋框
+        var delta = 0.25;
+        var viewbox = (town.lng - delta) + ',' + (town.lat + delta) + ',' + (town.lng + delta) + ',' + (town.lat - delta);
+        var searchQuery = query + (town.name ? (' ' + town.name.replace(/\(.*\)/, '').trim()) : '');
+
+        var apiUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1' +
+          '&viewbox=' + encodeURIComponent(viewbox) +
+          '&q=' + encodeURIComponent(searchQuery);
+
+        fetch(apiUrl, { headers: { 'Accept-Language': 'zh-TW,en' } })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            // 若加上城鎮名稱找不到，改用純關鍵字搭配 viewbox 再搜一次
+            if (!data || data.length === 0) {
+              var fallbackUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1' +
+                '&viewbox=' + encodeURIComponent(viewbox) +
+                '&q=' + encodeURIComponent(query);
+              return fetch(fallbackUrl, { headers: { 'Accept-Language': 'zh-TW,en' } }).then(function(r) { return r.json(); });
+            }
+            return data;
+          })
+          .then(function(list) {
+            btn.textContent = '搜尋';
+            btn.disabled = false;
+            lastSearchCandidates = list || [];
+
+            if (lastSearchCandidates.length === 0) {
+              resultsBox.innerHTML =
+                '<div class="p-2 text-[11px] text-stone-500 text-center space-y-1">' +
+                  '<p>找不到「' + escapeMapHTML(query) + '」的精準座標</p>' +
+                  '<p class="text-[10px] text-amber-800">💡 建議輸入英文店名或路名（如：Cambridge St）</p>' +
+                '</div>';
+              return;
+            }
+
+            resultsBox.innerHTML =
+              '<div class="flex justify-between items-center text-[10px] text-stone-400 px-1">' +
+                '<span>找到 ' + lastSearchCandidates.length + ' 筆結果（點擊預覽並設點）：</span>' +
+                '<button type="button" onclick="closeMapSearchResults()" class="text-stone-500 hover:text-stone-800 font-bold cursor-pointer !min-h-0">✕ 關閉</button>' +
+              '</div>' +
+              lastSearchCandidates.map(function(item, idx) {
+                var shortName = item.name || item.display_name.split(',')[0];
+                return '<div class="p-2 rounded-lg bg-stone-50 hover:bg-amber-50 border border-stone-200 transition space-y-1.5">' +
+                  '<div onclick="previewSearchCandidate(' + idx + ')" class="cursor-pointer">' +
+                    '<div class="font-bold text-xs text-stone-900 truncate">' + escapeMapHTML(shortName) + '</div>' +
+                    '<div class="text-[10px] text-stone-500 line-clamp-2 leading-tight mt-0.5">' + escapeMapHTML(item.display_name) + '</div>' +
+                  '</div>' +
+                  '<button type="button" onclick="confirmAddSearchedPlace(' + idx + ')" class="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded transition cursor-pointer !min-h-0">' +
+                    '📌 設為本鎮新地標' +
+                  '</button>' +
+                '</div>';
+              }).join('');
+
+            // 自動飛到第一筆結果預覽位置
+            previewSearchCandidate(0);
+          })
+          .catch(function() {
+            btn.textContent = '搜尋';
+            btn.disabled = false;
+            resultsBox.innerHTML = '<div class="text-[11px] text-rose-600 py-2 text-center">搜尋連線失敗，請稍後再試</div>';
+          });
+      };
+
+      window.previewSearchCandidate = function(idx) {
+        var item = lastSearchCandidates[idx];
+        if (!item || !bMap) return;
+        var lat = parseFloat(item.lat);
+        var lng = parseFloat(item.lon);
+
+        if (tempSearchPreviewMarker) {
+          bMap.removeLayer(tempSearchPreviewMarker);
+        }
+        tempSearchPreviewMarker = L.marker([lat, lng]).addTo(bMap);
+        tempSearchPreviewMarker.bindPopup('<div class="text-xs font-bold">📍 搜尋預覽位置<br><span class="font-normal text-[11px]">' + escapeMapHTML(item.name || item.display_name.split(',')[0]) + '</span></div>').openPopup();
+        bMap.flyTo([lat, lng], 17, { duration: 0.7 });
+      };
+
+      window.confirmAddSearchedPlace = function(idx) {
+        if (!activeTownId) return;
+        var item = lastSearchCandidates[idx];
+        if (!item) return;
+
+        var defaultName = item.name || item.display_name.split(',')[0];
+        var finalName = prompt("請確認或修改地標名稱：", defaultName);
+        if (!finalName || !finalName.trim()) return;
+
+        var catChoice = prompt("請選擇分類代號：\n1 = 餐飲/酒吧\n2 = 超市/商店\n3 = 生活/機構\n4 = 景點/休閒", "2");
+        var catMap = {
+          '1': { category: 'food', label: '餐飲 / 酒吧', color: '#f59e0b', icon: '🍔' },
+          '2': { category: 'shop', label: '超市 / 商店', color: '#0ea5e9', icon: '🛍️' },
+          '3': { category: 'service', label: '生活 / 機構', color: '#8b5cf6', icon: '🏢' },
+          '4': { category: 'spot', label: '景點 / 休閒', color: '#f43f5e', icon: '📍' }
+        };
+        var chosen = catMap[catChoice] || catMap['2'];
+
+        var lat = Number(parseFloat(item.lat).toFixed(6));
+        var lng = Number(parseFloat(item.lon).toFixed(6));
+
+        ensureTownsState();
+        if (!appState.customPlacesByTown[activeTownId]) appState.customPlacesByTown[activeTownId] = [];
+
+        var newPlaceId = 'custom_place_' + Date.now();
+        appState.customPlacesByTown[activeTownId].push({
+          id: newPlaceId,
+          name: finalName.trim(),
+          category: chosen.category,
+          categoryLabel: chosen.label,
+          color: chosen.color,
+          iconText: chosen.icon,
+          lat: lat,
+          lng: lng,
+          address: item.display_name,
+          features: '透過地圖搜尋新增的自訂地點。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(finalName.trim() + ' ' + lat + ',' + lng)
+        });
+
+        closeMapSearchResults();
+        document.getElementById('map-place-search-input').value = '';
+        saveState();
+        updateTownProgressBadges();
+        renderTownMarkers();
+        selectTownPlace(newPlaceId, false);
+        showGlobalToast('✅ 已透過搜尋新增地標：「' + finalName.trim() + '」');
+      };
+
+      window.closeMapSearchResults = function() {
+        var resultsBox = document.getElementById('map-place-search-results');
+        if (resultsBox) resultsBox.classList.add('hidden');
+        if (tempSearchPreviewMarker && bMap) {
+          bMap.removeLayer(tempSearchPreviewMarker);
+          tempSearchPreviewMarker = null;
+        }
+      };
       function updateTownProgressBadges() {
         if (!activeTownId) return;
         var places = getTownPlaces(activeTownId);
