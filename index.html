@@ -839,7 +839,7 @@
         <h3 id="checklistModalTitle" class="text-base font-bold text-stone-900 flex items-center gap-1.5">
           <span>⭐</span> 任務準備清單
         </h3>
-        <button type="button" onclick="closeModal('checklistModal')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer !min-h-0">✕</button>
+        <button type="button" onclick="safeCloseChecklistModal()" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer !min-h-0">✕</button>
       </div>
 
       <div class="p-5 overflow-y-auto flex-1 space-y-3.5 text-xs">
@@ -2678,11 +2678,18 @@ var draftChecklistItems = [];
       });
     }
 
+   function sortChecklistItemsByChecked(items) {
+      var unchecked = items.filter(function(it) { return !it.checked; });
+      var checked = items.filter(function(it) { return it.checked; });
+      return unchecked.concat(checked);
+    }
+
     window.toggleChecklistItemDirect = function(checklistId, itemIdx, evt) {
       if (evt) evt.stopPropagation();
       var cl = (appState.checklists || []).find(function(c) { return c.id === checklistId; });
       if (!cl || !cl.items || !cl.items[itemIdx]) return;
       cl.items[itemIdx].checked = !cl.items[itemIdx].checked;
+      cl.items = sortChecklistItemsByChecked(cl.items);
       saveState();
       renderCalendar();
     };
@@ -3092,9 +3099,12 @@ var newEv = {
         checkSmartReminders();
       }
     };
-// --- 日曆星星任務清單模組 (Checklist Modal) ---//
+// --- 日曆星星任務清單模組 (Checklist Modal - 防呆保護版) ---
+    var isChecklistDirty = false;
+
     window.openChecklistModal = function(checklistId, evt) {
       if (evt) evt.stopPropagation();
+      isChecklistDirty = false;
       var existing = checklistId ? (appState.checklists || []).find(function(c) { return c.id === checklistId; }) : null;
 
       document.getElementById("checklistId").value = existing ? existing.id : "";
@@ -3108,10 +3118,20 @@ var newEv = {
       if (existing) delBtn.classList.remove("hidden");
       else delBtn.classList.add("hidden");
 
-      // 深拷貝項目列表避免未儲存前改動到原始資料
       draftChecklistItems = existing && existing.items ? JSON.parse(JSON.stringify(existing.items)) : [];
       renderChecklistDraftItems();
       document.getElementById("checklistModal").classList.remove("hidden");
+    };
+
+    window.safeCloseChecklistModal = function() {
+      var pendingText = document.getElementById("newChecklistItemInput").value.trim();
+      if (isChecklistDirty || pendingText) {
+        if (!confirm("⚠️ 你有尚未儲存的清單項目或變更！\n確定要放棄修改並關閉嗎？（按「取消」可留在畫面並點擊「儲存清單」）")) {
+          return;
+        }
+      }
+      isChecklistDirty = false;
+      closeModal("checklistModal");
     };
 
     function renderChecklistDraftItems() {
@@ -3131,7 +3151,7 @@ var newEv = {
       container.innerHTML = draftChecklistItems.map(function(item, idx) {
         return '<div class="flex items-center justify-between gap-2 p-2 rounded-lg border bg-stone-50 hover:bg-white transition">' +
           '<label class="flex items-center gap-2 cursor-pointer flex-1 min-w-0">' +
-            '<input type="checkbox" onchange="toggleDraftChecklistItem(' + idx + ')" ' + (item.checked ? 'checked' : '') + ' class="rounded text-amber-800 w-4 h-4 cursor-pointer shrink-0">' +
+            '<input type="checkbox" onchange="toggleDraftChecklistItem(' + idx + ')" ' + (item.checked ? 'checked' : '') + ' class="rounded text-indigo-700 w-4 h-4 cursor-pointer shrink-0">' +
             '<span class="text-xs truncate ' + (item.checked ? 'line-through text-stone-400' : 'text-stone-800 font-semibold') + '">' + item.text + '</span>' +
           '</label>' +
           '<div class="flex items-center gap-0.5 shrink-0">' +
@@ -3148,14 +3168,17 @@ var newEv = {
       var text = input.value.trim();
       if (!text) return;
       draftChecklistItems.push({ text: text, checked: false });
+      isChecklistDirty = true;
       input.value = "";
       input.focus();
       renderChecklistDraftItems();
     };
 
-    window.toggleDraftChecklistItem = function(idx) {
+   window.toggleDraftChecklistItem = function(idx) {
       if (draftChecklistItems[idx]) {
         draftChecklistItems[idx].checked = !draftChecklistItems[idx].checked;
+        draftChecklistItems = sortChecklistItemsByChecked(draftChecklistItems);
+        isChecklistDirty = true;
         renderChecklistDraftItems();
       }
     };
@@ -3165,11 +3188,13 @@ var newEv = {
       if (target < 0 || target >= draftChecklistItems.length) return;
       var moved = draftChecklistItems.splice(idx, 1)[0];
       draftChecklistItems.splice(target, 0, moved);
+      isChecklistDirty = true;
       renderChecklistDraftItems();
     };
 
     window.removeDraftChecklistItem = function(idx) {
       draftChecklistItems.splice(idx, 1);
+      isChecklistDirty = true;
       renderChecklistDraftItems();
     };
 
@@ -3183,7 +3208,6 @@ var newEv = {
         return;
       }
 
-      // 若輸入框還有尚未按加入的文字，自動幫使用者補進清單
       var pendingText = document.getElementById("newChecklistItemInput").value.trim();
       if (pendingText) {
         draftChecklistItems.push({ text: pendingText, checked: false });
@@ -3209,6 +3233,7 @@ var newEv = {
         appState.checklists.push(payload);
       }
 
+      isChecklistDirty = false;
       selectedCalendarDateStr = dateStr;
       saveState();
       closeModal("checklistModal");
@@ -3220,6 +3245,7 @@ var newEv = {
       var id = document.getElementById("checklistId").value;
       if (id && confirm("確定要刪除整份任務清單嗎？")) {
         appState.checklists = (appState.checklists || []).filter(function(c) { return c.id !== id; });
+        isChecklistDirty = false;
         saveState();
         closeModal("checklistModal");
         renderCalendar();
@@ -3392,9 +3418,8 @@ var newEv = {
           if (doc.exists) {
             var remote = doc.data().data;
             if (remote) {
-              var remoteCount = (remote.transactions || []).length + (remote.events || []).length + Object.keys(remote.mapSavedData || {}).length;
-              var localCount = (appState.transactions || []).length + (appState.events || []).length + Object.keys(appState.mapSavedData || {}).length;
-
+             var remoteCount = (remote.transactions || []).length + (remote.events || []).length + (remote.checklists || []).length + Object.keys(remote.mapSavedData || {}).length;
+              var localCount = (appState.transactions || []).length + (appState.events || []).length + (appState.checklists || []).length + Object.keys(appState.mapSavedData || {}).length;
               if (remoteCount === 0 && localCount > 0) {
                 isSyncReady = true;
                 saveState();
@@ -3415,6 +3440,7 @@ var newEv = {
             isSyncReady = true;
             var totalLocal = (appState.transactions || []).length + (appState.events || []).length + Object.keys(appState.mapSavedData || {}).length;
             if (totalLocal > 0) {
+              var totalLocal = (appState.transactions || []).length + (appState.events || []).length + (appState.checklists || []).length + Object.keys(appState.mapSavedData || {}).length;
               saveState();
             }
           }
