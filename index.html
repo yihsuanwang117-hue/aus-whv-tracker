@@ -3119,7 +3119,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       if (el) el.classList.add("hidden");
     };
 
-    // ==========================================
+  // ==========================================
     // --- 工時規劃器模組 (Planner Module) ---
     // ==========================================
     (function(){
@@ -3127,10 +3127,13 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       var PRE = { casual: [1.2, 1.4], pt: [1.25, 1.5], ft: [1.25, 1.5] };
       
       var defs = function() {
+        var todayStr = new Date().toISOString().split('T')[0];
+        var endStr = (appState && appState.targetEndDate) ? appState.targetEndDate : '2027-06-30';
         return {
           rent: 260,
           misc: 120,
-          customWeeks: '',
+          startDate: todayStr,
+          endDate: endStr,
           other: 0,
           ovr: '',
           rows: [
@@ -3142,12 +3145,15 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
       };
 
       var P = function() {
+        var todayStr = new Date().toISOString().split('T')[0];
+        var defaultEnd = (appState && appState.targetEndDate) ? appState.targetEndDate : '2027-06-30';
         if (!appState.planner) {
           appState.planner = defs();
         } else {
           if (appState.planner.rent === undefined || appState.planner.rent === null) appState.planner.rent = 260;
           if (appState.planner.misc === undefined || appState.planner.misc === null) appState.planner.misc = 120;
-          if (appState.planner.customWeeks === undefined || appState.planner.customWeeks === null) appState.planner.customWeeks = '';
+          if (!appState.planner.startDate) appState.planner.startDate = todayStr;
+          if (!appState.planner.endDate) appState.planner.endDate = defaultEnd;
         }
         return appState.planner;
       };
@@ -3192,6 +3198,10 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         var idx = (i !== null && i !== undefined) ? ('data-i="' + i + '"') : '';
         return '<input type="number" step="any" data-k="' + k + '" ' + idx + ' value="' + v + '" ' + ph + ' class="w-full p-1.5 border rounded font-mono">';
       };
+
+      var dateInp = function(k, v) {
+        return '<input type="date" data-k="' + k + '" value="' + v + '" class="w-full p-1.5 border rounded font-mono bg-white">';
+      };
       
       var rowHtml = function(j, i) {
         return '<div class="p-3 rounded-xl border bg-stone-50 space-y-2 text-xs">' +
@@ -3227,14 +3237,15 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         root.innerHTML = '<div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">' +
             '<div>' +
               '<h3 class="text-sm font-bold text-stone-900">🧮 工時 & 工作組合規劃器</h3>' +
-              '<p class="text-xs text-stone-500 mt-0.5">匯率、目標與日期自動讀取「雙幣財務」頁；已存金額預設連動，亦可手動覆寫修正。</p>' +
+              '<p class="text-xs text-stone-500 mt-0.5">輸入預計上工與離職日期，系統自動換算實際工作週數與每週目標時薪。</p>' +
             '</div>' +
-            '<div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">' +
+            '<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">' +
+              '<div><label class="' + L + '">📅 預計上工日期</label>' + dateInp('startDate', p.startDate) + '</div>' +
+              '<div><label class="' + L + '">🏁 預計離職日期</label>' + dateInp('endDate', p.endDate) + '</div>' +
               '<div><label class="' + L + '">每週房租+水電 (A$)</label>' + num('rent', p.rent) + '</div>' +
               '<div><label class="' + L + '">每週其他開銷 (A$)</label>' + num('misc', p.misc) + '</div>' +
-              '<div><label class="' + L + '">自訂剩餘週數 (留空=自動)</label>' + num('customWeeks', p.customWeeks, null, '自動計算') + '</div>' +
-              '<div><label class="' + L + '">其他收入/週 (台幣，如線上課)</label>' + num('other', p.other) + '</div>' +
-              '<div><label class="' + L + '">已存金額 (台幣，可自訂覆寫)</label>' + num('ovr', p.ovr, null, '目前約 ' + autoSavedTWD) + '</div>' +
+              '<div><label class="' + L + '">其他收入/週 (台幣)</label>' + num('other', p.other) + '</div>' +
+              '<div><label class="' + L + '">已存金額 (台幣，可覆寫)</label>' + num('ovr', p.ovr, null, '目前約 ' + autoSavedTWD) + '</div>' +
             '</div>' +
             '<div class="space-y-2">' + p.rows.map(rowHtml).join('') + '</div>' +
           '</div>' +
@@ -3249,16 +3260,24 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         var p = P();
         var fx = +a.fxRate || 23;
         var tgt = +a.targetNTD || 400000;
-        
         var have = (p.ovr !== '' && !isNaN(p.ovr)) ? +p.ovr : savedCalc();
-        
-        var t0 = new Date(); t0.setHours(0,0,0,0);
-        var autoWk = Math.max(1, Math.ceil((new Date(a.targetEndDate) - t0) / (1000 * 60 * 60 * 24 * 7)));
-        var eff = (p.customWeeks !== '' && +p.customWeeks > 0) ? +p.customWeeks : autoWk;
+
+        // 精準日期天數與週數計算（含頭尾兩天）
+        var sParts = (p.startDate || new Date().toISOString().split('T')[0]).split('-').map(Number);
+        var eParts = (p.endDate || a.targetEndDate || '2027-06-30').split('-').map(Number);
+        var sUTC = Date.UTC(sParts[0], sParts[1] - 1, sParts[2]);
+        var eUTC = Date.UTC(eParts[0], eParts[1] - 1, eParts[2]);
+
+        var diffDays = Math.max(1, Math.round((eUTC - sUTC) / (1000 * 60 * 60 * 24)) + 1);
+        var rawWeeks = diffDays / 7;
+        var eff = Math.max(0.1, Number(rawWeeks.toFixed(1)));
 
         var weeklyLive = (+p.rent || 0) + (+p.misc || 0);
+        var gapHome = Math.max(0, tgt - have);
+        var gapAUD = gapHome / fx;
+        var totalLivingCost = weeklyLive * eff;
         var otherA = (+p.other || 0) * eff / fx;
-        var need = Math.max(0, (tgt - have) / fx) + (weeklyLive * eff) - otherA;
+        var need = Math.max(0, gapAUD + totalLivingCost - otherA);
         
         var G = 0, hrs = 0, best = 0;
         var warn = [];
@@ -3277,7 +3296,6 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
 
         var totalTax = tax(G);
         var netIncomeAfterTax = G - totalTax;
-        var totalLivingCost = weeklyLive * eff;
         var netCashOnHandAUD = netIncomeAfterTax - totalLivingCost;
         var estSuperRefundAUD = G * 0.12 * 0.35;
 
@@ -3288,7 +3306,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         var adv = [];
 
         if (diff >= 0) {
-          adv.push("✅ 此工作組合預估可順利達標，目標日手頭存款預估超出目標約 NT$ " + fmt(diff) + "。");
+          adv.push("✅ 此工作組合預估可順利達標，離職日手頭存款預估超出目標約 NT$ " + fmt(diff) + "。");
         } else {
           var addG = (Greq - G) / eff;
           var r = best || 33.05;
@@ -3296,6 +3314,19 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
           adv.push("或將每週生活開銷壓縮至約 A$" + Math.max(0, Math.round(weeklyLive + diff / fx / eff)) + "（如房租找每週 A$200 左右房源）。");
         }
         adv.push("Casual 臨時工時薪已含 25% Loading 但無工時保障；Part/Full-time 時薪較低但班表固定。建議以穩定工時為主，週末兼職補高倍率時數。");
+
+        // 算式明細區塊
+        var formulaBanner = 
+          '<div class="bg-amber-50/90 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-950 space-y-1.5 font-mono">' +
+            '<div class="font-sans font-bold text-amber-900 flex items-center gap-1.5">' +
+              '<span>📐 計算過程與算式明細</span>' +
+            '</div>' +
+            '<div class="text-[11px] leading-relaxed text-stone-700 space-y-1">' +
+              '<div>• <strong>總工作週數</strong>：' + p.startDate + ' ～ ' + p.endDate + ' ＝ 共 <span class="font-bold text-stone-900">' + diffDays + '</span> 天 ÷ 7 ＝ <span class="font-bold text-amber-900 underline">' + eff + ' 週</span></div>' +
+              '<div>• <strong>需淨賺總額</strong>：(目標 NT$' + fmt(tgt) + ' － 已存 NT$' + fmt(have) + ') ÷ 匯率 ' + fx + ' ＋ 每週開銷 A$' + weeklyLive + ' × ' + eff + ' 週' + (otherA > 0 ? (' － 其他收入 A$' + fmt(otherA)) : '') + ' ＝ <span class="font-bold text-stone-900">A$ ' + fmt(need) + '</span></div>' +
+              '<div>• <strong>每週需稅前</strong>：反推含稅總額 A$' + fmt(Greq) + ' ÷ ' + eff + ' 週 ＝ <span class="font-bold text-amber-900">A$ ' + fmt(perWk) + ' / 週</span></div>' +
+            '</div>' +
+          '</div>';
 
         var card = function(t, v, c, sub) {
           var subText = sub ? ('<span class="text-[10px] text-stone-400 block mt-0.5">' + sub + '</span>') : '';
@@ -3308,9 +3339,10 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
         var rates = [28, 30, 33.05, 34.76, 38, 42];
 
         out.innerHTML = '<div class="space-y-4 mt-4">' +
+            formulaBanner +
             '<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">' +
               card('目前已存 (連動/覆寫)', 'NT$ ' + fmt(have)) +
-              card('目標規劃剩餘週數', eff + ' 週', '', p.customWeeks ? '自訂週數' : '依目標日期自動推算') +
+              card('期間總工作週數', eff + ' 週', '', '共 ' + diffDays + ' 天') +
               card('需淨賺 (含生活費)', 'A$ ' + fmt(need)) +
               card('每週需稅前', 'A$ ' + fmt(perWk), 'text-amber-800') +
             '</div>' +
@@ -3320,7 +3352,7 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || new Date
                 card('此組合平均每週工時', hrs.toFixed(1) + ' 小時') +
                 card('稅前總收入', 'A$ ' + fmt(G), '', '扣稅約 A$ ' + fmt(totalTax)) +
                 card('實拿手頭總現金 (扣完生活費)', 'A$ ' + fmt(netCashOnHandAUD), netCashOnHandAUD >= 0 ? 'text-emerald-800' : 'text-rose-700', '生活費總扣除 A$ ' + fmt(totalLivingCost)) +
-                card(diff >= 0 ? '預估目標日超額' : '距離目標還差', 'NT$ ' + fmt(Math.abs(diff)), diff >= 0 ? 'text-emerald-700' : 'text-rose-700', '預估總額 NT$ ' + fmt(proj)) +
+                card(diff >= 0 ? '預估離職日超額' : '距離目標還差', 'NT$ ' + fmt(Math.abs(diff)), diff >= 0 ? 'text-emerald-700' : 'text-rose-700', '預估總額 NT$ ' + fmt(proj)) +
               '</div>' +
               '<div class="mt-3 pt-3 border-t border-stone-200 flex flex-wrap justify-between items-center text-stone-600 text-[11px] gap-2">' +
                 '<span>💡 <strong>離澳額外退稅金</strong>：此組合預估另有 Super 退休金離澳退稅款約 <strong>A$ ' + fmt(estSuperRefundAUD) + '</strong>（離境後領取，未列入即期手上現金）。</span>' +
