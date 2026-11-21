@@ -1433,7 +1433,7 @@
       mapSavedData: {}
     };
 
-    var calendarDate = getLocalTodayStr(0);
+    var calendarDate = getLocalTodayStr();
     var selectedCalendarDateStr = getLocalTodayStr(0) // 新增這行
     var currentEditingEventId = null;
     var currentSelectedGearCategory = "ALL";
@@ -3108,10 +3108,10 @@ var draftChecklistItems = [];
       checkOverdueChecklists();
     }
     window.changeMonth = function(d) {
-      if (d === 0) {
-        calendarDate = getLocalTodayStr(0);
-        selectedCalendarDateStr = calendarDate.getLocalTodayStr(0).getLocalTodayStr(0);
-      }
+    if (d === 0) {
+     calendarDate = getLocalNowDateObj();
+     selectedCalendarDateStr = getLocalTodayStr(0);
+   }
       else calendarDate.setMonth(calendarDate.getMonth() + d);
       renderCalendar();
     };
