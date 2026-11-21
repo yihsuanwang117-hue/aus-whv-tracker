@@ -3361,12 +3361,41 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || getLocal
       var tagSelect = document.getElementById("eventTagSelect");
       tagSelect.innerHTML = (appState.tags || []).map(function(t) { return '<option value="' + t.id + '" ' + (t.id === ev.tagId ? 'selected' : '') + '>● ' + t.name + '</option>'; }).join('');
 
-      handleEventStatusChange();
+     handleEventStatusChange();
       updateEventTimePreview();
       document.getElementById("eventModal").classList.remove("hidden");
     };
 
-var newEv = {
+    window.handleSaveEvent = function(e) {
+      e.preventDefault();
+      var id = document.getElementById("eventId").value;
+      var loc = document.getElementById("eventLocationInput").value.trim();
+      var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
+      var bZone = document.getElementById("eventBaseZone").value;
+      var startDate = document.getElementById("eventDate").value;
+      var endDate = document.getElementById("eventEndDate").value;
+      var status = document.getElementById("eventStatus").value;
+      var desc = document.getElementById("eventDesc").value.trim();
+
+      if (status === "rescheduled") {
+        var newDate = document.getElementById("eventRescheduleDate").value;
+        if (!newDate) {
+          alert("請選擇改期後的新日期！");
+          return;
+        }
+        desc = ("[原定: " + startDate + "] " + desc).trim();
+        startDate = newDate;
+        endDate = "";
+      }
+
+      if (endDate && endDate < startDate) {
+        endDate = startDate;
+      }
+
+      var rawEvUrl = document.getElementById("eventUrl").value.trim();
+      if (rawEvUrl && !/^https?:\/\//i.test(rawEvUrl)) rawEvUrl = "https://" + rawEvUrl;
+
+      var newEv = {
         id: id || ("ev_" + Date.now()),
         title: document.getElementById("eventTitle").value,
         tagId: document.getElementById("eventTagSelect").value,
