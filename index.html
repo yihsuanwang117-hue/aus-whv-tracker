@@ -128,8 +128,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="WHV生活財務">
   <meta name="theme-color" content="#78350f">
-  <link rel="manifest" href='data:application/manifest+json,{"name":"澳洲打工度假x德國碩士 個人管理儀表板","short_name":"WHV儀表板","start_url":".","display":"standalone","background_color":"#fafaf9","theme_color":"#78350f"}'>
-</head>
+<link rel="manifest" href='data:application/manifest+json,{"name":"澳洲打工度假x德國碩士 個人管理儀表板","short_name":"WHV儀表板","start_url":".","display":"standalone","background_color":"%23fafaf9","theme_color":"%2378350f"}'></head>
 <body class="bg-stone-100 text-stone-800 font-sans min-h-screen pb-16">
 
   <!-- 頂部導航 (手機戶外緊湊版) -->
@@ -1174,28 +1173,30 @@
     // ==========================================
     // 🌐 全局「所在地時區換日」工具（解決布里斯本凌晨跨日問題）
     // ==========================================
-    function getLocalTodayStr(offsetDays) {
+   function getLocalTodayStr(offsetDays) {
       var tz = (typeof appState !== 'undefined' && appState && appState.userTimeZone) ? appState.userTimeZone : 'Australia/Brisbane';
-      var now = getLocalTodayStr(0);
+      var base = new Date();
       if (offsetDays) {
-        now = new Date(now.getTime() + offsetDays * 86400000);
+        base = new Date(base.getTime() + offsetDays * 86400000);
       }
       try {
-        // 使用 en-CA 格式固定輸出 YYYY-MM-DD，並強制依照使用者所在時區換算
-        return new Intl.DateTimeFormat('en-CA', {
+        var parts = new Intl.DateTimeFormat('en-US', {
           timeZone: tz,
           year: 'numeric',
           month: '2-digit',
           day: '2-digit'
-        }).format(now);
-      } catch (e) {
-        var y = now.getFullYear();
-        var m = String(now.getMonth() + 1).padStart(2, '0');
-        var d = String(now.getDate()).padStart(2, '0');
-        return y + '-' + m + '-' + d;
-      }
+        }).formatToParts(base);
+        var map = {};
+        parts.forEach(function(p) { map[p.type] = p.value; });
+        if (map.year && map.month && map.day) {
+          return map.year + '-' + map.month + '-' + map.day;
+        }
+      } catch (e) {}
+      var y = base.getFullYear();
+      var m = String(base.getMonth() + 1).padStart(2, '0');
+      var d = String(base.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + d;
     }
-
     function getLocalNowDateObj() {
       var todayStr = getLocalTodayStr(0);
       var p = todayStr.split('-').map(Number);
