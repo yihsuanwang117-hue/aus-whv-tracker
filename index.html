@@ -3411,18 +3411,12 @@ var newEv = {
         }
       }
 
-   saveState();
-      closeEventModal();
-      renderCalendar();
-    };
-      
-      selectedCalendarDateStr = startDate;
+  selectedCalendarDateStr = startDate;
       saveState();
       closeModal("eventModal");
       renderCalendar();
       checkSmartReminders();
     };
-
     window.deleteCurrentEvent = function() {
       if (currentEditingEventId && confirm("確定刪除此事項？")) {
         appState.events = appState.events.filter(function(e) { return e.id !== currentEditingEventId; });
