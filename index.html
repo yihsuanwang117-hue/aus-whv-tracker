@@ -381,8 +381,7 @@
         <div class="flex items-center gap-2">
           <span class="font-bold text-stone-800">💱 三幣隨手換算：</span>
           <input type="number" id="quickFxAmount" value="100" oninput="runQuickTriCurrencyCalc()" class="w-24 px-2 py-1 bg-stone-50 border border-stone-300 rounded-lg font-mono font-bold text-stone-900 focus:outline-none focus:border-amber-700 !min-h-0">
-          <select id="quickFxFrom" onchange="runQuickTriCurrencyCalc()" class="px-2 py-1 bg-stone-50 border border-stone-300 rounded-lg font-bold text-stone-800 !min-h-0">
-            <option value="AUD">AUD 澳幣</option>
+<select id="quickFxFrom" onchange="handleQuickFxCurrencyChange()" class="px-2 py-1 bg-stone-50 border border-stone-300 rounded-lg font-bold text-stone-800 !min-h-0">            <option value="AUD">AUD 澳幣</option>
             <option value="EUR">EUR 歐元</option>
             <option value="TWD">TWD 台幣</option>
           </select>
@@ -1678,6 +1677,7 @@ window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, no
             saveState();
             renderFinance();
             renderPieChart();
+            if (typeof runQuickTriCurrencyCalc === 'function') runQuickTriCurrencyCalc();
             if (typeof window.updatePlannerUI === 'function') window.updatePlannerUI();
             if (isUserTriggered) alert("已更新最新即時匯率：1 " + pCurr + " = " + liveRate + " " + hCurr);
           }
@@ -1686,6 +1686,65 @@ window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, no
           if (isUserTriggered) alert("暫時無法連線至即時匯率伺服器，可直接手動輸入。");
         });
     }
+    // --- 三幣隨手換算（AUD / EUR / TWD 自動即時匯率版） ---
+    window.runQuickTriCurrencyCalc = function() {
+      var amtEl = document.getElementById("quickFxAmount");
+      var fromEl = document.getElementById("quickFxFrom");
+      var eurAudEl = document.getElementById("quickEurToAudRate");
+      var resEl = document.getElementById("quickFxResultText");
+      if (!amtEl || !fromEl || !eurAudEl || !resEl) return;
+
+      var amt = parseFloat(amtEl.value) || 0;
+      var from = fromEl.value;
+      var eurToAud = parseFloat(eurAudEl.value) || 1.65;
+      var audToTwd = (typeof appState !== "undefined" && parseFloat(appState.fxRate)) || 22.0;
+
+      var audVal = 0;
+      if (from === "AUD") audVal = amt;
+      else if (from === "EUR") audVal = amt * eurToAud;
+      else if (from === "TWD") audVal = amt / audToTwd;
+
+      var eurVal = audVal / eurToAud;
+      var twdVal = audVal * audToTwd;
+
+      var parts = [];
+      if (from !== "AUD") parts.push("A$ " + audVal.toFixed(2) + " AUD");
+      if (from !== "EUR") parts.push("€ " + eurVal.toFixed(2) + " EUR");
+      if (from !== "TWD") parts.push("NT$ " + Math.round(twdVal).toLocaleString() + " TWD");
+
+      resEl.textContent = "≈ " + parts.join(" ｜ ");
+    };
+
+    window.handleQuickFxCurrencyChange = function() {
+      var resEl = document.getElementById("quickFxResultText");
+      if (resEl) resEl.textContent = "⏳ 正在抓取最新即時匯率...";
+
+      fetch("https://open.er-api.com/v6/latest/EUR")
+        .then(function(res) {
+          if (!res.ok) throw new Error("API error");
+          return res.json();
+        })
+        .then(function(json) {
+          if (json && json.rates && json.rates.AUD && json.rates.TWD) {
+            var eurToAud = parseFloat(json.rates.AUD.toFixed(4));
+            var audToTwd = parseFloat((json.rates.TWD / json.rates.AUD).toFixed(2));
+
+            var eurAudEl = document.getElementById("quickEurToAudRate");
+            if (eurAudEl) eurAudEl.value = eurToAud.toFixed(2);
+
+            if (typeof appState !== "undefined") {
+              appState.fxRate = audToTwd;
+              var topInput = document.getElementById("fxRateInput");
+              if (topInput) topInput.value = audToTwd;
+              if (typeof saveState === "function") saveState();
+            }
+          }
+          runQuickTriCurrencyCalc();
+        })
+        .catch(function() {
+          runQuickTriCurrencyCalc();
+        });
+    };
 
    
 function getColorBadgeClass(color) {
