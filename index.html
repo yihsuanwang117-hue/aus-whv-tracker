@@ -8,8 +8,8 @@
   <meta http-equiv="Expires" content="0">
   <title>個人生活必備 & 雙幣儲蓄目標進度追蹤</title>
   <!-- PWA & 主畫面設定 -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AU 澳打生活">
   <meta name="theme-color" content="#8C3B07">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%238C3B07'/%3E%3Ccircle cx='90' cy='90' r='60' fill='%23B45309' opacity='0.3'/%3E%3Ctext x='90' y='115' font-size='70' text-anchor='middle' font-family='sans-serif'%3E🦘%3C/text%3E%3C/svg%3E">
@@ -1550,43 +1550,7 @@
         });
     }
 
-    // --- 國際電匯試算核心演算法 ---
-    function calculateWireTransfer() {
-      var sendHome = parseFloat(document.getElementById("wireSendAmount").value) || 0;
-      var rate = parseFloat(document.getElementById("wireFxRate").value) || 1;
-      var homeFee = parseFloat(document.getElementById("wireHomeFee").value) || 0;
-      var foreignFee = parseFloat(document.getElementById("wireForeignFee").value) || 0;
-
-      var pCurr = appState.primaryCurrency || "AUD";
-      var hCurr = appState.homeCurrency || "TWD";
-
-      var convertedForeign = sendHome / rate;
-      var netReceivedForeign = Math.max(0, convertedForeign - foreignFee);
-
-      var totalLostHome = homeFee + (foreignFee * rate);
-      var totalPaidHome = sendHome + homeFee;
-      var effectiveRate = netReceivedForeign > 0 ? (totalPaidHome / netReceivedForeign).toFixed(2) : "0.00";
-
-      document.getElementById("wireNetReceivedText").textContent = "$" + netReceivedForeign.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " " + pCurr;
-      document.getElementById("wireTotalFeeText").textContent = "約 " + hCurr + " " + Math.round(totalLostHome).toLocaleString();
-      document.getElementById("wireEffectiveRateText").textContent = "1 " + pCurr + " = " + effectiveRate + " " + hCurr;
-    }
-
-    window.applyWireTransferToForm = function() {
-      var sendHome = parseFloat(document.getElementById("wireSendAmount").value) || 0;
-      var rate = parseFloat(document.getElementById("wireFxRate").value) || 1;
-      var foreignFee = parseFloat(document.getElementById("wireForeignFee").value) || 0;
-      var homeFee = parseFloat(document.getElementById("wireHomeFee").value) || 0;
-
-      var pCurr = appState.primaryCurrency || "AUD";
-      var netForeign = Math.max(0, (sendHome / rate) - foreignFee).toFixed(2);
-
-      openTxModal('income');
-      document.getElementById("txCurrency").value = pCurr;
-      document.getElementById("txAmount").value = netForeign;
-      document.getElementById("txNote").value = "跨國電匯實收 (扣除中轉手續費 $" + foreignFee + " " + pCurr + "，出匯費 NT$" + homeFee + ")";
-    };
-
+   
 function getColorBadgeClass(color) {
       switch (color) {
         case 'rose': return 'bg-rose-100 text-rose-800 border-rose-300';
