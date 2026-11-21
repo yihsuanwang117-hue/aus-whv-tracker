@@ -2614,11 +2614,19 @@ function renderTransactions() {
   var fEnd = document.getElementById("txFilterEndDate") ? document.getElementById("txFilterEndDate").value : "";
 
   // 1. 依日期由新到舊排序，再進行條件過濾
- var list = (appState.transactions || []).slice().sort(function(a, b) {
+var isNoFilter = (fType === "ALL" && fCat === "ALL" && !fStart && !fEnd);
+  var defaultStart7Days = getLocalTodayStr(-6);
+  var defaultEndToday = getLocalTodayStr(0);
+
+  var list = (appState.transactions || []).slice().sort(function(a, b) {
     var dateCmp = (b.date || '').localeCompare(a.date || '');
     if (dateCmp !== 0) return dateCmp;
     return (Number(b.amount) || 0) - (Number(a.amount) || 0);
   }).filter(function(t) {
+    if (isNoFilter) {
+      if (t.date < defaultStart7Days || t.date > defaultEndToday) return false;
+      return true;
+    }
     if (fType !== "ALL" && t.type !== fType) return false;
     if (fCat !== "ALL" && t.category !== fCat) return false;
     if (fStart && t.date < fStart) return false;
