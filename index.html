@@ -2489,8 +2489,7 @@ var now = getLocalNowDateObj();
       var fx = appState.fxRate || 23.0;
       var pCurr = appState.primaryCurrency || "AUD";
       var hCurr = appState.homeCurrency || "TWD";
-      var now = getLocalTodayStr(0);
-
+      var now = getLocalNowDateObj();
       var filtered = (appState.transactions || []).filter(function(t) {
         if (t.type !== chartType || t.isCustomThird) return false;
         var tDate = new Date(t.date);
