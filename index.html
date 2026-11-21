@@ -323,12 +323,20 @@
             </div>
             <p id="remainingGapText" class="text-xs text-stone-400 mt-1">距離達成目標還差 NT$ 400,000</p>
           </div>
-
-          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+<div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button type="button" onclick="openManageFinanceCategoriesModal()" class="px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 rounded-xl text-xs font-semibold transition cursor-pointer">🏷️ 管理收支類別</button>
             <button type="button" onclick="openTxModal('income')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition shadow-md cursor-pointer">＋ 記收入</button>
             <button type="button" onclick="openTxModal('expense')" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition shadow-md cursor-pointer">－ 記支出</button>
           </div>
+        </div>
+
+        <!-- ⚡ 常用收支一鍵帶入模板 -->
+        <div class="flex flex-wrap items-center gap-1.5 text-[11px] pt-2 border-t border-white/10">
+          <span class="font-bold text-stone-300">⚡ 快捷記帳：</span>
+          <button type="button" onclick="applyQuickTxPreset('income', '薪資', 'AUD', '', '每週薪資入帳')" class="px-2.5 py-1 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 font-bold cursor-pointer !min-h-0">＋ 週薪入帳</button>
+          <button type="button" onclick="applyQuickTxPreset('expense', '房租', 'AUD', '', '每週房租 Rent')" class="px-2.5 py-1 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/40 font-bold cursor-pointer !min-h-0">－ 週繳房租</button>
+          <button type="button" onclick="applyQuickTxPreset('expense', '飲食', 'AUD', '', '超市生鮮採買')" class="px-2.5 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/40 font-bold cursor-pointer !min-h-0">－ 超市採買</button>
+          <button type="button" onclick="applyQuickTxPreset('expense', '通訊', 'AUD', '35', '手機預付卡儲值')" class="px-2.5 py-1 rounded-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 border border-sky-400/40 font-bold cursor-pointer !min-h-0">－ 電信儲值</button>
         </div>
 
         <div class="mt-5">
@@ -368,7 +376,22 @@
           </div>
         </div>
       </div>
-
+      <!-- 澳幣 / 歐元 / 台幣 隨手換算小工具 -->
+      <div class="bg-white rounded-2xl px-4 py-3 border border-stone-200 shadow-xs flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-stone-800">💱 三幣隨手換算：</span>
+          <input type="number" id="quickFxAmount" value="100" oninput="runQuickTriCurrencyCalc()" class="w-24 px-2 py-1 bg-stone-50 border border-stone-300 rounded-lg font-mono font-bold text-stone-900 focus:outline-none focus:border-amber-700 !min-h-0">
+          <select id="quickFxFrom" onchange="runQuickTriCurrencyCalc()" class="px-2 py-1 bg-stone-50 border border-stone-300 rounded-lg font-bold text-stone-800 !min-h-0">
+            <option value="AUD">AUD 澳幣</option>
+            <option value="EUR">EUR 歐元</option>
+            <option value="TWD">TWD 台幣</option>
+          </select>
+          <span class="text-stone-400 text-[11px]">(1 EUR ≈ <input type="number" id="quickEurToAudRate" value="1.65" step="0.01" oninput="runQuickTriCurrencyCalc()" class="w-14 px-1 py-0.5 bg-stone-50 border border-stone-200 rounded font-mono text-center !min-h-0"> AUD)</span>
+        </div>
+        <div id="quickFxResultText" class="font-mono font-bold text-amber-900 bg-amber-50 px-3 py-1 rounded-lg border border-amber-200/80">
+          ≈ € 60.61 EUR ｜ NT$ 2,201 TWD
+        </div>
+      </div>
     
 
       <!-- 圓餅圖統計分析區塊 -->
@@ -432,8 +455,13 @@
     </button>
   </div>
 </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
+      <!-- 收支明細顯示範圍狀態列 -->
+      <div id="financeFilterStatusBanner" class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-stone-100 border border-stone-200 text-xs text-stone-700 mb-2">
+        <span id="financeFilterStatusText" class="font-semibold">📅 目前預設顯示：近 7 天收支明細</span>
+        <button type="button" id="btnShowAllTxHistory" onclick="showAllTransactionsHistory()" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-50 text-amber-900 border border-stone-300 font-bold text-[11px] cursor-pointer !min-h-0">查看全部歷史明細 ➔</button>
+      </div>  
+      <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-stone-50 text-stone-500 border-b border-stone-200">
                 <th class="py-2.5 px-4">日期</th>
@@ -950,15 +978,33 @@
               <div>
                 <label class="block font-semibold mb-1">開始日期 (必填)</label>
                 <input type="date" id="eventDate" required class="w-full p-2 border rounded-lg" onchange="updateEventTimePreview()">
+             <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">🔁 重複排程（僅新增時生效）</label>
+          <select id="eventRepeatWeeks" class="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-semibold text-stone-800">
+            <option value="1">單次事項（不重複）</option>
+            <option value="4">每週重複，連續 4 週（1 個月）</option>
+            <option value="8">每週重複，連續 8 週（2 個月）</option>
+            <option value="12">每週重複，連續 12 週（3 個月）</option>
+          </select>
+        </div>
               </div>
               <div>
                 <label class="block font-semibold mb-1">結束日期 <span class="text-stone-400 font-normal">(跨日選填)</span></label>
                 <input type="date" id="eventEndDate" class="w-full p-2 border rounded-lg">
               </div>
             </div>
-            <div>
+         <div>
               <label class="block font-semibold mb-1">開始時間 <span class="text-stone-400 font-normal">(選填，住宿或全天免填)</span></label>
               <input type="time" id="eventStartTime" class="w-full p-2 border rounded-lg" onchange="updateEventTimePreview()">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">🔁 重複排程 <span class="text-stone-400 font-normal">(僅新增時生效)</span></label>
+              <select id="eventRepeatWeeks" class="w-full p-2 border rounded-lg bg-white">
+                <option value="1">單次事項（不重複）</option>
+                <option value="4">每週重複，連續 4 週（1 個月）</option>
+                <option value="8">每週重複，連續 8 週（2 個月）</option>
+                <option value="12">每週重複，連續 12 週（3 個月）</option>
+              </select>
             </div>
           </div>
 
@@ -1065,7 +1111,14 @@
       </form>
     </div>
   </div>
-
+<!-- ⚡ 常用收支一鍵帶入模板 -->
+      <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+        <span class="font-bold text-stone-500">⚡ 快捷帶入：</span>
+        <button type="button" onclick="applyQuickTxPreset('income', '薪資收入', 'AUD', '', '每週薪資入帳')" class="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold cursor-pointer !min-h-0">＋ 週薪入帳</button>
+        <button type="button" onclick="applyQuickTxPreset('expense', '房租住宿', 'AUD', '', '每週房租 Rent')" class="px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-bold cursor-pointer !min-h-0">－ 週繳房租</button>
+        <button type="button" onclick="applyQuickTxPreset('expense', '飲食採買', 'AUD', '', '超市生鮮採買')" class="px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold cursor-pointer !min-h-0">－ 超市採買</button>
+        <button type="button" onclick="applyQuickTxPreset('expense', '交通通訊', 'AUD', '35', '手機預付卡儲值')" class="px-2.5 py-1 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-bold cursor-pointer !min-h-0">－ 電信儲值</button>
+      </div>
   <!-- MODAL: 記帳 (支援新增與修改) -->
   <div id="txModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
@@ -1205,6 +1258,96 @@
 
     // 更新雙幣財務頂部「留學基金達標進度條」與「14天備份提醒」
     function updateFinanceGoalProgressBar() {
+      // 1. 澳幣 / 歐元 / 台幣 隨手換算
+    window.runQuickTriCurrencyCalc = function() {
+      var amtEl = document.getElementById('quickFxAmount');
+      var fromEl = document.getElementById('quickFxFrom');
+      var eurAudEl = document.getElementById('quickEurToAudRate');
+      var resEl = document.getElementById('quickFxResultText');
+      if (!amtEl || !fromEl || !resEl) return;
+
+      var amt = parseFloat(amtEl.value) || 0;
+      var from = fromEl.value;
+      var audToTwd = (typeof appState !== 'undefined' && +appState.fxRate) ? +appState.fxRate : 22.01;
+      var eurToAud = (eurAudEl && parseFloat(eurAudEl.value) > 0) ? parseFloat(eurAudEl.value) : 1.65;
+
+      var inAud = 0;
+      if (from === 'AUD') inAud = amt;
+      else if (from === 'EUR') inAud = amt * eurToAud;
+      else if (from === 'TWD') inAud = amt / audToTwd;
+
+      var valAud = inAud.toFixed(2);
+      var valEur = (inAud / eurToAud).toFixed(2);
+      var valTwd = Math.round(inAud * audToTwd).toLocaleString();
+
+      if (from === 'AUD') resEl.textContent = '≈ € ' + valEur + ' EUR ｜ NT$ ' + valTwd + ' TWD';
+      else if (from === 'EUR') resEl.textContent = '≈ A$ ' + valAud + ' AUD ｜ NT$ ' + valTwd + ' TWD';
+      else resEl.textContent = '≈ A$ ' + valAud + ' AUD ｜ € ' + valEur + ' EUR';
+    };
+
+    // 2. 常用收支快捷模板一鍵帶入表單
+window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, note) {
+      if (typeof openTxModal === 'function') {
+        openTxModal(type);
+      }
+      var currSelect = document.getElementById('txCurrency');
+      if (currSelect && currency) {
+        currSelect.value = currency;
+        if (typeof handleTxCurrencyChange === 'function') handleTxCurrencyChange();
+      }
+      var catEl = document.getElementById('txCategorySelect');
+      if (catEl && categoryKeyword) {
+        for (var i = 0; i < catEl.options.length; i++) {
+          if (catEl.options[i].value.includes(categoryKeyword) || catEl.options[i].text.includes(categoryKeyword)) {
+            catEl.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      var amtEl = document.getElementById('txAmount');
+      if (amtEl) {
+        amtEl.value = amount || '';
+        setTimeout(function() { amtEl.focus(); }, 50);
+      }
+      var noteEl = document.getElementById('txNote');
+      if (noteEl && note) noteEl.value = note;
+    };      var typeEl = document.getElementById('txType');
+      var catEl = document.getElementById('txCategory');
+      var curEl = document.getElementById('txCurrency');
+      var amtEl = document.getElementById('txAmount');
+      var noteEl = document.getElementById('txNote');
+      var dateEl = document.getElementById('txDate');
+
+      if (typeEl) {
+        typeEl.value = type;
+        typeEl.dispatchEvent(new Event('change'));
+      }
+      setTimeout(function() {
+        if (catEl && category) {
+          for (var i = 0; i < catEl.options.length; i++) {
+            if (catEl.options[i].value.includes(category) || catEl.options[i].text.includes(category)) {
+              catEl.selectedIndex = i;
+              break;
+            }
+          }
+        }
+        if (curEl && currency) curEl.value = currency;
+        if (amtEl) {
+          amtEl.value = amount || '';
+          amtEl.focus();
+        }
+        if (noteEl && note) noteEl.value = note;
+        if (dateEl && !dateEl.value) dateEl.value = getLocalTodayStr(0);
+      }, 30);
+      showGlobalToast('⚡ 已帶入「' + note + '」模板，請輸入金額後送出');
+    };
+
+    // 3. 一鍵展開全部歷史收支明細 / 恢復近 7 天預設
+    var forceShowAllTransactions = false;
+    window.showAllTransactionsHistory = function() {
+      forceShowAllTransactions = !forceShowAllTransactions;
+      if (typeof renderFinance === 'function') renderFinance();
+    };
       var barEl = document.getElementById('goal-progress-bar');
       if (!barEl || typeof appState === 'undefined') return;
 
@@ -2614,9 +2757,24 @@ function renderTransactions() {
   var fEnd = document.getElementById("txFilterEndDate") ? document.getElementById("txFilterEndDate").value : "";
 
   // 1. 依日期由新到舊排序，再進行條件過濾
-var isNoFilter = (fType === "ALL" && fCat === "ALL" && !fStart && !fEnd);
+var isNoFilter = (!forceShowAllTransactions && fType === "ALL" && fCat === "ALL" && !fStart && !fEnd);
   var defaultStart7Days = getLocalTodayStr(-6);
   var defaultEndToday = getLocalTodayStr(0);
+
+  var statusTextEl = document.getElementById('financeFilterStatusText');
+  var toggleAllBtn = document.getElementById('btnShowAllTxHistory');
+  if (statusTextEl && toggleAllBtn) {
+    if (isNoFilter) {
+      statusTextEl.textContent = '📅 目前預設顯示：近 7 天收支（' + defaultStart7Days + ' ~ ' + defaultEndToday + '）';
+      toggleAllBtn.textContent = '查看全部歷史明細 ➔';
+    } else if (forceShowAllTransactions && fType === "ALL" && fCat === "ALL" && !fStart && !fEnd) {
+      statusTextEl.textContent = '📚 目前顯示：全部歷史收支明細（共 ' + (appState.transactions || []).length + ' 筆）';
+      toggleAllBtn.textContent = '切回近 7 天精簡模式';
+    } else {
+      statusTextEl.textContent = '🔍 目前顯示：自訂篩選結果';
+      toggleAllBtn.textContent = '重置並看全部';
+    }
+  }
 
   var list = (appState.transactions || []).slice().sort(function(a, b) {
     var dateCmp = (b.date || '').localeCompare(a.date || '');
@@ -3206,33 +3364,6 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || getLocal
       document.getElementById("eventModal").classList.remove("hidden");
     };
 
-    window.handleSaveEvent = function(e) {
-      e.preventDefault();
-      var id = document.getElementById("eventId").value;
-      var loc = document.getElementById("eventLocationInput").value.trim();
-      var activeUserZone = appState.userTimeZone || "Australia/Brisbane";
-      var bZone = document.getElementById("eventBaseZone").value;
-      var startDate = document.getElementById("eventDate").value;
-      var endDate = document.getElementById("eventEndDate").value;
-      var status = document.getElementById("eventStatus").value;
-      var desc = document.getElementById("eventDesc").value.trim();
-
-      if (status === "rescheduled") {
-        var newDate = document.getElementById("eventRescheduleDate").value;
-        if (!newDate) {
-          alert("請選擇改期後的新日期！");
-          return;
-        }
-        desc = ("[原定: " + startDate + "] " + desc).trim();
-        startDate = newDate;
-        endDate = "";
-      }
-
-      if (endDate && endDate < startDate) {
-        endDate = startDate;
-      }
-var rawEvUrl = document.getElementById("eventUrl").value.trim();
-      if (rawEvUrl && !/^https?:\/\//i.test(rawEvUrl)) rawEvUrl = "https://" + rawEvUrl;
 var newEv = {
         id: id || ("ev_" + Date.now()),
         title: document.getElementById("eventTitle").value,
@@ -3247,8 +3378,41 @@ var newEv = {
         location: loc,
         mapUrl: loc,
         desc: desc,
-        url: rawEvUrl // <--- 就是像這樣換行放在 desc: desc 的下面（注意上一行結尾要有逗號）
+        url: rawEvUrl
       };
+
+      var repeatEl = document.getElementById("eventRepeatWeeks");
+      var repeatWeeks = (!id && repeatEl) ? (parseInt(repeatEl.value, 10) || 1) : 1;
+
+      if (id) {
+        var idx = appState.events.findIndex(function(x) { return x.id === id; });
+        if (idx !== -1) appState.events[idx] = newEv;
+      } else {
+        var sParts = startDate.split("-").map(Number);
+        var eParts = endDate ? endDate.split("-").map(Number) : null;
+
+        for (var w = 0; w < repeatWeeks; w++) {
+          var sObj = new Date(sParts[0], sParts[1] - 1, sParts[2] + (w * 7));
+          var newStart = sObj.getFullYear() + "-" + String(sObj.getMonth() + 1).padStart(2, "0") + "-" + String(sObj.getDate()).padStart(2, "0");
+
+          var newEnd = "";
+          if (eParts) {
+            var eObj = new Date(eParts[0], eParts[1] - 1, eParts[2] + (w * 7));
+            newEnd = eObj.getFullYear() + "-" + String(eObj.getMonth() + 1).padStart(2, "0") + "-" + String(eObj.getDate()).padStart(2, "0");
+          }
+
+          appState.events.push(Object.assign({}, newEv, {
+            id: "ev_" + Date.now() + "_" + w,
+            date: newStart,
+            endDate: newEnd
+          }));
+        }
+      }
+
+      saveState();
+      closeEventModal();
+      renderCalendar();
+    };
 
       if (!appState.events) appState.events = [];
       if (id) {
