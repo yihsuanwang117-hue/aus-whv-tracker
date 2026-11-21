@@ -119,7 +119,16 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       white-space: nowrap;
     }
+/* 手機版底部固定導覽列安全區與優化 */
+    @media (max-width: 639px) {
+      body { padding-bottom: 4.5rem; }
+    }
   </style>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WHV生活財務">
+  <meta name="theme-color" content="#78350f">
+  <link rel="manifest" href='data:application/manifest+json,{"name":"澳洲打工度假x德國碩士 個人管理儀表板","short_name":"WHV儀表板","start_url":".","display":"standalone","background_color":"#fafaf9","theme_color":"#78350f"}'>
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans min-h-screen pb-16">
 
@@ -177,8 +186,27 @@
   <main class="max-w-5xl mx-auto px-4 mt-6">
 
     <!-- 自動智能待辦預警橫幅 -->
-    <div id="smartReminderBanner" class="hidden mb-6 bg-gradient-to-r from-amber-900 to-stone-900 text-white p-4 rounded-2xl shadow-md border border-amber-700/30">
-      <div class="flex items-start justify-between gap-3">
+    
+<!-- 逾期未完成「⭐ 任務清單」置頂提醒區 -->
+      <div id="overdueChecklistsBanner" class="hidden mb-4 bg-indigo-950 text-indigo-50 rounded-2xl p-4 shadow-md border border-indigo-700 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">⏳ 過去日期尚未全部勾完的「⭐ 任務準備清單」</span>
+          <span class="text-[10px] text-indigo-300">點擊可一鍵順延至今天或直接補勾</span>
+        </div>
+        <div id="overdueChecklistsList" class="space-y-1.5 text-xs"></div>
+      </div>
+
+      <!-- 日曆與任務關鍵字快速搜尋欄 -->
+      <div class="mb-4 bg-white rounded-2xl p-3 border border-stone-200 shadow-xs space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-stone-600 shrink-0">🔍 搜尋行程/清單：</span>
+          <input type="text" id="calendarGlobalSearchInput" oninput="searchCalendarItems(this.value)" placeholder="輸入關鍵字（如：體檢、機票、車票、退稅）..." class="flex-1 px-2.5 py-1.5 text-xs bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:border-amber-700 !min-h-0">
+          <button type="button" id="calendarSearchClearBtn" onclick="clearCalendarSearch()" class="hidden px-2 py-1 text-xs text-stone-500 hover:text-stone-800 cursor-pointer !min-h-0">✕ 清除</button>
+        </div>
+        <div id="calendarSearchResultsBox" class="hidden pt-2 border-t border-stone-100 space-y-1.5 max-h-52 overflow-y-auto text-xs"></div>
+      </div>
+
+ <div id="smartReminderBanner" class="hidden mb-6 bg-gradient-to-r from-amber-900 to-stone-900 text-white p-4 rounded-2xl shadow-md border border-amber-700/30">      <div class="flex items-start justify-between gap-3">
         <div class="flex items-center gap-2">
           <span class="text-xl">🔔</span>
           <div>
@@ -261,8 +289,31 @@
       </div>
     </div>
 
-    <!-- TAB 1: 雙幣財務 & 圓餅圖分析 -->
+   <!-- TAB 1: 雙幣財務 & 圓餅圖分析 -->
     <div id="content-finance" class="space-y-6 hidden">
+      <!-- 留學基金達標進度條 & 預估總資產看板 -->
+      <div id="finance-goal-progress-card" class="bg-gradient-to-r from-amber-950 via-stone-900 to-stone-800 text-white rounded-2xl p-5 shadow-md space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-300">🎯 留學 / 存款目標總進度</span>
+            <h3 class="text-base sm:text-lg font-extrabold mt-0.5 flex items-baseline gap-2">
+              <span id="goal-current-twd">NT$ 0</span>
+              <span class="text-xs font-normal text-stone-300">/ 目標 <span id="goal-target-twd">NT$ 400,000</span></span>
+            </h3>
+          </div>
+          <div class="text-right">
+            <span id="goal-pct-badge" class="px-2.5 py-1 rounded-full bg-amber-500 text-stone-950 font-mono font-extrabold text-xs">0%</span>
+            <p id="goal-gap-text" class="text-[11px] text-stone-300 mt-1">距離目標還差約 A$ 0</p>
+          </div>
+        </div>
+        <div class="w-full h-3 bg-stone-700/80 rounded-full overflow-hidden p-0.5">
+          <div id="goal-progress-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="pt-1 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-300">
+          <span id="goal-projected-summary">📊 結合「工時規劃器」排班預估：離職時總存款預估可達 <strong class="text-emerald-300">NT$ 0</strong></span>
+          <span id="backup-reminder-badge" class="hidden px-2 py-0.5 rounded bg-rose-500/20 border border-rose-400/50 text-rose-200 font-semibold">⚠️ 超過 14 天未下載 JSON 備份</span>
+        </div>
+      </div>
       <div class="bg-stone-900 rounded-2xl p-6 text-white shadow-lg">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -1120,6 +1171,196 @@
 
   <!-- 核心邏輯腳本 -->
   <script>
+    // ==========================================
+    // 🌐 全局「所在地時區換日」工具（解決布里斯本凌晨跨日問題）
+    // ==========================================
+    function getLocalTodayStr(offsetDays) {
+      var tz = (typeof appState !== 'undefined' && appState && appState.userTimeZone) ? appState.userTimeZone : 'Australia/Brisbane';
+      var now = getLocalTodayStr(0);
+      if (offsetDays) {
+        now = new Date(now.getTime() + offsetDays * 86400000);
+      }
+      try {
+        // 使用 en-CA 格式固定輸出 YYYY-MM-DD，並強制依照使用者所在時區換算
+        return new Intl.DateTimeFormat('en-CA', {
+          timeZone: tz,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).format(now);
+      } catch (e) {
+        var y = now.getFullYear();
+        var m = String(now.getMonth() + 1).padStart(2, '0');
+        var d = String(now.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + d;
+      }
+    }
+
+    function getLocalNowDateObj() {
+      var todayStr = getLocalTodayStr(0);
+      var p = todayStr.split('-').map(Number);
+      return new Date(p[0], p[1] - 1, p[2], 0, 0, 0, 0);
+    }
+
+    // 更新雙幣財務頂部「留學基金達標進度條」與「14天備份提醒」
+    function updateFinanceGoalProgressBar() {
+      var barEl = document.getElementById('goal-progress-bar');
+      if (!barEl || typeof appState === 'undefined') return;
+
+      var fx = +appState.fxRate || 23;
+      var tgt = +appState.targetNTD || 400000;
+      var pCur = appState.primaryCurrency || 'AUD';
+      var hCur = appState.homeCurrency || 'TWD';
+      var pn = 0, hn = 0;
+
+      (appState.transactions || []).forEach(function(t) {
+        var m = +t.amount || 0;
+        var s = t.type === 'income' ? 1 : -1;
+        if (t.currency === pCur) pn += s * m;
+        else if (t.currency === hCur) hn += s * m;
+      });
+
+      var currentTWD = Math.round(pn * fx + hn);
+      var pct = tgt > 0 ? Math.max(0, Math.min(100, Math.round((currentTWD / tgt) * 100))) : 0;
+      var gapTWD = Math.max(0, tgt - currentTWD);
+      var gapAUD = Math.round(gapTWD / fx);
+
+      document.getElementById('goal-current-twd').textContent = 'NT$ ' + currentTWD.toLocaleString();
+      document.getElementById('goal-target-twd').textContent = 'NT$ ' + tgt.toLocaleString();
+      document.getElementById('goal-pct-badge').textContent = pct + '%';
+      barEl.style.width = pct + '%';
+
+      var gapEl = document.getElementById('goal-gap-text');
+      if (currentTWD >= tgt) {
+        gapEl.textContent = '🎉 恭喜已達成設定存款目標！（超額 NT$ ' + (currentTWD - tgt).toLocaleString() + '）';
+        gapEl.className = 'text-[11px] text-emerald-300 font-bold mt-1';
+      } else {
+        gapEl.textContent = '距離目標還差 NT$ ' + gapTWD.toLocaleString() + '（約 A$ ' + gapAUD.toLocaleString() + '）';
+        gapEl.className = 'text-[11px] text-stone-300 mt-1';
+      }
+
+      // 檢查備份提醒（超過 14 天未下載備份則顯示小徽章）
+      var backupBadge = document.getElementById('backup-reminder-badge');
+      if (backupBadge) {
+        var lastBackup = Number(localStorage.getItem('au_last_backup_ts') || 0);
+        if (!lastBackup || (Date.now() - lastBackup) > 14 * 86400000) {
+          backupBadge.classList.remove('hidden');
+        } else {
+          backupBadge.classList.add('hidden');
+        }
+      }
+    }
+
+    // 掃描過去日期尚未 100% 完成的「⭐ 任務清單」
+    function checkOverdueChecklists() {
+      var banner = document.getElementById('overdueChecklistsBanner');
+      var listEl = document.getElementById('overdueChecklistsList');
+      if (!banner || !listEl || typeof appState === 'undefined') return;
+
+      var todayStr = getLocalTodayStr(0);
+      var overdue = (appState.checklists || []).filter(function(cl) {
+        if (!cl.date || cl.date >= todayStr) return false;
+        var items = cl.items || [];
+        if (items.length === 0) return true;
+        var done = items.filter(function(it) { return it.checked; }).length;
+        return done < items.length;
+      });
+
+      if (overdue.length === 0) {
+        banner.classList.add('hidden');
+        return;
+      }
+
+      banner.classList.remove('hidden');
+      listEl.innerHTML = overdue.map(function(cl) {
+        var items = cl.items || [];
+        var done = items.filter(function(it) { return it.checked; }).length;
+        return '<div class="flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-indigo-900/80 border border-indigo-700/80">' +
+          '<div onclick="openChecklistModal(\'' + cl.id + '\', event)" class="cursor-pointer flex items-center gap-2 min-w-0">' +
+            '<span>⭐</span>' +
+            '<span class="font-bold text-white truncate">' + cl.title + '</span>' +
+            '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-800 text-indigo-200">' + done + '/' + items.length + '</span>' +
+            '<span class="text-[10px] text-rose-300 font-mono">(原定 ' + cl.date + ')</span>' +
+          '</div>' +
+          '<button type="button" onclick="rescheduleChecklistToToday(\'' + cl.id + '\')" class="px-2 py-1 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] rounded-lg cursor-pointer !min-h-0">順延至今天 ➔</button>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.rescheduleChecklistToToday = function(clId) {
+      var cl = (appState.checklists || []).find(function(c) { return c.id === clId; });
+      if (!cl) return;
+      var todayStr = getLocalTodayStr(0);
+      cl.date = todayStr;
+      selectedCalendarDateStr = todayStr;
+      saveState();
+      renderCalendar();
+      showGlobalToast('📅 已將「' + cl.title + '」順延至今天 (' + todayStr + ')');
+    };
+
+    // 日曆與任務清單全域關鍵字搜尋
+    window.searchCalendarItems = function(kw) {
+      var box = document.getElementById('calendarSearchResultsBox');
+      var clearBtn = document.getElementById('calendarSearchClearBtn');
+      if (!box) return;
+      var q = (kw || '').trim().toLowerCase();
+      if (!q) {
+        box.classList.add('hidden');
+        if (clearBtn) clearBtn.classList.add('hidden');
+        return;
+      }
+      if (clearBtn) clearBtn.classList.remove('hidden');
+      box.classList.remove('hidden');
+
+      var matches = [];
+      (appState.checklists || []).forEach(function(cl) {
+        var inTitle = (cl.title || '').toLowerCase().includes(q);
+        var inItem = (cl.items || []).some(function(it) { return (it.text || '').toLowerCase().includes(q); });
+        if (inTitle || inItem) {
+          matches.push({ date: cl.date, label: '⭐ [任務清單] ' + cl.title, action: "jumpToCalendarDate('" + cl.date + "')" });
+        }
+      });
+      (appState.events || []).forEach(function(ev) {
+        var text = ((ev.title || '') + ' ' + (ev.desc || '') + ' ' + (ev.location || '')).toLowerCase();
+        if (text.includes(q)) {
+          matches.push({ date: ev.date, label: '📌 [行程] ' + ev.title, action: "jumpToCalendarDate('" + ev.date + "')" });
+        }
+      });
+
+      if (matches.length === 0) {
+        box.innerHTML = '<div class="text-stone-400 text-center py-2">找不到包含「' + kw + '」的行程或清單</div>';
+        return;
+      }
+      matches.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+      box.innerHTML = matches.map(function(m) {
+        return '<div onclick="' + m.action + '" class="flex items-center justify-between p-2 rounded-lg bg-stone-50 hover:bg-amber-50 border border-stone-200 cursor-pointer">' +
+          '<span class="font-bold text-stone-800 truncate">' + m.label + '</span>' +
+          '<span class="font-mono text-[11px] text-amber-800 font-bold shrink-0 ml-2">' + m.date + ' ➔</span>' +
+        '</div>';
+      }).join('');
+    };
+
+    window.jumpToCalendarDate = function(dStr) {
+      if (!dStr) return;
+      var p = dStr.split('-').map(Number);
+      calendarDate = new Date(p[0], p[1] - 1, 1);
+      selectedCalendarDateStr = dStr;
+      renderCalendar();
+    };
+
+    window.clearCalendarSearch = function() {
+      var inp = document.getElementById('calendarGlobalSearchInput');
+      if (inp) inp.value = '';
+      searchCalendarItems('');
+    };
+
+    // 手機與電腦切換回此分頁時，自動重新整理當天日期與雲端狀態
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        if (typeof renderCalendar === 'function') renderCalendar();
+        if (typeof updateFinanceGoalProgressBar === 'function') updateFinanceGoalProgressBar();
+      }
+    });
     var FIREBASE_CONFIG = {
       apiKey: "AIzaSyAKM55FbwK-kOP7Jl9a1QPOtn0f2WHnrZ8",
       authDomain: "aus-2026whv.firebaseapp.com",
@@ -1191,8 +1432,8 @@
       mapSavedData: {}
     };
 
-    var calendarDate = new Date();
-    var selectedCalendarDateStr = new Date().toISOString().split('T')[0]; // 新增這行
+    var calendarDate = getLocalTodayStr(0);
+    var selectedCalendarDateStr = getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0); // 新增這行
     var currentEditingEventId = null;
     var currentSelectedGearCategory = "ALL";
     var chartPeriod = "month";
@@ -1519,8 +1760,7 @@ function getColorBadgeClass(color) {
       var listEl = document.getElementById("smartReminderList");
       if (!banner || !listEl) return;
 
-      var now = new Date();
-      now.setHours(0,0,0,0);
+var now = getLocalNowDateObj();
       var upcoming = [];
 
       (appState.events || []).forEach(function(ev) {
@@ -1587,7 +1827,7 @@ function getColorBadgeClass(color) {
         if (endDateStr && endDateStr > dateStr) {
           var ep = endDateStr.split('-').map(Number);
           var nextDay = new Date(Date.UTC(ep[0], ep[1] - 1, ep[2] + 1));
-          var cleanEnd = nextDay.toISOString().split('T')[0].replace(/-/g, "");
+          var cleanEnd = nextDay.getLocalTodayStr(0).getLocalTodayStr(0).replace(/-/g, "");
           datesParam = cleanStart + "/" + cleanEnd;
         } else {
           datesParam = cleanStart + "/" + cleanStart;
@@ -1631,7 +1871,7 @@ function getColorBadgeClass(color) {
       } else if (endDateStr && endDateStr > dateStr) {
         var ep = endDateStr.split('-').map(Number);
         var nextDay = new Date(Date.UTC(ep[0], ep[1] - 1, ep[2] + 1));
-        var cleanEnd = nextDay.toISOString().split('T')[0].replace(/-/g, "");
+        var cleanEnd = nextDay.getLocalTodayStr(0).getLocalTodayStr(0).replace(/-/g, "");
         dtEndLine = "DTEND;VALUE=DATE:" + cleanEnd;
       }
 
@@ -2183,6 +2423,7 @@ function getColorBadgeClass(color) {
       renderAvatar();
       updateTxFilterCategoryOptions();
       renderFinance();
+      updateFinanceGoalProgressBar();
       renderTransactions();
       renderCalendar();
       renderGear();
@@ -2232,7 +2473,7 @@ function getColorBadgeClass(color) {
       var gapHome = targetHome - totalSavingsHome;
       var pct = Math.min(100, Math.max(0, Math.round((totalSavingsHome / targetHome) * 100)));
 
-      var weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - new Date()) / (1000 * 60 * 60 * 24 * 7)));
+      var weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - getLocalTodayStr(0)) / (1000 * 60 * 60 * 24 * 7)));
       var weeklyNeedPrimary = gapHome > 0 ? Math.round((gapHome / fx) / weeksLeft) : 0;
 
       var getEl = function(id) { return document.getElementById(id); };
@@ -2283,7 +2524,7 @@ function getColorBadgeClass(color) {
       var fx = appState.fxRate || 23.0;
       var pCurr = appState.primaryCurrency || "AUD";
       var hCurr = appState.homeCurrency || "TWD";
-      var now = new Date();
+      var now = getLocalTodayStr(0);
 
       var filtered = (appState.transactions || []).filter(function(t) {
         if (t.type !== chartType || t.isCustomThird) return false;
@@ -2501,7 +2742,7 @@ function renderTransactions() {
     window.openTxModal = function(type, existingTx) {
       document.getElementById("txId").value = existingTx ? existingTx.id : "";
       document.getElementById("txType").value = existingTx ? existingTx.type : type;
-      document.getElementById("txDate").value = existingTx ? existingTx.date : new Date().toISOString().split('T')[0];
+      document.getElementById("txDate").value = existingTx ? existingTx.date : getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0);
       document.getElementById("txAmount").value = existingTx ? existingTx.amount : "";
       document.getElementById("txNote").value = existingTx ? existingTx.note : "";
       
@@ -2768,7 +3009,7 @@ var draftChecklistItems = [];
 
     window.openAddEventForSelectedDate = function() {
       openAddEventModal();
-      document.getElementById("eventDate").value = selectedCalendarDateStr || new Date().toISOString().split('T')[0];
+      document.getElementById("eventDate").value = selectedCalendarDateStr || getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0);
     };
 
     function renderCalendar() {
@@ -2795,7 +3036,7 @@ var draftChecklistItems = [];
       var firstDay = new Date(year, month, 1).getDay();
       var totalDays = new Date(year, month + 1, 0).getDate();
       var prevTotalDays = new Date(year, month, 0).getDate();
-      var todayStr = new Date().toISOString().split('T')[0];
+      var todayStr = getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0);
 
       for (var i = firstDay - 1; i >= 0; i--) {
         grid.innerHTML += '<div class="bg-stone-50 min-h-[54px] sm:min-h-[92px] p-1 sm:p-1.5 opacity-40"><span class="font-mono text-stone-400 text-[11px] sm:text-xs">' + (prevTotalDays - i) + '</span></div>';
@@ -2899,11 +3140,12 @@ var draftChecklistItems = [];
       }
 
       renderSelectedDayAgenda();
+      checkOverdueChecklists();
     }
     window.changeMonth = function(d) {
       if (d === 0) {
-        calendarDate = new Date();
-        selectedCalendarDateStr = calendarDate.toISOString().split('T')[0];
+        calendarDate = getLocalTodayStr(0);
+        selectedCalendarDateStr = calendarDate.getLocalTodayStr(0).getLocalTodayStr(0);
       }
       else calendarDate.setMonth(calendarDate.getMonth() + d);
       renderCalendar();
@@ -2916,7 +3158,7 @@ var draftChecklistItems = [];
       document.getElementById("eventStatus").value = "pending";
       document.getElementById("rescheduleGroup").classList.add("hidden");
       document.getElementById("eventRescheduleDate").value = "";
-document.getElementById("eventDate").value = selectedCalendarDateStr || new Date().toISOString().split('T')[0];      document.getElementById("eventEndDate").value = "";
+document.getElementById("eventDate").value = selectedCalendarDateStr || getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0);      document.getElementById("eventEndDate").value = "";
       document.getElementById("eventStartTime").value = "";
       document.getElementById("eventBaseZone").value = "LOCAL";
       document.getElementById("eventCustomUtcOffset").value = "3";
@@ -3071,7 +3313,7 @@ var newEv = {
 
       document.getElementById("checklistId").value = existing ? existing.id : "";
       document.getElementById("checklistTitle").value = existing ? existing.title : "";
-      document.getElementById("checklistDate").value = existing ? existing.date : (selectedCalendarDateStr || new Date().toISOString().split('T')[0]);
+      document.getElementById("checklistDate").value = existing ? existing.date : (selectedCalendarDateStr || getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0));
       document.getElementById("checklistUrl").value = existing && existing.url ? existing.url : "";
       document.getElementById("newChecklistItemInput").value = "";
       document.getElementById("checklistModalTitle").innerHTML = existing ? '<span>⭐</span> 編輯任務準備清單' : '<span>⭐</span> 新增任務準備清單';
@@ -3420,8 +3662,10 @@ var newEv = {
       var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
       var a = document.createElement('a');
       a.href = dataStr;
-      a.download = "finance_backup_" + (new Date().toISOString().split('T')[0]) + ".json";
+      a.download = "finance_backup_" + (getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0)) + ".json";
       a.click();
+      localStorage.setItem('au_last_backup_ts', String(Date.now()));
+updateFinanceGoalProgressBar();
     };
 
     window.closeModal = function(id) {
@@ -3436,7 +3680,7 @@ var newEv = {
       var PRE = { casual: [1.2, 1.4], pt: [1.25, 1.5], ft: [1.25, 1.5] };
       
       var defs = function() {
-        var todayStr = new Date().toISOString().split('T')[0];
+        var todayStr = getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0);
         var endStr = (appState && appState.targetEndDate) ? appState.targetEndDate : '2027-06-30';
         return {
           rent: 260,
@@ -3454,7 +3698,7 @@ var newEv = {
       };
 
       var P = function() {
-        var todayStr = new Date().toISOString().split('T')[0];
+        var todayStr = getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0);
         var defaultEnd = (appState && appState.targetEndDate) ? appState.targetEndDate : '2027-06-30';
         if (!appState.planner) {
           appState.planner = defs();
@@ -3473,7 +3717,7 @@ var newEv = {
       };
 
       function calcDateSpan(p) {
-        var sParts = (p.startDate || new Date().toISOString().split('T')[0]).split('-').map(Number);
+        var sParts = (p.startDate || getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0)).split('-').map(Number);
         var eParts = (p.endDate || (appState && appState.targetEndDate) || '2027-06-30').split('-').map(Number);
         var sUTC = Date.UTC(sParts[0], sParts[1] - 1, sParts[2]);
         var eUTC = Date.UTC(eParts[0], eParts[1] - 1, eParts[2]);
@@ -3644,6 +3888,10 @@ var newEv = {
         var estSuperRefundAUD = G * 0.12 * 0.35;
 
         var proj = have + (netCashOnHandAUD * fx) + ((+p.other || 0) * eff);
+        var goalProjEl = document.getElementById('goal-projected-summary');
+if (goalProjEl) {
+  goalProjEl.innerHTML = '📊 結合「工時規劃器」排班預估：離職時總存款預估可達 <strong class="text-emerald-300">NT$ ' + fmt(proj) + '</strong>';
+}
         var diff = proj - tgt;
         var Greq = inv(Math.max(0, need));
         var perWk = Greq / eff;
@@ -4390,54 +4638,63 @@ var newEv = {
         showGlobalToast('🗑️ 已刪除城鎮：「' + town.name + '」');
       };
 
-      // 新增城鎮（自動帶入目前選取的國家與地區分類）
-      window.openAddCustomTownModal = function() {
-        var defaultCountry = currentCountryFilter === 'ALL' ? '澳洲' : currentCountryFilter;
-        var defaultRegion = currentRegionFilter === 'ALL' ? 'QLD 昆士蘭' : currentRegionFilter;
+window.openAddCustomTownModal = function() {
+   var defaultCountry = currentCountryFilter === 'ALL' ? '澳洲' : currentCountryFilter;
+   var defaultRegion = currentRegionFilter === 'ALL' ? 'QLD 昆士蘭' : currentRegionFilter;
 
-        var country = prompt("1/5 請輸入「國家名稱」（例如：澳洲、日本、德國）：", defaultCountry);
-        if (!country || !country.trim()) return;
+   var country = prompt("1/4 請輸入「國家名稱」（例如：澳洲、日本、德國）：", defaultCountry);
+   if (!country || !country.trim()) return;
 
-        var region = prompt("2/5 請輸入「州 / 地區分類」（例如：QLD 昆士蘭、NSW 新南威爾斯）：", defaultRegion);
-        if (!region || !region.trim()) return;
+   var region = prompt("2/4 請輸入「州 / 地區分類」（例如：QLD 昆士蘭、NSW 新南威爾斯、拜仁邦）：", defaultRegion);
+   if (!region || !region.trim()) return;
 
-        var name = prompt("3/5 請輸入「城鎮名稱」（例如：Roma 羅馬小鎮、Charleville）：");
-        if (!name || !name.trim()) return;
+   var name = prompt("3/4 請輸入「城鎮或城市名稱」（建議含英文，例如：Brisbane、Sydney、Munich）：");
+   if (!name || !name.trim()) return;
 
-        var stateCode = prompt("4/5 請輸入州別或郵遞區號（選填，例如：QLD 4455）：", "");
-        var coordStr = prompt("5/5 請貼上該城鎮中心座標「緯度, 經度」（可從 Google Maps 右鍵複製，例如：-26.5733, 148.7869）：", "-26.5733, 148.7869");
-        
-        var lat = -26.5733, lng = 148.7869;
-        if (coordStr && coordStr.includes(',')) {
-          var parts = coordStr.split(',').map(Number);
-          if (!isNaN(parts[0]) && !isNaN(parts[1])) {
-            lat = parts[0];
-            lng = parts[1];
-          }
-        }
+   var stateCode = prompt("4/4 請輸入州別或郵遞區號（選填，例如：QLD 4000）：", "");
 
-        ensureTownsState();
-        var newTown = {
-          id: 'custom_town_' + Date.now(),
-          country: country.trim(),
-          regionCategory: region.trim(),
-          name: name.trim(),
-          stateCode: (stateCode || '').trim(),
-          lat: lat,
-          lng: lng,
-          zoom: 15,
-          description: '自訂新增的城鎮探索地圖，可直接點擊地圖任意處新增商店地標與踩點評論。',
-          places: []
-        };
+   showGlobalToast('🔍 正在自動定位「' + name.trim() + '」中心座標...');
+   var geoQuery = name.trim() + ' ' + country.trim();
+   fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(geoQuery))
+     .then(function(r) { return r.json(); })
+     .then(function(list) {
+       var lat = -27.4698, lng = 153.0251;
+       if (list && list.length > 0) {
+         lat = Number(parseFloat(list[0].lat).toFixed(5));
+         lng = Number(parseFloat(list[0].lon).toFixed(5));
+       } else {
+         var manual = prompt("⚠️ 自動定位找不到「" + name.trim() + "」，請手動貼上「緯度, 經度」：", "-27.4698, 153.0251");
+         if (manual && manual.includes(',')) {
+           var pts = manual.split(',').map(Number);
+           if (!isNaN(pts[0]) && !isNaN(pts[1])) { lat = pts[0]; lng = pts[1]; }
+         }
+       }
 
-        appState.customTowns.push(newTown);
-        currentCountryFilter = country.trim();
-        currentRegionFilter = region.trim();
-        saveState();
-        renderTownsDirectory();
-        showGlobalToast('✅ 已新增城鎮：「' + name.trim() + '」');
-      };
+       ensureTownsState();
+       var newTown = {
+         id: 'custom_town_' + Date.now(),
+         country: country.trim(),
+         regionCategory: region.trim(),
+         name: name.trim(),
+         stateCode: (stateCode || '').trim(),
+         lat: lat,
+         lng: lng,
+         zoom: 14,
+         description: '自訂新增的城鎮探索地圖，可直接搜尋店名或點擊地圖任意處新增地標與踩點評論。',
+         places: []
+       };
 
+       appState.customTowns.push(newTown);
+       currentCountryFilter = country.trim();
+       currentRegionFilter = region.trim();
+       saveState();
+       renderTownsDirectory();
+       showGlobalToast('✅ 已新增城鎮並自動定位中心：「' + name.trim() + '」');
+     })
+     .catch(function() {
+       showGlobalToast('❌ 網路連線異常，無法自動定位城鎮座標');
+     });
+ };
       // ==========================================
       // 視圖 2：進入單一城鎮地圖與商店踩點
       // ==========================================
@@ -4733,7 +4990,7 @@ var newEv = {
         var uData = getPlaceUserData(placeId);
         uData.visited = !uData.visited;
         if (uData.visited && !uData.visitedDate) {
-          uData.visitedDate = new Date().toISOString().split('T')[0];
+          uData.visitedDate = getLocalTodayStr(0).getLocalTodayStr(0).getLocalTodayStr(0);
         }
         saveState();
         updateTownProgressBadges();
@@ -5022,7 +5279,7 @@ return '<button type="button" onclick="selectTownPlace(\'' + p.id + '\', true)" 
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = 'world_towns_checkin_backup_' + (new Date().toISOString().slice(0, 10)) + '.json';
+        a.download = 'world_towns_checkin_backup_' + (getLocalTodayStr(0).getLocalTodayStr(0).slice(0, 10)) + '.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -5067,5 +5324,28 @@ return '<button type="button" onclick="selectTownPlace(\'' + p.id + '\', true)" 
       renderGear();
     };
   </script>
+<!-- 手機版底部固定 App 快捷導覽列 (< 640px 顯示) -->
+  <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200 shadow-lg flex items-center justify-around py-1.5 px-1 text-[10px] font-bold text-stone-600">
+    <button type="button" onclick="switchTab('finance')" class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg hover:bg-stone-100 cursor-pointer !min-h-0">
+      <span class="text-base leading-none">💰</span>
+      <span>雙幣財務</span>
+    </button>
+    <button type="button" onclick="switchTab('calendar')" class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg hover:bg-stone-100 cursor-pointer !min-h-0">
+      <span class="text-base leading-none">🗓️</span>
+      <span>時程日曆</span>
+    </button>
+    <button type="button" onclick="switchTab('map')" class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg hover:bg-stone-100 cursor-pointer !min-h-0">
+      <span class="text-base leading-none">🗺️</span>
+      <span>城鎮地圖</span>
+    </button>
+    <button type="button" onclick="switchTab('planner')" class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg hover:bg-stone-100 cursor-pointer !min-h-0">
+      <span class="text-base leading-none">🧮</span>
+      <span>工時規劃</span>
+    </button>
+    <button type="button" onclick="switchTab('gear')" class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg hover:bg-stone-100 cursor-pointer !min-h-0">
+      <span class="text-base leading-none">🎒</span>
+      <span>裝備清單</span>
+    </button>
+  </nav>
 </body>
 </html>
