@@ -1344,10 +1344,12 @@ window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, no
 
     // 3. 一鍵展開全部歷史收支明細 / 恢復近 7 天預設
     var forceShowAllTransactions = false;
-    window.showAllTransactionsHistory = function() {
+   window.showAllTransactionsHistory = function() {
       forceShowAllTransactions = !forceShowAllTransactions;
       if (typeof renderFinance === 'function') renderFinance();
     };
+
+    function updateFinanceGoalProgressBar() {
       var barEl = document.getElementById('goal-progress-bar');
       if (!barEl || typeof appState === 'undefined') return;
 
