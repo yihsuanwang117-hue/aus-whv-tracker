@@ -2978,6 +2978,11 @@ var draftChecklistItems = [];
     };
 
     function renderCalendar() {
+      if (!(calendarDate instanceof Date) || isNaN(calendarDate.getTime())) {
+     calendarDate = typeof calendarDate === 'string' && calendarDate.includes('-')
+       ? new Date(calendarDate + 'T00:00:00')
+       : getLocalNowDateObj();
+   }
       var year = calendarDate.getFullYear();
       var month = calendarDate.getMonth();
       var titleEl = document.getElementById("calendarMonthTitle");
