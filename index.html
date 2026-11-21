@@ -319,54 +319,7 @@
         </div>
       </div>
 
-      <!-- 國際電匯/換匯實收試算器模組 -->
-      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-stone-100">
-          <div>
-            <h3 class="text-sm font-bold text-stone-900 flex items-center gap-1.5">
-              <span>💱</span> 國際電匯 & 換匯手續費實收試算器
-            </h3>
-            <p class="text-xs text-stone-500 mt-0.5">模擬出匯行、中轉行與受款行手續費扣除後的「實際入帳金額」與「真實隱含匯率」。</p>
-          </div>
-          <button type="button" onclick="applyWireTransferToForm()" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition cursor-pointer">
-            ➔ 帶入記帳彈窗
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">匯出金額 (<span id="wireHomeCurrLabel">TWD</span>)</label>
-            <input type="number" id="wireSendAmount" value="100000" step="1000" class="w-full p-2 border rounded-lg font-bold font-mono" oninput="calculateWireTransfer()">
-          </div>
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">換匯匯率 (1 <span class="primaryCurrText">AUD</span> = )</label>
-            <input type="number" id="wireFxRate" step="0.01" value="23.0" class="w-full p-2 border rounded-lg font-bold font-mono" oninput="calculateWireTransfer()">
-          </div>
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">台灣出匯手續費 (<span id="wireFeeHomeLabel">TWD</span>)</label>
-            <input type="number" id="wireHomeFee" value="600" step="50" class="w-full p-2 border rounded-lg font-mono" oninput="calculateWireTransfer()">
-          </div>
-          <div>
-            <label class="block font-semibold text-stone-700 mb-1">中轉行/解匯手續費 (<span class="primaryCurrText">AUD</span>)</label>
-            <input type="number" id="wireForeignFee" value="25" step="5" class="w-full p-2 border rounded-lg font-mono" oninput="calculateWireTransfer()">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-xs">
-          <div>
-            <span class="text-stone-400 block">預估實際到帳金額：</span>
-            <span id="wireNetReceivedText" class="text-base font-extrabold text-emerald-700 font-mono mt-0.5 block">$0.00 AUD</span>
-          </div>
-          <div>
-            <span class="text-stone-400 block">被手續費吃掉的金額：</span>
-            <span id="wireTotalFeeText" class="text-sm font-bold text-rose-600 font-mono mt-0.5 block">約 NT$ 0</span>
-          </div>
-          <div>
-            <span class="text-stone-400 block">實質隱含匯率 (計入所有手續費)：</span>
-            <span id="wireEffectiveRateText" class="text-sm font-bold text-stone-900 font-mono mt-0.5 block">1 AUD = 0.00 TWD</span>
-          </div>
-        </div>
-      </div>
+    
 
       <!-- 圓餅圖統計分析區塊 -->
       <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
@@ -2133,11 +2086,10 @@ function getColorBadgeClass(color) {
 
       var fxInput = document.getElementById("fxRateInput");
       if (fxInput) fxInput.value = appState.fxRate || 23.0;
-
-      applyTitlesAndSettings();
-      renderAll();
-      fetchLiveFxRate(false);
-      calculateWireTransfer();
+      
+              applyTitlesAndSettings();
+              renderAll();
+              isRemoteUpdate = false;
 
       var savedKey = localStorage.getItem("au_sync_key");
       if (savedKey) {
@@ -2464,8 +2416,10 @@ function renderTransactions() {
   var fEnd = document.getElementById("txFilterEndDate") ? document.getElementById("txFilterEndDate").value : "";
 
   // 1. 依日期由新到舊排序，再進行條件過濾
-  var list = (appState.transactions || []).slice().sort(function(a, b) {
-    return b.date.localeCompare(a.date);
+ var list = (appState.transactions || []).slice().sort(function(a, b) {
+    var dateCmp = (b.date || '').localeCompare(a.date || '');
+    if (dateCmp !== 0) return dateCmp;
+    return (Number(b.amount) || 0) - (Number(a.amount) || 0);
   }).filter(function(t) {
     if (fType !== "ALL" && t.type !== fType) return false;
     if (fCat !== "ALL" && t.category !== fCat) return false;
