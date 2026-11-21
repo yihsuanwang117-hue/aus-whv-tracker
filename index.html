@@ -1111,14 +1111,7 @@
       </form>
     </div>
   </div>
-<!-- ⚡ 常用收支一鍵帶入模板 -->
-      <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
-        <span class="font-bold text-stone-500">⚡ 快捷帶入：</span>
-        <button type="button" onclick="applyQuickTxPreset('income', '薪資收入', 'AUD', '', '每週薪資入帳')" class="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold cursor-pointer !min-h-0">＋ 週薪入帳</button>
-        <button type="button" onclick="applyQuickTxPreset('expense', '房租住宿', 'AUD', '', '每週房租 Rent')" class="px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-bold cursor-pointer !min-h-0">－ 週繳房租</button>
-        <button type="button" onclick="applyQuickTxPreset('expense', '飲食採買', 'AUD', '', '超市生鮮採買')" class="px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold cursor-pointer !min-h-0">－ 超市採買</button>
-        <button type="button" onclick="applyQuickTxPreset('expense', '交通通訊', 'AUD', '35', '手機預付卡儲值')" class="px-2.5 py-1 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-bold cursor-pointer !min-h-0">－ 電信儲值</button>
-      </div>
+
   <!-- MODAL: 記帳 (支援新增與修改) -->
   <div id="txModal" class="modal-sheet fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
@@ -1863,10 +1856,16 @@ function getColorBadgeClass(color) {
       alert("已成功複製至：" + targetDate);
     };
 
-    function checkSmartReminders() {
+function checkSmartReminders() {
       var banner = document.getElementById("smartReminderBanner");
       var listEl = document.getElementById("smartReminderList");
       if (!banner || !listEl) return;
+
+      var calTab = document.getElementById("content-calendar");
+      if (calTab && calTab.classList.contains("hidden")) {
+        banner.classList.add("hidden");
+        return;
+      }
 
 var now = getLocalNowDateObj();
       var upcoming = [];
@@ -2385,7 +2384,7 @@ var now = getLocalNowDateObj();
       }
     };
 
-    window.switchTab = function(tabId) {
+ window.switchTab = function(tabId) {
       ['guide', 'finance', 'calendar', 'gear', 'planner', 'map'].forEach(function(t) {
         var c = document.getElementById('content-' + t);
         var b = document.getElementById('tab-' + t);
@@ -2399,6 +2398,7 @@ var now = getLocalNowDateObj();
           }
         }
       });
+      if (typeof checkSmartReminders === 'function') checkSmartReminders();
       if (tabId === 'finance') renderPieChart();
       if (tabId === 'calendar') renderCalendar();
       if (tabId === 'gear') renderGear();
