@@ -1537,7 +1537,6 @@
             var liveRate = parseFloat(json.rates[hCurr].toFixed(2));
             appState.fxRate = liveRate;
             document.getElementById("fxRateInput").value = liveRate;
-            document.getElementById("wireFxRate").value = liveRate;
             saveState();
             renderFinance();
             renderPieChart();
@@ -2316,8 +2315,6 @@ var now = getLocalNowDateObj();
 
       if (getEl("headerPrimaryCurrencyLabel")) getEl("headerPrimaryCurrencyLabel").textContent = pCurr;
       if (getEl("headerHomeCurrencyLabel")) getEl("headerHomeCurrencyLabel").textContent = hCurr;
-      if (getEl("wireHomeCurrLabel")) getEl("wireHomeCurrLabel").textContent = hCurr;
-      if (getEl("wireFeeHomeLabel")) getEl("wireFeeHomeLabel").textContent = hCurr;
 
       document.querySelectorAll(".primaryCurrText").forEach(function(el) { el.textContent = pCurr; });
 
@@ -2400,7 +2397,6 @@ var now = getLocalNowDateObj();
       var r = parseFloat(val);
       if (r > 0) {
         appState.fxRate = r;
-        document.getElementById("wireFxRate").value = r;
         saveState();
         renderFinance();
         renderPieChart();
