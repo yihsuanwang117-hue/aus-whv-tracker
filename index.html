@@ -3411,18 +3411,10 @@ var newEv = {
         }
       }
 
-      saveState();
+   saveState();
       closeEventModal();
       renderCalendar();
     };
-
-      if (!appState.events) appState.events = [];
-      if (id) {
-        var idx = appState.events.findIndex(function(ev) { return ev.id === id; });
-        if (idx !== -1) appState.events[idx] = newEv;
-      } else {
-        appState.events.push(newEv);
-      }
       
       selectedCalendarDateStr = startDate;
       saveState();
