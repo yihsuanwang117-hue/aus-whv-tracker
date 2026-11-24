@@ -543,9 +543,11 @@
             <h2 class="text-base font-bold text-stone-900">生活必備裝備清單</h2>
             <p class="text-xs text-stone-500 mt-0.5">點選上方分類標籤篩選；已登記物品可隨時點擊「✏️」修改名稱與規格。</p>
           </div>
-          <div class="flex items-center gap-2">
-            <span id="gearProgressText" class="text-xs font-bold text-stone-700 mr-2">完成度：0 / 0</span>
-            <button type="button" onclick="openManageGearCategoriesModal()" class="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 rounded-lg text-xs font-semibold cursor-pointer">🏷️ 管理裝備分類</button>
+         <div class="flex flex-wrap items-center gap-2">
+            <span id="gearProgressText" class="text-xs font-bold text-stone-700 mr-1">完成度：0 / 0</span>
+            <button type="button" onclick="openTravelMasterGear()" class="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-lg text-xs font-bold cursor-pointer">🧳 旅行</button>
+            <button type="button" onclick="resetOrClearGearItems()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold cursor-pointer">🧹 一鍵清理</button>
+            <button type="button" onclick="openManageGearCategoriesModal()" class="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 rounded-lg text-xs font-semibold cursor-pointer">🏷️ 管理分類</button>
             <button type="button" onclick="openAddGearModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold cursor-pointer">＋ 新增物品</button>
           </div>
         </div>
@@ -1277,10 +1279,9 @@
       else resEl.textContent = '≈ A$ ' + valAud + ' AUD ｜ € ' + valEur + ' EUR';
     };
 
-    // 2. 常用收支快捷模板一鍵帶入表單
 window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, note) {
-      if (typeof openTxModal === 'function') {
-        openTxModal(type);
+      if (typeof window.openTxModal === 'function') {
+        window.openTxModal(type);
       }
       var currSelect = document.getElementById('txCurrency');
       if (currSelect && currency) {
@@ -1290,7 +1291,7 @@ window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, no
       var catEl = document.getElementById('txCategorySelect');
       if (catEl && categoryKeyword) {
         for (var i = 0; i < catEl.options.length; i++) {
-          if (catEl.options[i].value.includes(categoryKeyword) || catEl.options[i].text.includes(categoryKeyword)) {
+          if (catEl.options[i].value.indexOf(categoryKeyword) !== -1 || catEl.options[i].text.indexOf(categoryKeyword) !== -1) {
             catEl.selectedIndex = i;
             break;
           }
@@ -1299,11 +1300,12 @@ window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, no
       var amtEl = document.getElementById('txAmount');
       if (amtEl) {
         amtEl.value = amount || '';
-        setTimeout(function() { amtEl.focus(); }, 50);
+        setTimeout(function() { amtEl.focus(); }, 60);
       }
       var noteEl = document.getElementById('txNote');
       if (noteEl && note) noteEl.value = note;
-    };      var typeEl = document.getElementById('txType');
+    };    
+      var typeEl = document.getElementById('txType');
       var catEl = document.getElementById('txCategory');
       var curEl = document.getElementById('txCurrency');
       var amtEl = document.getElementById('txAmount');
@@ -2637,7 +2639,22 @@ var now = getLocalNowDateObj();
 
       var weeksLeft = Math.max(1, Math.ceil((new Date(appState.targetEndDate) - getLocalTodayStr(0)) / (1000 * 60 * 60 * 24 * 7)));
       var weeklyNeedPrimary = gapHome > 0 ? Math.round((gapHome / fx) / weeksLeft) : 0;
-
+      // 防呆修正：確保 weeksLeft 與 weeklyNeedPrimary 永不出現 NaN / 非數值
+      if (isNaN(weeksLeft) || weeksLeft <= 0) {
+        var safeDateStr = (appState && appState.targetDate && /^\d{4}-\d{2}-\d{2}$/.test(appState.targetDate))
+          ? appState.targetDate
+          : "2027-06-30";
+        var dParts = safeDateStr.split("-").map(Number);
+        var tObj = new Date(dParts[0], dParts[1] - 1, dParts[2]);
+        var nowObj = new Date();
+        nowObj.setHours(0, 0, 0, 0);
+        weeksLeft = Math.max(1, Math.ceil((tObj - nowObj) / (7 * 86400000)));
+      }
+      if (isNaN(weeklyNeedPrimary) || !isFinite(weeklyNeedPrimary)) {
+        var safeGap = (typeof gapHome === "number" && !isNaN(gapHome)) ? Math.max(0, gapHome) : 0;
+        var safeFx = (typeof fx === "number" && fx > 0) ? fx : 22.0;
+        weeklyNeedPrimary = safeGap > 0 ? Math.ceil((safeGap / safeFx) / weeksLeft) : 0;
+      }
       var getEl = function(id) { return document.getElementById(id); };
       if (getEl("targetBadgeText")) getEl("targetBadgeText").textContent = "儲蓄目標：" + hCurr + " " + targetHome.toLocaleString() + " (約 $" + Math.round(targetHome/fx).toLocaleString() + " " + pCurr + ")";
       if (getEl("totalSavingsNTD")) getEl("totalSavingsNTD").textContent = hCurr + " " + totalSavingsHome.toLocaleString();
@@ -2923,6 +2940,8 @@ var isNoFilter = (!forceShowAllTransactions && fType === "ALL" && fCat === "ALL"
         splitTxAmount(divisor);
       }
     };
+
+   
     window.openTxModal = function(type, existingTx) {
       document.getElementById("txId").value = existingTx ? existingTx.id : "";
       document.getElementById("txType").value = existingTx ? existingTx.type : type;
@@ -3667,14 +3686,22 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || getLocal
         showGlobalToast("🗑️ 已刪除任務清單");
       }
     };
-    // --- 裝備清單渲染模組 ---
+function ensureTravelCategoryExists() {
+      if (!appState.gearCategories) appState.gearCategories = (typeof DEFAULT_GEAR_CATEGORIES !== 'undefined' ? DEFAULT_GEAR_CATEGORIES.slice() : []);
+      if (appState.gearCategories.indexOf('旅行') === -1) {
+        appState.gearCategories.unshift('旅行');
+      }
+      if (!appState.gear) appState.gear = (typeof DEFAULT_GEAR !== 'undefined' ? DEFAULT_GEAR.slice() : []);
+    }
+
     function renderGear() {
       var tabsContainer = document.getElementById("gearCategoryTabs");
       var itemsContainer = document.getElementById("gearItemsContainer");
       if (!tabsContainer || !itemsContainer) return;
 
-      var categoriesList = appState.gearCategories || DEFAULT_GEAR_CATEGORIES;
-      var gearList = appState.gear || DEFAULT_GEAR;
+      ensureTravelCategoryExists();
+      var categoriesList = appState.gearCategories;
+      var gearList = appState.gear;
 
       if (currentSelectedGearCategory !== "ALL" && !categoriesList.includes(currentSelectedGearCategory)) {
         currentSelectedGearCategory = "ALL";
@@ -3694,8 +3721,9 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || getLocal
         var catItems = gearList.filter(function(g) { return g.category === cat; });
         var catDone = catItems.filter(function(g) { return g.checked; }).length;
         var isActive = currentSelectedGearCategory === cat;
-        tabsHtml += '<button type="button" onclick="selectGearCategory(\'' + cat + '\')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ' + (isActive ? 'gear-cat-active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
-          cat + ' (' + catDone + '/' + catItems.length + ')' +
+        var badgeIcon = cat === '旅行' ? '🧳 ' : '';
+        tabsHtml += '<button type="button" onclick="selectGearCategory(\'' + cat + '\')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ' + (isActive ? 'gear-cat-active' : (cat === '旅行' ? 'bg-sky-50/70 border-sky-200 text-sky-900 hover:bg-sky-100' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100')) + '">' +
+          badgeIcon + cat + ' (' + catDone + '/' + catItems.length + ')' +
         '</button>';
       });
       tabsContainer.innerHTML = tabsHtml;
@@ -3705,23 +3733,28 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || getLocal
         : gearList.filter(function(g) { return g.category === currentSelectedGearCategory; });
 
       if (filteredItems.length === 0) {
-        itemsContainer.innerHTML = '<div class="p-8 text-center text-stone-400 text-xs">該分類尚無任何物品，點擊右上角新增物品吧！</div>';
+        itemsContainer.innerHTML = '<div class="p-8 text-center text-stone-400 text-xs">該分類尚無任何物品，點擊右上角「＋ 新增物品」建立清單吧！</div>';
         return;
       }
 
       itemsContainer.innerHTML = filteredItems.map(function(item) {
-        return '<div class="flex items-start justify-between p-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-white hover:border-amber-700/40 transition">' +
-          '<label class="flex items-start gap-2.5 cursor-pointer flex-1">' +
-            '<input type="checkbox" onchange="toggleGear(\'' + item.id + '\', this.checked)" ' + (item.checked ? 'checked' : '') + ' class="mt-0.5 rounded text-amber-800 w-4 h-4 cursor-pointer">' +
-            '<div>' +
-              '<div class="flex items-center gap-2">' +
+        var assignBtnHtml = (item.category === '旅行')
+          ? '<button type="button" onclick="assignTravelGearToLuggage(\'' + item.id + '\')" class="px-2 py-1 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-[11px] font-bold cursor-pointer transition whitespace-nowrap" title="複製分配到指定行李箱">📦 分配行李</button>'
+          : '';
+
+        return '<div class="flex items-start justify-between gap-2 p-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-white hover:border-amber-700/40 transition">' +
+          '<label class="flex items-start gap-2.5 cursor-pointer flex-1 min-w-0">' +
+            '<input type="checkbox" onchange="toggleGear(\'' + item.id + '\', this.checked)" ' + (item.checked ? 'checked' : '') + ' class="mt-0.5 rounded text-amber-800 w-4 h-4 cursor-pointer shrink-0">' +
+            '<div class="min-w-0">' +
+              '<div class="flex flex-wrap items-center gap-1.5">' +
                 '<span class="text-xs font-bold ' + (item.checked ? 'line-through text-stone-400' : 'text-stone-800') + '">' + item.label + '</span>' +
                 (currentSelectedGearCategory === 'ALL' ? ('<span class="px-1.5 py-0.2 bg-stone-200 text-stone-600 rounded text-[10px]">' + item.category + '</span>') : '') +
               '</div>' +
               (item.sublines && item.sublines.length ? ('<p class="text-[11px] text-stone-500 mt-0.5 leading-relaxed">' + item.sublines.join(' / ') + '</p>') : '') +
             '</div>' +
           '</label>' +
-          '<div class="flex items-center gap-1.5">' +
+          '<div class="flex items-center gap-1.5 shrink-0">' +
+            assignBtnHtml +
             '<button type="button" onclick="editGearItem(\'' + item.id + '\')" class="text-stone-400 hover:text-amber-800 text-xs p-1 cursor-pointer font-medium" title="修改內容">✏️</button>' +
             '<button type="button" onclick="deleteGearItem(\'' + item.id + '\')" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer transition" title="刪除此物品">✕</button>' +
           '</div>' +
@@ -3732,6 +3765,99 @@ document.getElementById("eventDate").value = selectedCalendarDateStr || getLocal
     window.selectGearCategory = function(cat) {
       currentSelectedGearCategory = cat;
       renderGear();
+    };
+
+    // 點擊「🧳 旅行」按鈕：切換到旅行通用母清單，若尚無內容可一鍵匯入常用範本
+    window.openTravelMasterGear = function() {
+      ensureTravelCategoryExists();
+      currentSelectedGearCategory = '旅行';
+      var travelItems = (appState.gear || []).filter(function(g) { return g.category === '旅行'; });
+      if (travelItems.length === 0) {
+        if (confirm("🧳「旅行」通用母清單目前是空的！\n是否要先一鍵建立常用出遊必備物品範本（護照證件、轉接頭、行動電源、常備藥等）？\n（按「取消」可自己手動逐項新增）")) {
+          var starterList = [
+            { label: "護照 / 簽證影本 / 駕照譯本", sublines: ["重要證件隨身攜帶"] },
+            { label: "萬國轉接頭 / 充電線 / 行動電源", sublines: ["行動電源務必放隨身手提行李"] },
+            { label: "個人常備藥品 / 腸胃藥 / 止痛藥", sublines: ["建議保留原包裝說明"] },
+            { label: "換洗衣物 / 貼身衣物 / 睡衣", sublines: ["依天數調整"] },
+            { label: "盥洗包 / 牙刷牙膏 / 保養品小樣", sublines: ["液體單瓶不超過 100ml（若隨身）"] }
+          ];
+          starterList.forEach(function(s, idx) {
+            appState.gear.push({
+              id: "gear_travel_" + Date.now() + "_" + idx,
+              category: "旅行",
+              label: s.label,
+              sublines: s.sublines,
+              checked: false
+            });
+          });
+        }
+      }
+      saveState();
+      renderGear();
+    };
+
+    // 將「旅行」清單物品複製分配到指定行李箱分類
+    window.assignTravelGearToLuggage = function(itemId) {
+      var item = (appState.gear || []).find(function(g) { return g.id === itemId; });
+      if (!item) return;
+
+      var existingLuggages = (appState.gearCategories || []).filter(function(c) { return c !== '旅行'; });
+      var hint = existingLuggages.length > 0 ? ("\n現有行李/分類：" + existingLuggages.join("、")) : "";
+      var targetCat = prompt("📦 要將「" + item.label + "」分配到哪一個行李箱？\n請輸入行李名稱（例如：隨身登機箱、托運行李箱、隨身背包）：" + hint, existingLuggages[0] || "隨身登機箱");
+
+      if (!targetCat || !targetCat.trim()) return;
+      targetCat = targetCat.trim();
+
+      if (appState.gearCategories.indexOf(targetCat) === -1) {
+        appState.gearCategories.push(targetCat);
+      }
+
+      appState.gear.push({
+        id: "gear_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+        category: targetCat,
+        label: item.label,
+        sublines: (item.sublines || []).slice(),
+        checked: false
+      });
+
+      saveState();
+      renderGear();
+      if (typeof showGlobalToast === 'function') {
+        showGlobalToast('✅ 已將「' + item.label + '」分配至【' + targetCat + '】！');
+      }
+    };
+
+    // 一鍵清理 / 重置裝備清單
+    window.resetOrClearGearItems = function() {
+      var scopeName = currentSelectedGearCategory === "ALL" ? "全部裝備清單" : ("【" + currentSelectedGearCategory + "】分類");
+      var mode = prompt(
+        "🧹 整理完成！請輸入要執行的清理模式代號（範圍：" + scopeName + "）：\n\n" +
+        "1 = 取消所有已勾選狀態（保留物品文字，方便下次重新打包）\n" +
+        "2 = 徹底清空該範圍內的所有物品項目（無法復原）",
+        "1"
+      );
+
+      if (mode === "1") {
+        (appState.gear || []).forEach(function(g) {
+          if (currentSelectedGearCategory === "ALL" || g.category === currentSelectedGearCategory) {
+            g.checked = false;
+          }
+        });
+        saveState();
+        renderGear();
+        if (typeof showGlobalToast === 'function') showGlobalToast('🔄 已將' + scopeName + '恢復為未勾選狀態！');
+      } else if (mode === "2") {
+        if (confirm("⚠️ 確定要徹底刪除「" + scopeName + "」裡的所有物品嗎？")) {
+          if (currentSelectedGearCategory === "ALL") {
+            appState.gear = [];
+          } else {
+            appState.gear = (appState.gear || []).filter(function(g) { return g.category !== currentSelectedGearCategory; });
+          }
+          saveState();
+          renderGear();
+          if (typeof showGlobalToast === 'function') showGlobalToast('🗑️ 已清空' + scopeName + '！');
+        }
+      }
     };
 
     window.toggleGear = function(id, chk) {
@@ -4962,44 +5088,86 @@ window.openAddCustomTownModal = function() {
       var tempSearchPreviewMarker = null;
       var lastSearchCandidates = [];
 
-      window.searchTownPlaceOnMap = function() {
+     window.searchTownPlaceOnMap = function() {
         if (!activeTownId) return;
         var town = getTownById(activeTownId);
         var input = document.getElementById('map-place-search-input');
         var resultsBox = document.getElementById('map-place-search-results');
         var btn = document.getElementById('map-place-search-btn');
-        var query = input ? input.value.trim() : '';
+        var rawQuery = input ? input.value.trim() : '';
 
-        if (!query) {
-          showGlobalToast('⚠️ 請先輸入要搜尋的店名或地址！');
+        if (!rawQuery) {
+          showGlobalToast('⚠️ 請先輸入要搜尋的店名、地址或貼上 Google Maps 網址！');
+          return;
+        }
+
+        resultsBox.classList.remove('hidden');
+
+        // 1. 若直接貼上 Google Maps 完整網址，優先解析內含經緯度 (@lat,lng 或 !3dlat!4dlng)
+        var coordMatch = rawQuery.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || rawQuery.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+        var placeNameMatch = rawQuery.match(/\/maps\/place\/([^\/\@\?]+)/);
+        var extractedName = placeNameMatch ? decodeURIComponent(placeNameMatch[1].replace(/\+/g, ' ')) : '';
+
+        if (coordMatch) {
+          var parsedLat = parseFloat(coordMatch[1]);
+          var parsedLng = parseFloat(coordMatch[2]);
+          var displayTitle = extractedName || 'Google Maps 定位點';
+          lastSearchCandidates = [{
+            name: displayTitle,
+            display_name: displayTitle + ' (' + parsedLat.toFixed(5) + ', ' + parsedLng.toFixed(5) + ')',
+            lat: parsedLat,
+            lon: parsedLng
+          }];
+          resultsBox.innerHTML =
+            '<div class="flex justify-between items-center text-[10px] text-emerald-700 font-bold px-1">' +
+              '<span>✅ 已從 Google Maps 網址解析精準座標：</span>' +
+              '<button type="button" onclick="closeMapSearchResults()" class="text-stone-500 hover:text-stone-800 cursor-pointer !min-h-0">✕</button>' +
+            '</div>' +
+            '<div class="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200 space-y-1.5 mt-1">' +
+              '<div class="font-bold text-xs text-stone-900">' + escapeMapHTML(displayTitle) + '</div>' +
+              '<div class="text-[10px] font-mono text-stone-600">座標：' + parsedLat.toFixed(5) + ', ' + parsedLng.toFixed(5) + '</div>' +
+              '<button type="button" onclick="confirmAddSearchedPlace(0)" class="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded transition cursor-pointer !min-h-0">📌 設為本鎮新地標</button>' +
+            '</div>';
+          previewSearchCandidate(0);
+          return;
+        }
+
+        // 若貼上 Google Maps 網址但無明碼座標（如 maps.app.goo.gl 短網址），擷取店名或提示
+        var query = extractedName || rawQuery;
+        if (/^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(rawQuery)) {
+          resultsBox.innerHTML =
+            '<div class="p-2 text-[11px] text-amber-900 bg-amber-50 rounded-lg border border-amber-200 space-y-1">' +
+              '<p class="font-bold">⚠️ 短網址無法直接讀取座標</p>' +
+              '<p class="text-[10px] leading-relaxed">請在瀏覽器打開該短網址後複製<strong>完整網址列</strong>貼上，或直接貼上該店家的<strong>英文地址 / 店名</strong>即可精準定位！</p>' +
+            '</div>';
           return;
         }
 
         btn.textContent = '...';
         btn.disabled = true;
-        resultsBox.classList.remove('hidden');
-        resultsBox.innerHTML = '<div class="text-[11px] text-stone-500 py-2 text-center">正在搜尋周邊地點...</div>';
+        resultsBox.innerHTML = '<div class="text-[11px] text-stone-500 py-2 text-center">正在搜尋地點與地址...</div>';
 
-        // 以當前城鎮為中心建立約 ±0.25 度（約 25 公里）優先搜尋框
-        var delta = 0.25;
+        var delta = 0.35;
         var viewbox = (town.lng - delta) + ',' + (town.lat + delta) + ',' + (town.lng + delta) + ',' + (town.lat - delta);
-        var searchQuery = query + (town.name ? (' ' + town.name.replace(/\(.*\)/, '').trim()) : '');
+        // 清理常見地址後綴（如 Australia、郵遞區號）以提升 OSM 命中率
+        var cleanedAddr = query.replace(/,?\s*Australia$/i, '').replace(/\b(QLD|NSW|VIC|WA|SA|TAS|NT|ACT)\s*\d{4}\b/gi, '$1').trim();
+        var townClean = town.name ? town.name.replace(/\(.*\)/, '').trim() : '';
 
-        var apiUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1' +
-          '&viewbox=' + encodeURIComponent(viewbox) +
-          '&q=' + encodeURIComponent(searchQuery);
+        function queryOsm(qStr, useViewbox) {
+          var u = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1&q=' + encodeURIComponent(qStr);
+          if (useViewbox) u += '&viewbox=' + encodeURIComponent(viewbox);
+          return fetch(u, { headers: { 'Accept-Language': 'en,zh-TW' } }).then(function(r) { return r.json(); });
+        }
 
-        fetch(apiUrl, { headers: { 'Accept-Language': 'zh-TW,en' } })
-          .then(function(res) { return res.json(); })
-          .then(function(data) {
-            // 若加上城鎮名稱找不到，改用純關鍵字搭配 viewbox 再搜一次
-            if (!data || data.length === 0) {
-              var fallbackUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1' +
-                '&viewbox=' + encodeURIComponent(viewbox) +
-                '&q=' + encodeURIComponent(query);
-              return fetch(fallbackUrl, { headers: { 'Accept-Language': 'zh-TW,en' } }).then(function(r) { return r.json(); });
-            }
-            return data;
+        // 依序嘗試：1. 原始輸入 2. 清理後地址 3. 店名 + 城鎮名
+        queryOsm(query, true)
+          .then(function(d1) {
+            if (d1 && d1.length > 0) return d1;
+            return queryOsm(cleanedAddr, false);
+          })
+          .then(function(d2) {
+            if (d2 && d2.length > 0) return d2;
+            return queryOsm(cleanedAddr + ' ' + townClean, false);
           })
           .then(function(list) {
             btn.textContent = '搜尋';
@@ -5009,8 +5177,8 @@ window.openAddCustomTownModal = function() {
             if (lastSearchCandidates.length === 0) {
               resultsBox.innerHTML =
                 '<div class="p-2 text-[11px] text-stone-500 text-center space-y-1">' +
-                  '<p>找不到「' + escapeMapHTML(query) + '」的精準座標</p>' +
-                  '<p class="text-[10px] text-amber-800">💡 建議輸入英文店名或路名（如：Cambridge St）</p>' +
+                  '<p>找不到「' + escapeMapHTML(query) + '」的座標</p>' +
+                  '<p class="text-[10px] text-amber-800">💡 建議貼上 Google Maps 完整網址（含 @緯度,經度）或只輸入門牌＋路名（如：52 Cambridge St）</p>' +
                 '</div>';
               return;
             }
@@ -5033,7 +5201,6 @@ window.openAddCustomTownModal = function() {
                 '</div>';
               }).join('');
 
-            // 自動飛到第一筆結果預覽位置
             previewSearchCandidate(0);
           })
           .catch(function() {
@@ -5334,7 +5501,6 @@ return '<button type="button" onclick="selectTownPlace(\'' + p.id + '\', true)" 
                 '<div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 text-white shadow-2xs font-bold relative" style="background-color: ' + (visited ? '#059669' : p.color) + '">' +
                   p.iconText +
                   (visited ? '<span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-800 border border-white text-[8px] flex items-center justify-center">✓</span>' : '') +
-                '</div>' +
                 '</div>' +
                 '<div class="flex-1 min-w-0">' +
                   '<div class="flex items-center justify-between gap-1">' +
