@@ -2941,7 +2941,34 @@ var isNoFilter = (!forceShowAllTransactions && fType === "ALL" && fCat === "ALL"
       }
     };
 
-   
+   window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, note) {
+      if (typeof window.openTxModal === 'function') {
+        window.openTxModal(type);
+      }
+      var currSelect = document.getElementById('txCurrency');
+      if (currSelect && currency) {
+        currSelect.value = currency;
+        if (typeof handleTxCurrencyChange === 'function') handleTxCurrencyChange();
+      }
+      var catEl = document.getElementById('txCategorySelect');
+      if (catEl && categoryKeyword) {
+        for (var i = 0; i < catEl.options.length; i++) {
+          if (catEl.options[i].value.indexOf(categoryKeyword) !== -1 || catEl.options[i].text.indexOf(categoryKeyword) !== -1) {
+            catEl.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      var amtEl = document.getElementById('txAmount');
+      if (amtEl) {
+        amtEl.value = amount || '';
+        setTimeout(function() { amtEl.focus(); }, 60);
+      }
+      var noteEl = document.getElementById('txNote');
+      if (noteEl && note) noteEl.value = note;
+    };
+
+    window.openTxModal = function(type, existingTx) {
     window.openTxModal = function(type, existingTx) {
       document.getElementById("txId").value = existingTx ? existingTx.id : "";
       document.getElementById("txType").value = existingTx ? existingTx.type : type;
@@ -3694,6 +3721,14 @@ function ensureTravelCategoryExists() {
       if (!appState.gear) appState.gear = (typeof DEFAULT_GEAR !== 'undefined' ? DEFAULT_GEAR.slice() : []);
     }
 
+ function ensureTravelCategoryExists() {
+      if (!appState.gearCategories) appState.gearCategories = (typeof DEFAULT_GEAR_CATEGORIES !== 'undefined' ? DEFAULT_GEAR_CATEGORIES.slice() : []);
+      if (appState.gearCategories.indexOf('旅行') === -1) {
+        appState.gearCategories.unshift('旅行');
+      }
+      if (!appState.gear) appState.gear = (typeof DEFAULT_GEAR !== 'undefined' ? DEFAULT_GEAR.slice() : []);
+    }
+
     function renderGear() {
       var tabsContainer = document.getElementById("gearCategoryTabs");
       var itemsContainer = document.getElementById("gearItemsContainer");
@@ -3728,22 +3763,45 @@ function ensureTravelCategoryExists() {
       });
       tabsContainer.innerHTML = tabsHtml;
 
+      // 行內「一鍵清理確認列」（預設隱藏，點擊一鍵清理按鈕時展開）
+      var clearBarHtml =
+        '<div id="gearInlineClearBar" class="hidden mb-3 p-3 rounded-xl bg-rose-50 border border-rose-200 flex flex-wrap items-center justify-between gap-2 text-xs">' +
+          '<span class="font-bold text-rose-900">🧹 整理完成！請選擇操作（範圍：' + (currentSelectedGearCategory === 'ALL' ? '全部物品' : currentSelectedGearCategory) + '）：</span>' +
+          '<div class="flex flex-wrap items-center gap-1.5">' +
+            '<button type="button" onclick="executeGearClearAction(\'uncheck\')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 font-bold cursor-pointer !min-h-0">🔄 取消全部勾選（保留清單）</button>' +
+            '<button type="button" onclick="executeGearClearAction(\'delete\')" class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold cursor-pointer !min-h-0">🗑️ 清空此範圍物品</button>' +
+            '<button type="button" onclick="document.getElementById(\'gearInlineClearBar\').classList.add(\'hidden\')" class="px-2 py-1 rounded-lg text-stone-500 hover:text-stone-800 font-bold cursor-pointer !min-h-0">取消</button>' +
+          '</div>' +
+        '</div>';
+
       var filteredItems = currentSelectedGearCategory === "ALL" 
         ? gearList 
         : gearList.filter(function(g) { return g.category === currentSelectedGearCategory; });
 
       if (filteredItems.length === 0) {
-        itemsContainer.innerHTML = '<div class="p-8 text-center text-stone-400 text-xs">該分類尚無任何物品，點擊右上角「＋ 新增物品」建立清單吧！</div>';
+        itemsContainer.innerHTML = clearBarHtml + '<div class="p-8 text-center text-stone-400 text-xs">該分類尚無任何物品，點擊右上角「＋ 新增物品」建立清單吧！</div>';
         return;
       }
 
-      itemsContainer.innerHTML = filteredItems.map(function(item) {
-        var assignBtnHtml = (item.category === '旅行')
-          ? '<button type="button" onclick="assignTravelGearToLuggage(\'' + item.id + '\')" class="px-2 py-1 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-[11px] font-bold cursor-pointer transition whitespace-nowrap" title="複製分配到指定行李箱">📦 分配行李</button>'
+      var rowsHtml = filteredItems.map(function(item) {
+        // 目標分類選項（排除目前所屬分類）
+        var otherCats = categoriesList.filter(function(c) { return c !== item.category; });
+        var moveOptions = '<option value="">⇄ 移動到...</option>' +
+          otherCats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+
+        var copySelectHtml = '';
+        if (item.category === '旅行' && otherCats.length > 0) {
+          var copyOptions = '<option value="">📦 分配行李...</option>' +
+            otherCats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+          copySelectHtml = '<select onchange="copyGearItemToCategory(\'' + item.id + '\', this.value); this.selectedIndex=0;" class="px-2 py-1 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200 text-[11px] font-bold cursor-pointer !min-h-0" title="複製分配到指定行李箱">' + copyOptions + '</select>';
+        }
+
+        var moveSelectHtml = otherCats.length > 0
+          ? '<select onchange="moveGearItemToCategory(\'' + item.id + '\', this.value); this.selectedIndex=0;" class="px-2 py-1 rounded-md bg-white hover:bg-amber-50 text-stone-700 border border-stone-300 text-[11px] font-semibold cursor-pointer !min-h-0" title="移動此物品到其他分類">' + moveOptions + '</select>'
           : '';
 
-        return '<div class="flex items-start justify-between gap-2 p-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-white hover:border-amber-700/40 transition">' +
-          '<label class="flex items-start gap-2.5 cursor-pointer flex-1 min-w-0">' +
+        return '<div class="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2 p-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-white hover:border-amber-700/40 transition">' +
+          '<label class="flex items-start gap-2.5 cursor-pointer flex-1 min-w-[180px]">' +
             '<input type="checkbox" onchange="toggleGear(\'' + item.id + '\', this.checked)" ' + (item.checked ? 'checked' : '') + ' class="mt-0.5 rounded text-amber-800 w-4 h-4 cursor-pointer shrink-0">' +
             '<div class="min-w-0">' +
               '<div class="flex flex-wrap items-center gap-1.5">' +
@@ -3753,13 +3811,16 @@ function ensureTravelCategoryExists() {
               (item.sublines && item.sublines.length ? ('<p class="text-[11px] text-stone-500 mt-0.5 leading-relaxed">' + item.sublines.join(' / ') + '</p>') : '') +
             '</div>' +
           '</label>' +
-          '<div class="flex items-center gap-1.5 shrink-0">' +
-            assignBtnHtml +
-            '<button type="button" onclick="editGearItem(\'' + item.id + '\')" class="text-stone-400 hover:text-amber-800 text-xs p-1 cursor-pointer font-medium" title="修改內容">✏️</button>' +
-            '<button type="button" onclick="deleteGearItem(\'' + item.id + '\')" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer transition" title="刪除此物品">✕</button>' +
+          '<div class="flex flex-wrap items-center gap-1.5 shrink-0">' +
+            copySelectHtml +
+            moveSelectHtml +
+            '<button type="button" onclick="editGearItem(\'' + item.id + '\')" class="text-stone-400 hover:text-amber-800 text-xs p-1 cursor-pointer font-medium !min-h-0" title="修改內容">✏️</button>' +
+            '<button type="button" onclick="deleteGearItem(\'' + item.id + '\')" class="text-stone-300 hover:text-rose-600 p-1 cursor-pointer transition !min-h-0" title="刪除此物品">✕</button>' +
           '</div>' +
         '</div>';
       }).join('');
+
+      itemsContainer.innerHTML = clearBarHtml + rowsHtml;
     }
 
     window.selectGearCategory = function(cat) {
@@ -3767,6 +3828,88 @@ function ensureTravelCategoryExists() {
       renderGear();
     };
 
+    window.moveGearItemToCategory = function(itemId, targetCategory) {
+      if (!targetCategory) return;
+      var item = (appState.gear || []).find(function(g) { return g.id === itemId; });
+      if (!item) return;
+      item.category = targetCategory;
+      saveState();
+      renderGear();
+      if (typeof showGlobalToast === 'function') {
+        showGlobalToast('⇄ 已將「' + item.label + '」移動至【' + targetCategory + '】');
+      }
+    };
+
+    window.copyGearItemToCategory = function(itemId, targetCategory) {
+      if (!targetCategory) return;
+      var item = (appState.gear || []).find(function(g) { return g.id === itemId; });
+      if (!item) return;
+      appState.gear.push({
+        id: "gear_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+        category: targetCategory,
+        label: item.label,
+        sublines: (item.sublines || []).slice(),
+        checked: false
+      });
+      saveState();
+      renderGear();
+      if (typeof showGlobalToast === 'function') {
+        showGlobalToast('📦 已將「' + item.label + '」複製分配至【' + targetCategory + '】');
+      }
+    };
+
+    window.openTravelMasterGear = function() {
+      ensureTravelCategoryExists();
+      currentSelectedGearCategory = '旅行';
+      var travelItems = (appState.gear || []).filter(function(g) { return g.category === '旅行'; });
+      if (travelItems.length === 0) {
+        var starterList = [
+          { label: "護照 / 簽證影本 / 駕照譯本", sublines: ["重要證件隨身攜帶"] },
+          { label: "萬國轉接頭 / 充電線 / 行動電源", sublines: ["行動電源務必放隨身手提行李"] },
+          { label: "個人常備藥品 / 腸胃藥 / 止痛藥", sublines: ["建議保留原包裝說明"] },
+          { label: "換洗衣物 / 貼身衣物 / 睡衣", sublines: ["依天數調整"] },
+          { label: "盥洗包 / 牙刷牙膏 / 保養品小樣", sublines: ["液體單瓶不超過 100ml（若隨身）"] }
+        ];
+        starterList.forEach(function(s, idx) {
+          appState.gear.push({
+            id: "gear_travel_" + Date.now() + "_" + idx,
+            category: "旅行",
+            label: s.label,
+            sublines: s.sublines,
+            checked: false
+          });
+        });
+      }
+      saveState();
+      renderGear();
+    };
+
+    window.resetOrClearGearItems = function() {
+      var bar = document.getElementById('gearInlineClearBar');
+      if (bar) bar.classList.toggle('hidden');
+    };
+
+    window.executeGearClearAction = function(action) {
+      if (action === 'uncheck') {
+        (appState.gear || []).forEach(function(g) {
+          if (currentSelectedGearCategory === "ALL" || g.category === currentSelectedGearCategory) {
+            g.checked = false;
+          }
+        });
+        saveState();
+        renderGear();
+        if (typeof showGlobalToast === 'function') showGlobalToast('🔄 已重置勾選狀態！');
+      } else if (action === 'delete') {
+        if (currentSelectedGearCategory === "ALL") {
+          appState.gear = [];
+        } else {
+          appState.gear = (appState.gear || []).filter(function(g) { return g.category !== currentSelectedGearCategory; });
+        }
+        saveState();
+        renderGear();
+        if (typeof showGlobalToast === 'function') showGlobalToast('🗑️ 已清空該分類物品！');
+      }
+    };
     // 點擊「🧳 旅行」按鈕：切換到旅行通用母清單，若尚無內容可一鍵匯入常用範本
     window.openTravelMasterGear = function() {
       ensureTravelCategoryExists();
@@ -5224,26 +5367,66 @@ window.openAddCustomTownModal = function() {
         bMap.flyTo([lat, lng], 17, { duration: 0.7 });
       };
 
-      window.confirmAddSearchedPlace = function(idx) {
-        if (!activeTownId) return;
-        var item = lastSearchCandidates[idx];
-        if (!item) return;
+     var pendingMapPlaceDraft = null;
+      var selectedInlinePlaceCat = '2';
 
-        var defaultName = item.name || item.display_name.split(',')[0];
-        var finalName = prompt("請確認或修改地標名稱：", defaultName);
-        if (!finalName || !finalName.trim()) return;
+      window.openInlineAddPlaceForm = function(defaultName, lat, lng, address) {
+        var resultsBox = document.getElementById('map-place-search-results');
+        if (!resultsBox) return;
+        pendingMapPlaceDraft = { lat: lat, lng: lng, address: address || ('自訂座標 (' + lat + ', ' + lng + ')') };
+        selectedInlinePlaceCat = '2';
+        resultsBox.classList.remove('hidden');
 
-        var catChoice = prompt("請選擇分類代號：\n1 = 餐飲/酒吧\n2 = 超市/商店\n3 = 生活/機構\n4 = 景點/休閒", "2");
+        resultsBox.innerHTML =
+          '<div class="p-2.5 rounded-xl bg-amber-50/90 border border-amber-300 space-y-2">' +
+            '<div class="flex items-center justify-between">' +
+              '<span class="font-bold text-[11px] text-amber-950">📌 設定新地標名稱與分類</span>' +
+              '<button type="button" onclick="closeMapSearchResults()" class="text-stone-500 hover:text-stone-800 font-bold cursor-pointer !min-h-0">✕</button>' +
+            '</div>' +
+            '<input type="text" id="inline-new-place-name" value="' + escapeMapHTML(defaultName || '') + '" placeholder="輸入地標顯示名稱..." class="w-full px-2.5 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold text-stone-900 focus:outline-none !min-h-0">' +
+            '<div class="grid grid-cols-2 gap-1 text-[11px]" id="inline-place-cat-btns">' +
+              '<button type="button" onclick="selectInlinePlaceCategory(\'1\')" data-cat="1" class="inline-cat-btn py-1 px-2 rounded-lg border border-stone-200 bg-white font-semibold text-stone-700 cursor-pointer !min-h-0">🍔 餐飲/酒吧</button>' +
+              '<button type="button" onclick="selectInlinePlaceCategory(\'2\')" data-cat="2" class="inline-cat-btn py-1 px-2 rounded-lg border border-amber-600 bg-amber-800 text-white font-bold cursor-pointer !min-h-0">🛒 超市/商店</button>' +
+              '<button type="button" onclick="selectInlinePlaceCategory(\'3\')" data-cat="3" class="inline-cat-btn py-1 px-2 rounded-lg border border-stone-200 bg-white font-semibold text-stone-700 cursor-pointer !min-h-0">📮 生活/機構</button>' +
+              '<button type="button" onclick="selectInlinePlaceCategory(\'4\')" data-cat="4" class="inline-cat-btn py-1 px-2 rounded-lg border border-stone-200 bg-white font-semibold text-stone-700 cursor-pointer !min-h-0">♨️ 景點/休閒</button>' +
+            '</div>' +
+            '<button type="button" onclick="submitInlineNewPlace()" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-xs cursor-pointer !min-h-0">✅ 確認儲存地標</button>' +
+          '</div>';
+
+        var nameInput = document.getElementById('inline-new-place-name');
+        if (nameInput) setTimeout(function() { nameInput.focus(); }, 50);
+      };
+
+      window.selectInlinePlaceCategory = function(catKey) {
+        selectedInlinePlaceCat = catKey;
+        document.querySelectorAll('.inline-cat-btn').forEach(function(btn) {
+          if (btn.getAttribute('data-cat') === catKey) {
+            btn.className = 'inline-cat-btn py-1 px-2 rounded-lg border border-amber-600 bg-amber-800 text-white font-bold cursor-pointer !min-h-0';
+          } else {
+            btn.className = 'inline-cat-btn py-1 px-2 rounded-lg border border-stone-200 bg-white font-semibold text-stone-700 cursor-pointer !min-h-0';
+          }
+        });
+      };
+
+      window.submitInlineNewPlace = function() {
+        if (!activeTownId || !pendingMapPlaceDraft) return;
+        var nameInput = document.getElementById('inline-new-place-name');
+        var finalName = nameInput ? nameInput.value.trim() : '';
+        if (!finalName) {
+          showGlobalToast('⚠️ 請輸入地標名稱！');
+          if (nameInput) nameInput.focus();
+          return;
+        }
+
         var catMap = {
           '1': { category: 'food', label: '餐飲 / 酒吧', color: '#f59e0b', icon: '🍔' },
           '2': { category: 'shop', label: '超市 / 商店', color: '#0ea5e9', icon: '🛍️' },
           '3': { category: 'service', label: '生活 / 機構', color: '#8b5cf6', icon: '🏢' },
           '4': { category: 'spot', label: '景點 / 休閒', color: '#f43f5e', icon: '📍' }
         };
-        var chosen = catMap[catChoice] || catMap['2'];
-
-        var lat = Number(parseFloat(item.lat).toFixed(6));
-        var lng = Number(parseFloat(item.lon).toFixed(6));
+        var chosen = catMap[selectedInlinePlaceCat] || catMap['2'];
+        var lat = pendingMapPlaceDraft.lat;
+        var lng = pendingMapPlaceDraft.lng;
 
         ensureTownsState();
         if (!appState.customPlacesByTown[activeTownId]) appState.customPlacesByTown[activeTownId] = [];
@@ -5251,25 +5434,36 @@ window.openAddCustomTownModal = function() {
         var newPlaceId = 'custom_place_' + Date.now();
         appState.customPlacesByTown[activeTownId].push({
           id: newPlaceId,
-          name: finalName.trim(),
+          name: finalName,
           category: chosen.category,
           categoryLabel: chosen.label,
           color: chosen.color,
           iconText: chosen.icon,
           lat: lat,
           lng: lng,
-          address: item.display_name,
-          features: '透過地圖搜尋新增的自訂地點。',
-          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(finalName.trim() + ' ' + lat + ',' + lng)
+          address: pendingMapPlaceDraft.address,
+          features: '透過地圖新增的自訂地點。',
+          googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(finalName + ' ' + lat + ',' + lng)
         });
 
+        pendingMapPlaceDraft = null;
         closeMapSearchResults();
-        document.getElementById('map-place-search-input').value = '';
+        var sInput = document.getElementById('map-place-search-input');
+        if (sInput) sInput.value = '';
         saveState();
         updateTownProgressBadges();
         renderTownMarkers();
         selectTownPlace(newPlaceId, false);
-        showGlobalToast('✅ 已透過搜尋新增地標：「' + finalName.trim() + '」');
+        showGlobalToast('✅ 已新增地標：「' + finalName + '」');
+      };
+
+      window.confirmAddSearchedPlace = function(idx) {
+        var item = lastSearchCandidates[idx];
+        if (!item) return;
+        var defaultName = item.name || item.display_name.split(',')[0];
+        var lat = Number(parseFloat(item.lat).toFixed(6));
+        var lng = Number(parseFloat(item.lon).toFixed(6));
+        openInlineAddPlaceForm(defaultName, lat, lng, item.display_name);
       };
 
       window.closeMapSearchResults = function() {
@@ -5558,47 +5752,15 @@ return '<button type="button" onclick="selectTownPlace(\'' + p.id + '\', true)" 
           dashArray: '8, 6'
         }).addTo(bMap).bindTooltip('🛣️ Cambridge Street 主街商圈路線', { sticky: true, className: 'transit-label' });
 
-        // 點擊地圖任意空白處，可新增自訂商店地標
+      // 點擊地圖任意空白處，直接在右上角面板開啟按鈕式新增表單
         bMap.on('click', function(e) {
           if (!activeTownId) return;
           var lat = Number(e.latlng.lat.toFixed(6));
           var lng = Number(e.latlng.lng.toFixed(6));
 
-          var name = prompt("📌 在此座標新增自訂地標！\n請輸入商店或地點名稱（取消則不新增）：");
-          if (!name || !name.trim()) return;
-
-          var catChoice = prompt("請選擇分類代號：\n1 = 餐飲/酒吧\n2 = 超市/商店\n3 = 生活/機構\n4 = 景點/休閒", "1");
-          var catMap = {
-            '1': { category: 'food', label: '餐飲 / 酒吧', color: '#f59e0b', icon: '🍔' },
-            '2': { category: 'shop', label: '超市 / 商店', color: '#0ea5e9', icon: '🛍️' },
-            '3': { category: 'service', label: '生活 / 機構', color: '#8b5cf6', icon: '🏢' },
-            '4': { category: 'spot', label: '景點 / 休閒', color: '#f43f5e', icon: '📍' }
-          };
-          var chosen = catMap[catChoice] || catMap['4'];
-
-          ensureTownsState();
-          if (!appState.customPlacesByTown[activeTownId]) appState.customPlacesByTown[activeTownId] = [];
-
-          var newPlaceId = 'custom_place_' + Date.now();
-          appState.customPlacesByTown[activeTownId].push({
-            id: newPlaceId,
-            name: name.trim(),
-            category: chosen.category,
-            categoryLabel: chosen.label,
-            color: chosen.color,
-            iconText: chosen.icon,
-            lat: lat,
-            lng: lng,
-            address: '自訂座標 (' + lat + ', ' + lng + ')',
-            features: '手動在地圖上標記的自訂地點。',
-            googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng
-          });
-
-          saveState();
-          updateTownProgressBadges();
-          renderTownMarkers();
-          selectTownPlace(newPlaceId, false);
-          showGlobalToast('✅ 已新增自訂地標：「' + name.trim() + '」');
+          if (tempSearchPreviewMarker) bMap.removeLayer(tempSearchPreviewMarker);
+          tempSearchPreviewMarker = L.marker([lat, lng]).addTo(bMap);
+          openInlineAddPlaceForm('', lat, lng, '自訂座標 (' + lat + ', ' + lng + ')');
         });
 
         // 篩選器事件綁定
