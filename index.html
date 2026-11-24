@@ -2941,7 +2941,7 @@ var isNoFilter = (!forceShowAllTransactions && fType === "ALL" && fCat === "ALL"
       }
     };
 
-   window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, note) {
+  window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, note) {
       if (typeof window.openTxModal === 'function') {
         window.openTxModal(type);
       }
@@ -2968,7 +2968,7 @@ var isNoFilter = (!forceShowAllTransactions && fType === "ALL" && fCat === "ALL"
       if (noteEl && note) noteEl.value = note;
     };
 
-    window.openTxModal = function(type, existingTx) {
+  
     window.openTxModal = function(type, existingTx) {
       document.getElementById("txId").value = existingTx ? existingTx.id : "";
       document.getElementById("txType").value = existingTx ? existingTx.type : type;
@@ -3938,7 +3938,6 @@ function ensureTravelCategoryExists() {
       saveState();
       renderGear();
     };
-
     // 將「旅行」清單物品複製分配到指定行李箱分類
     window.assignTravelGearToLuggage = function(itemId) {
       var item = (appState.gear || []).find(function(g) { return g.id === itemId; });
