@@ -309,15 +309,11 @@
             <p id="goal-gap-text" class="text-[11px] text-stone-300 mt-1">距離目標還差約 A$ 0</p>
           </div>
         </div>
-        <!-- 🐷 10% 階梯式小豬撲滿視覺化 -->
-<div class="flex items-center gap-3 my-2 bg-stone-800/70 border border-stone-700/80 rounded-xl p-2.5">
-  <div id="piggy-bank-visual" class="w-24 h-20 shrink-0 flex items-center justify-center"></div>
-  <div class="text-[11px] space-y-1 flex-1">
-    <div class="flex items-center justify-between">
-      <span class="font-bold text-amber-300" id="piggy-milestone-title">🐷 撲滿蓄力中</span>
-      <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30" id="piggy-tier-badge">階梯 0 / 10</span>
-    </div>
-    <p class="text-stone-300 leading-snug" id="piggy-milestone-desc">每達成 10% 撲滿金幣水位將顯著上升一階！</p>
+     <!-- 🐷 精簡整合版：小豬撲滿直接貼合進度條，不重複堆疊文字框 -->
+<div class="flex items-center justify-between gap-3 mt-1 mb-1.5">
+  <div class="flex items-center gap-2.5">
+    <div id="piggy-bank-visual" class="w-24 h-16 shrink-0 flex items-center justify-center"></div>
+    <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30" id="piggy-tier-badge">10% 階梯：0 / 10</span>
   </div>
 </div>
         <div class="w-full h-3 bg-stone-700/80 rounded-full overflow-hidden p-0.5">
@@ -1358,21 +1354,8 @@
       // 精準所在趴數線條 Y 座標
       var exactLineY = 66 - (safePct / 100) * 44;
 
-      var titleEl = document.getElementById('piggy-milestone-title');
-      var badgeEl = document.getElementById('piggy-tier-badge');
-      var descEl = document.getElementById('piggy-milestone-desc');
-      if (badgeEl) badgeEl.textContent = '階梯 ' + tier + ' / 10';
-      if (titleEl && descEl) {
-        if (safePct >= 100) {
-          titleEl.textContent = '👑 小豬撲滿已完全裝滿！';
-          descEl.textContent = '100% 目標達成！準備好迎接下一階段旅程資金！';
-        } else {
-          var nextMilestone = (tier + 1) * 10;
-          titleEl.textContent = tier === 0 ? '🐷 小豬撲滿剛起步' : ('🐷 已突破 ' + (tier * 10) + '% 里程碑！');
-          descEl.textContent = '目前位於 ' + safePct + '% 刻度線，再存 ' + (nextMilestone - safePct) + '% 即可讓撲滿金幣再升一格！';
-        }
-      }
-
+    var badgeEl = document.getElementById('piggy-tier-badge');
+      if (badgeEl) badgeEl.textContent = safePct >= 100 ? '👑 100% 撲滿已滿！' : ('10% 階梯：' + tier + ' / 10');
       // 產生 10% ~ 90% 的細刻度線
       var ticksHtml = '';
       for (var t = 1; t <= 9; t++) {
