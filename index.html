@@ -4961,67 +4961,75 @@ if (goalProjEl) {
       var currentPlaceFilter = 'all';
       var selectedPlaceId = null;
 
-   var COUNTRY_FLAG_MAP = {
-        'taiwan': '🇹🇼', '台灣': '🇹🇼', '臺灣': '🇹🇼',
-        'australia': '🇦🇺', '澳洲': '🇦🇺', '澳大利亞': '🇦🇺',
-        'japan': '🇯🇵', '日本': '🇯🇵',
-        'spain': '🇪🇸', '西班牙': '🇪🇸',
-        'germany': '🇩🇪', '德國': '🇩🇪',
-        'korea': '🇰🇷', 'south korea': '🇰🇷', '韓國': '🇰🇷', '南韓': '🇰🇷',
-        'uk': '🇬🇧', 'united kingdom': '🇬🇧', 'britain': '🇬🇧', 'england': '🇬🇧', '英國': '🇬🇧',
-        'usa': '🇺🇸', 'united states': '🇺🇸', 'america': '🇺🇸', '美國': '🇺🇸',
-        'france': '🇫🇷', '法國': '🇫🇷',
-        'italy': '🇮🇹', '義大利': '🇮🇹', '意大利': '🇮🇹',
-        'new zealand': '🇳🇿', 'nz': '🇳🇿', '紐西蘭': '🇳🇿', '新西蘭': '🇳🇿',
-        'canada': '🇨🇦', '加拿大': '🇨🇦',
-        'singapore': '🇸🇬', '新加坡': '🇸🇬',
-        'thailand': '🇹🇭', '泰國': '🇹🇭',
-        'vietnam': '🇻🇳', '越南': '🇻🇳',
-        'malaysia': '🇲🇾', '馬來西亞': '🇲🇾',
-        'indonesia': '🇮🇩', '印尼': '🇮🇩', '印度尼西亞': '🇮🇩',
-        'philippines': '🇵🇭', '菲律賓': '🇵🇭',
-        'hong kong': '🇭🇰', '香港': '🇭🇰',
-        'macau': '🇲🇴', '澳門': '🇲🇴',
-        'switzerland': '🇨🇭', '瑞士': '🇨🇭',
-        'austria': '🇦🇹', '奧地利': '🇦🇹',
-        'netherlands': '🇳🇱', 'holland': '🇳🇱', '荷蘭': '🇳🇱',
-        'belgium': '🇧🇪', '比利時': '🇧🇪',
-        'portugal': '🇵🇹', '葡萄牙': '🇵🇹',
-        'greece': '🇬🇷', '希臘': '🇬🇷',
-        'czech': '🇨🇿', 'czech republic': '🇨🇿', 'czechia': '🇨🇿', '捷克': '🇨🇿',
-        'poland': '🇵🇱', '波蘭': '🇵🇱',
-        'hungary': '🇭🇺', '匈牙利': '🇭🇺',
-        'sweden': '🇸🇪', '瑞典': '🇸🇪',
-        'norway': '🇳🇴', '挪威': '🇳🇴',
-        'finland': '🇫🇮', '芬蘭': '🇫🇮',
-        'denmark': '🇩🇰', '丹麥': '🇩🇰',
-        'iceland': '🇮🇸', '冰島': '🇮🇸',
-        'ireland': '🇮🇪', '愛爾蘭': '🇮🇪',
-        'turkey': '🇹🇷', 'türkiye': '🇹🇷', '土耳其': '🇹🇷',
-        'egypt': '🇪🇬', '埃及': '🇪🇬',
-        'india': '🇮🇳', '印度': '🇮🇳',
-        'mexico': '🇲🇽', '墨西哥': '🇲🇽',
-        'brazil': '🇧🇷', '巴西': '🇧🇷',
-        'peru': '🇵🇪', '秘魯': '🇵🇪'
+var COUNTRY_ISO_MAP = {
+        'taiwan': 'tw', '台灣': 'tw', '臺灣': 'tw',
+        'australia': 'au', '澳洲': 'au', '澳大利亞': 'au',
+        'japan': 'jp', '日本': 'jp',
+        'spain': 'es', '西班牙': 'es',
+        'germany': 'de', '德國': 'de',
+        'korea': 'kr', 'south korea': 'kr', '韓國': 'kr', '南韓': 'kr',
+        'uk': 'gb', 'united kingdom': 'gb', 'britain': 'gb', 'england': 'gb', '英國': 'gb',
+        'usa': 'us', 'united states': 'us', 'america': 'us', '美國': 'us',
+        'france': 'fr', '法國': 'fr',
+        'italy': 'it', '義大利': 'it', '意大利': 'it',
+        'new zealand': 'nz', 'nz': 'nz', '紐西蘭': 'nz', '新西蘭': 'nz',
+        'canada': 'ca', '加拿大': 'ca',
+        'singapore': 'sg', '新加坡': 'sg',
+        'thailand': 'th', '泰國': 'th',
+        'vietnam': 'vn', '越南': 'vn',
+        'malaysia': 'my', '馬來西亞': 'my',
+        'indonesia': 'id', '印尼': 'id', '印度尼西亞': 'id',
+        'philippines': 'ph', '菲律賓': 'ph',
+        'hong kong': 'hk', '香港': 'hk',
+        'macau': 'mo', '澳門': 'mo',
+        'switzerland': 'ch', '瑞士': 'ch',
+        'austria': 'at', '奧地利': 'at',
+        'netherlands': 'nl', 'holland': 'nl', '荷蘭': 'nl',
+        'belgium': 'be', '比利時': 'be',
+        'portugal': 'pt', '葡萄牙': 'pt',
+        'greece': 'gr', '希臘': 'gr',
+        'czech': 'cz', 'czech republic': 'cz', 'czechia': 'cz', '捷克': 'cz',
+        'poland': 'pl', '波蘭': 'pl',
+        'hungary': 'hu', '匈牙利': 'hu',
+        'sweden': 'se', '瑞典': 'se',
+        'norway': 'no', '挪威': 'no',
+        'finland': 'fi', '芬蘭': 'fi',
+        'denmark': 'dk', '丹麥': 'dk',
+        'iceland': 'is', '冰島': 'is',
+        'ireland': 'ie', '愛爾蘭': 'ie',
+        'turkey': 'tr', 'türkiye': 'tr', '土耳其': 'tr',
+        'egypt': 'eg', '埃及': 'eg',
+        'india': 'in', '印度': 'in',
+        'mexico': 'mx', '墨西哥': 'mx',
+        'brazil': 'br', '巴西': 'br',
+        'peru': 'pe', '秘魯': 'pe'
+      };
+
+      // 剝除文字開頭殘留的 Unicode 國旗符號（避免 Windows Chrome 顯示成灰黑的 AU / JP 字母）
+      window.stripCountryFlagEmoji = function(rawCountry) {
+        return String(rawCountry || '')
+          .replace(/^[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]\s*/g, '')
+          .trim();
       };
 
       window.attachCountryFlag = function(rawCountry) {
-        var str = String(rawCountry || '').trim();
-        if (!str) return '';
-        // 若開頭已經有國旗 Emoji（Unicode Regional Indicator Symbols），直接回傳不重複加
-        if (/^[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/.test(str)) return str;
-        var cleanKey = str.toLowerCase();
-        if (COUNTRY_FLAG_MAP[cleanKey]) {
-          return COUNTRY_FLAG_MAP[cleanKey] + ' ' + str;
-        }
-        // 模糊比對（例如 "Spain 西班牙" 也能自動配上 🇪🇸）
-        var keys = Object.keys(COUNTRY_FLAG_MAP);
-        for (var i = 0; i < keys.length; i++) {
-          if (cleanKey.indexOf(keys[i]) !== -1) {
-            return COUNTRY_FLAG_MAP[keys[i]] + ' ' + str;
+        return window.stripCountryFlagEmoji(rawCountry);
+      };
+
+      window.getCountryFlagImgHtml = function(countryName) {
+        var clean = window.stripCountryFlagEmoji(countryName).toLowerCase();
+        var iso = COUNTRY_ISO_MAP[clean] || '';
+        if (!iso) {
+          var keys = Object.keys(COUNTRY_ISO_MAP);
+          for (var i = 0; i < keys.length; i++) {
+            if (clean.indexOf(keys[i]) !== -1) {
+              iso = COUNTRY_ISO_MAP[keys[i]];
+              break;
+            }
           }
         }
-        return str;
+        if (!iso) return '<span>🏳️</span>';
+        return '<img src="https://flagcdn.com/w40/' + iso + '.png" alt="' + iso + '" class="inline-block w-4 h-3 object-cover rounded-[2px] shadow-2xs shrink-0 mr-1 align-middle" loading="lazy">';
       };
 
       window.purgeEmptyCountriesAndRegions = function(silent) {
@@ -5133,7 +5141,7 @@ if (goalProjEl) {
       // ==========================================
       // 視圖 1：三層式總覽 (國家 ➔ 州/地區分類 ➔ 城鎮)
       // ==========================================
-      function renderTownsDirectory() {
+  function renderTownsDirectory() {
         ensureTownsState();
         var towns = getAllTowns();
         var countryTabsEl = document.getElementById('country-tabs-container');
@@ -5141,34 +5149,38 @@ if (goalProjEl) {
         var gridEl = document.getElementById('towns-grid-container');
         if (!countryTabsEl || !regionTabsEl || !gridEl) return;
 
-        // 1. 收集所有國家
-        var countries = ['澳洲'];
+        // 1. 動態收集所有實際擁有城鎮的國家（不再寫死 '澳洲'，徹底消滅空的 '澳洲 (0)'）
+        var countries = [];
         towns.forEach(function(t) {
-          var c = t.country || '澳洲';
-          if (!countries.includes(c)) countries.push(c);
-        });
-        (appState.emptyCountries || []).forEach(function(c) {
+          var c = window.stripCountryFlagEmoji(t.country || 'Australia');
           if (c && !countries.includes(c)) countries.push(c);
         });
+        (appState.emptyCountries || []).forEach(function(c) {
+          var cleanC = window.stripCountryFlagEmoji(c);
+          if (cleanC && cleanC !== '澳洲' && !countries.includes(cleanC)) countries.push(cleanC);
+        });
 
-        if (currentCountryFilter !== 'ALL' && !countries.includes(currentCountryFilter)) {
-          currentCountryFilter = countries[0] || 'ALL';
+        if (countries.length === 0) countries.push('Australia');
+
+        if (currentCountryFilter !== 'ALL') {
+          currentCountryFilter = window.stripCountryFlagEmoji(currentCountryFilter);
+          if (!countries.includes(currentCountryFilter)) {
+            currentCountryFilter = countries[0] || 'ALL';
+          }
         }
 
         // 渲染第 1 層：國家按鈕
-        var countryHtml = '<button type="button" onclick="selectCountryFilter(\'ALL\')" class="px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
+        var countryHtml = '<button type="button" onclick="selectCountryFilter(\'ALL\')" class="inline-flex items-center px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
           (currentCountryFilter === 'ALL' ? 'bg-stone-900 text-white border-stone-900' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
           '🌐 全部國家 (' + towns.length + ')' +
-        '</button>';
 
-        countries.forEach(function(cnt) {
-          var cntCount = towns.filter(function(t) { return (t.country || '澳洲') === cnt; }).length;
-          var isAct = currentCountryFilter === cnt;
-          var flag = cnt === '澳洲' ? '🇦🇺 ' : (cnt === '日本' ? '🇯🇵 ' : (cnt === '德國' ? '🇩🇪 ' : (cnt === '紐西蘭' ? '🇳🇿 ' : '🏳️ ')));
-          countryHtml += '<button type="button" onclick="selectCountryFilter(\'' + escapeMapHTML(cnt) + '\')" class="px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
-            (isAct ? 'bg-stone-900 text-white border-stone-900' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
-            flag + escapeMapHTML(cnt) + ' (' + cntCount + ')' +
-          '</button>';
+       countries.forEach(function(c) {
+          var cnt = towns.filter(function(t) { return window.stripCountryFlagEmoji(t.country || '') === c; }).length;
+          var active = currentCountryFilter === c;
+          var flagHtml = typeof window.getCountryFlagImgHtml === 'function' ? window.getCountryFlagImgHtml(c) : '';
+          countryHtml += '<button type="button" onclick="selectCountryFilter(\'' + c.replace(/'/g, "\\'") + '\')" class="inline-flex items-center px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
+            (active ? 'bg-stone-900 text-white border-stone-900' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
+            flagHtml + '<span>' + c + ' (' + cnt + ')</span></button>';
         });
         countryTabsEl.innerHTML = countryHtml;
 
