@@ -648,9 +648,12 @@
               </div>
             </div>
 
-            <div class="flex justify-end gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
-              <button type="button" onclick="closeEditCurrentTownModal()" class="px-3.5 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 text-xs font-bold cursor-pointer">取消</button>
-              <button type="button" onclick="saveEditedTownCategory()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold cursor-pointer shadow-xs">💾 儲存分類變更</button>
+           <div class="flex items-center justify-between gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
+              <button type="button" onclick="deleteSelectedTownFromModal()" class="px-3 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 text-xs font-bold cursor-pointer">🗑️ 刪除此城鎮</button>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="closeEditCurrentTownModal()" class="px-3.5 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 text-xs font-bold cursor-pointer">取消</button>
+                <button type="button" onclick="saveEditedTownCategory()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold cursor-pointer shadow-xs">💾 儲存分類變更</button>
+              </div>
             </div>
           </div>
         </div>
@@ -6335,6 +6338,36 @@ var HOME_BASE_TAIWAN = {
         }
         closeEditCurrentTownModal();
         showGlobalToast('✅ 已將「' + newName + '」更新至【' + newCountry + ' · ' + newRegion + '】');
+      };
+      window.deleteSelectedTownFromModal = function() {
+        var townId = document.getElementById('edit-town-id-input').value;
+        var townName = document.getElementById('edit-town-name-input').value || townId;
+        if (!townId) return;
+
+        if (!confirm('確定要刪除「' + townName + '」嗎？\n（若此分類底下已無其他城鎮，該多餘的國家/分類也會自動移除）')) {
+          return;
+        }
+
+        ensureTownsState();
+        var customIdx = Array.isArray(appState.customTowns)
+          ? appState.customTowns.findIndex(function(ct) { return ct.id === townId; })
+          : -1;
+
+        if (customIdx !== -1) {
+          appState.customTowns.splice(customIdx, 1);
+        } else {
+          if (!Array.isArray(appState.deletedDefaultTownIds)) appState.deletedDefaultTownIds = [];
+          if (appState.deletedDefaultTownIds.indexOf(townId) === -1) {
+            appState.deletedDefaultTownIds.push(townId);
+          }
+        }
+
+        saveState();
+        if (typeof window.syncMapUIWithAppState === 'function') {
+          window.syncMapUIWithAppState();
+        }
+        closeEditCurrentTownModal();
+        showGlobalToast('🗑️ 已移除「' + townName + '」，空分類已自動清理');
       };
       window.toggleTravelGlobeModal = function() {
         var panel = document.getElementById('travel-globe-panel');
