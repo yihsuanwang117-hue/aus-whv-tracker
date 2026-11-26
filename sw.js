@@ -1,11 +1,10 @@
-const CACHE_NAME = 'au-whv-tracker-v1';
+const CACHE_NAME = 'au-whv-tracker-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.json'
 ];
 
-// 安裝時快取核心網頁檔案
 self.addEventListener('install', function(event) {
   self.skipWaiting();
   event.waitUntil(
@@ -15,7 +14,6 @@ self.addEventListener('install', function(event) {
   );
 });
 
-// 啟動時清理舊版快取
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(keys) {
@@ -28,25 +26,31 @@ self.addEventListener('activate', function(event) {
   self.clients.claim();
 });
 
-// 網路優先策略：有網路時抓最新版（確保你在 GitHub 一改程式碼就同步更新），沒網路時自動讀快取秒開
 self.addEventListener('fetch', function(event) {
-  if (event.request.method !== 'GET') return;
-  // Firebase 與外部匯率 API 不走靜態快取
-  if (event.request.url.includes('firebase') || event.request.url.includes('er-api.com') || event.request.url.includes('openstreetmap')) {
+  // 只處理標準 http/https 的 GET 請求，直接放行 chrome-extension:// 等擴充套件請求
+  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) return;
+
+  // Firebase、Google APIs、匯率、地圖圖磚不走靜態快取
+  var url = event.request.url;
+  if (url.includes('firebase') || url.includes('googleapis.com') || url.includes('er-api.com') || url.includes('openstreetmap') || url.includes('unpkg.com')) {
     return;
   }
 
   event.respondWith(
     fetch(event.request)
       .then(function(networkRes) {
-        const resClone = networkRes.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, resClone);
-        });
+        if (networkRes && networkRes.status === 200) {
+          const resClone = networkRes.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(event.request, resClone);
+          });
+        }
         return networkRes;
       })
       .catch(function() {
-        return caches.match(event.request);
+        return caches.match(event.request).then(function(cached) {
+          return cached || new Response('', { status: 503, statusText: 'Offline' });
+        });
       })
   );
 });
