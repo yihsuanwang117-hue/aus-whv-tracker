@@ -5173,8 +5173,7 @@ var COUNTRY_ISO_MAP = {
       // 渲染第 1 層：國家按鈕（含跨平台高清彩色實體國旗）
         var countryHtml = '<button type="button" onclick="selectCountryFilter(\'ALL\')" class="inline-flex items-center px-3 py-1 rounded-full border text-xs font-bold transition cursor-pointer !min-h-0 ' +
           (currentCountryFilter === 'ALL' ? 'bg-stone-900 text-white border-stone-900' : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100') + '">' +
-          '🌐 全部國家 (' + towns.length + ')</button>';
-
+        '🌐 全部國家 (' + countries.length + ')</button>';
         countries.forEach(function(c) {
           var cnt = towns.filter(function(t) { return window.stripCountryFlagEmoji(t.country || '') === c; }).length;
           var active = currentCountryFilter === c;
