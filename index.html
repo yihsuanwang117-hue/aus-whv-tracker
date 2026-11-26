@@ -622,9 +622,11 @@
               修改國家或分區後，該城鎮底下的所有店家地標、座標、筆記與照片都會<strong>100% 完整保留</strong>並自動歸類至新分區。
             </p>
 
-            <input type="hidden" id="edit-town-id-input">
-
-            <div class="space-y-3 text-xs">
+          <div class="space-y-3 text-xs">
+              <div>
+                <label class="block font-bold text-stone-700 dark:text-stone-300 mb-1">📍 選擇要修改分類的城鎮</label>
+                <select id="edit-town-id-input" onchange="onEditTownSelectChange(this.value)" class="w-full px-3 py-2 rounded-xl border-2 border-amber-400/70 dark:border-amber-500/50 bg-amber-50/60 dark:bg-stone-800 text-stone-800 dark:text-stone-100 font-bold cursor-pointer"></select>
+              </div>
               <div>
                 <label class="block font-bold text-stone-700 dark:text-stone-300 mb-1">🌍 所屬國家（Country）</label>
                 <input type="text" id="edit-town-country-input" placeholder="例如：西班牙、日本、澳洲、台灣" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100 font-medium">
@@ -6225,25 +6227,69 @@ var HOME_BASE_TAIWAN = {
       // ==========================================
       // ✏️ 編輯目前城鎮的「國家 / 地區分區 / 名稱」
       // ==========================================
+    function detectActiveTownId(allTowns) {
+        var validIds = allTowns.map(function(t) { return t.id; });
+        // 1. 優先從畫面上正在顯示的城鎮下拉選單或標記按鈕偵測
+        var domSelectors = ['#town-select', '#map-town-select', '#active-town-select', 'select[id*="town"]'];
+        for (var i = 0; i < domSelectors.length; i++) {
+          var el = document.querySelector(domSelectors[i]);
+          if (el && el.value && validIds.indexOf(el.value) !== -1) return el.value;
+        }
+        // 2. 偵測常見全域變數與 appState 屬性
+        var candidates = [
+          typeof activeTownId !== 'undefined' ? activeTownId : null,
+          typeof selectedTownId !== 'undefined' ? selectedTownId : null,
+          typeof currentTownId !== 'undefined' ? currentTownId : null,
+          appState && appState.activeTownId,
+          appState && appState.selectedTownId,
+          appState && appState.currentTownId
+        ];
+        for (var j = 0; j < candidates.length; j++) {
+          if (candidates[j] && validIds.indexOf(candidates[j]) !== -1) return candidates[j];
+        }
+        // 3. 偵測畫面上目前高亮（active / selected）的城鎮卡片或按鈕 data-town-id
+        var activeBtn = document.querySelector('[data-town-id].active, [data-town-id][aria-selected="true"], .town-chip.bg-stone-800, .town-chip.bg-amber-600');
+        if (activeBtn) {
+          var attrId = activeBtn.getAttribute('data-town-id');
+          if (attrId && validIds.indexOf(attrId) !== -1) return attrId;
+        }
+        // 4. 若仍無，優先選取最後一筆自訂新增的城鎮，否則回傳第一筆
+        if (Array.isArray(appState.customTowns) && appState.customTowns.length > 0) {
+          return appState.customTowns[appState.customTowns.length - 1].id;
+        }
+        return allTowns[0].id;
+      }
+
+      window.onEditTownSelectChange = function(townId) {
+        var allTowns = typeof getAllTowns === 'function' ? getAllTowns() : [];
+        var town = allTowns.find(function(t) { return t.id === townId; });
+        if (!town) return;
+        document.getElementById('edit-town-country-input').value = town.country || '';
+        document.getElementById('edit-town-region-input').value = town.regionCategory || '';
+        document.getElementById('edit-town-name-input').value = town.name || '';
+        document.getElementById('edit-town-desc-input').value = town.description || '';
+      };
+
       window.openEditCurrentTownModal = function() {
         var allTowns = typeof getAllTowns === 'function' ? getAllTowns() : [];
         if (allTowns.length === 0) {
           showGlobalToast('⚠️ 目前沒有可編輯的城鎮');
           return;
         }
-        var curId = (typeof currentTownId !== 'undefined' && currentTownId) ? currentTownId : allTowns[0].id;
-        var town = allTowns.find(function(t) { return t.id === curId; }) || allTowns[0];
+        var selectEl = document.getElementById('edit-town-id-input');
+        if (selectEl) {
+          selectEl.innerHTML = allTowns.map(function(t) {
+            return '<option value="' + t.id + '">[' + (t.country || '未分類') + ' · ' + (t.regionCategory || '-') + '] ' + t.name + '</option>';
+          }).join('');
+        }
 
-        document.getElementById('edit-town-id-input').value = town.id;
-        document.getElementById('edit-town-country-input').value = town.country || '';
-        document.getElementById('edit-town-region-input').value = town.regionCategory || '';
-        document.getElementById('edit-town-name-input').value = town.name || '';
-        document.getElementById('edit-town-desc-input').value = town.description || '';
+        var targetId = detectActiveTownId(allTowns);
+        if (selectEl) selectEl.value = targetId;
+        window.onEditTownSelectChange(targetId);
 
         var modal = document.getElementById('edit-town-category-modal');
         if (modal) modal.classList.remove('hidden');
       };
-
       window.closeEditCurrentTownModal = function() {
         var modal = document.getElementById('edit-town-category-modal');
         if (modal) modal.classList.add('hidden');
