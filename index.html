@@ -2747,16 +2747,35 @@ var now = getLocalNowDateObj();
     // 增加全域保護旗標
     var isSyncReady = false;
 
+   function buildCloudSafeState(rawState) {
+      var clone = JSON.parse(JSON.stringify(rawState));
+      if (clone.mapSavedData && typeof clone.mapSavedData === 'object') {
+        Object.keys(clone.mapSavedData).forEach(function(placeId) {
+          if (clone.mapSavedData[placeId] && Array.isArray(clone.mapSavedData[placeId].photos)) {
+            // 雲端僅保留照片數量與日期摘要，剝離 Base64 大圖檔以避免超過 Firestore 1MB 單文件上限
+            clone.mapSavedData[placeId].cloudPhotoCount = clone.mapSavedData[placeId].photos.length;
+            delete clone.mapSavedData[placeId].photos;
+          }
+        });
+      }
+      return clone;
+    }
+
     function saveState() {
       try { 
         appState.lastModified = Date.now();
         localStorage.setItem("au_de_tracker_data", JSON.stringify(appState)); 
-      } catch (e) {}
+      } catch (e) {
+        if (typeof showGlobalToast === 'function') {
+          showGlobalToast('⚠️ 本機儲存空間已滿，請先匯出 JSON 備份並清理部分舊照片！');
+        }
+      }
 
       var syncKey = localStorage.getItem("au_sync_key");
       if (db && syncKey && !isRemoteUpdate && isSyncReady) {
+        var cloudPayload = buildCloudSafeState(appState);
         db.collection("sync_data").doc(syncKey).set({
-          data: appState,
+          data: cloudPayload,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }).catch(function(err) { console.error("雲端備份失敗:", err); });
       }
@@ -4286,9 +4305,26 @@ function ensureTravelCategoryExists() {
                 return;
               }
 
-              isRemoteUpdate = true;
+             isRemoteUpdate = true;
+              // 先備份本機裝置已儲存的踩點照片，避免被雲端（已剝離大圖檔）的資料覆蓋洗掉
+              var localPhotosBackup = {};
+              if (appState.mapSavedData) {
+                Object.keys(appState.mapSavedData).forEach(function(pid) {
+                  if (appState.mapSavedData[pid] && Array.isArray(appState.mapSavedData[pid].photos) && appState.mapSavedData[pid].photos.length > 0) {
+                    localPhotosBackup[pid] = appState.mapSavedData[pid].photos;
+                  }
+                });
+              }
+
               appState = Object.assign({}, appState, remote);
               if (!appState.mapSavedData) appState.mapSavedData = {};
+
+              // 將本機照片還原合併回最新的 mapSavedData
+              Object.keys(localPhotosBackup).forEach(function(pid) {
+                if (!appState.mapSavedData[pid]) appState.mapSavedData[pid] = {};
+                appState.mapSavedData[pid].photos = localPhotosBackup[pid];
+              });
+
               localStorage.setItem("au_de_tracker_data", JSON.stringify(appState));
               applyTitlesAndSettings();
               renderAll();
@@ -5812,16 +5848,37 @@ window.openAddCustomTownModal = function() {
         });
       }
 
+function getApproxStorageBytes() {
+        try {
+          return JSON.stringify(appState).length;
+        } catch (e) {
+          return 0;
+        }
+      }
+
       window.handlePlacePhotoUpload = function(placeId, event) {
         var files = event.target.files;
         if (!files || files.length === 0) return;
+
+        // 檢查目前本機儲存占用容量（瀏覽器 LocalStorage 上限約 5MB，保留 1.2MB 給日常記帳與行程）
+        var currentBytes = getApproxStorageBytes();
+        var maxSafeBytes = 3800000; // 3.8 MB 安全警戒線
+        if (currentBytes >= maxSafeBytes) {
+          showGlobalToast('⚠️ 照片容量已達安全上限（3.8MB），請先「匯出備份」並刪除部分舊照片，以免影響記帳存檔！');
+          event.target.value = '';
+          return;
+        }
+
+        // 若已使用超過 2.5MB，自動採用高壓縮模式（長邊 600px、品質 0.58，單張僅約 35KB）
+        var isHighCompressMode = currentBytes > 2500000;
+        var targetDim = isHighCompressMode ? 600 : 760;
+        var targetQuality = isHighCompressMode ? 0.58 : 0.70;
 
         var uData = getPlaceUserData(placeId);
         if (!uData.photos) uData.photos = [];
         var dateInput = document.getElementById('place-visited-date');
         var photoDate = (dateInput && dateInput.value) ? dateInput.value : (uData.visitedDate || getLocalTodayStr(0));
 
-        // 若尚未標記已踩點，上傳照片時順便自動幫你勾選已踩點與日期
         if (!uData.visited) {
           uData.visited = true;
           uData.visitedDate = photoDate;
@@ -5829,7 +5886,7 @@ window.openAddCustomTownModal = function() {
 
         showGlobalToast('⏳ 正在最佳化壓縮 ' + files.length + ' 張照片...');
         var tasks = Array.prototype.slice.call(files).map(function(f) {
-          return compressImageFileToDataUrl(f, 800, 0.72).then(function(dataUrl) {
+          return compressImageFileToDataUrl(f, targetDim, targetQuality).then(function(dataUrl) {
             uData.photos.push({
               id: 'ph_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
               date: photoDate,
@@ -5839,11 +5896,18 @@ window.openAddCustomTownModal = function() {
         });
 
         Promise.all(tasks).then(function() {
+          // 再次確認加入後是否超出安全上限，若超出則自動回滾本次新增並提示
+          if (getApproxStorageBytes() > 4200000) {
+            uData.photos.splice(uData.photos.length - files.length, files.length);
+            showGlobalToast('⚠️ 加上這批照片會超過瀏覽器 4.2MB 上限，已自動取消以保護你的記帳資料！');
+            return;
+          }
           saveState();
           updateTownProgressBadges();
           renderTownMarkers();
           selectTownPlace(placeId, false);
-          showGlobalToast('✅ 已成功上傳 ' + files.length + ' 張踩點照片！');
+          var usedMb = (getApproxStorageBytes() / 1048576).toFixed(2);
+          showGlobalToast('✅ 已上傳 ' + files.length + ' 張照片！（目前空間使用 ' + usedMb + ' / 3.80 MB）');
         }).catch(function() {
           showGlobalToast('❌ 照片處理失敗，請重新嘗試');
         });
@@ -6026,9 +6090,15 @@ window.openAddCustomTownModal = function() {
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       }
 
+var HOME_BASE_TAIWAN = {
+        title: '台灣（常駐基地）',
+        lat: 25.0330,
+        lng: 121.5654
+      };
+
       function buildGlobeTimelineSteps() {
         var allTowns = typeof getAllTowns === 'function' ? getAllTowns() : [];
-        var dailyMap = {}; // key: YYYY-MM-DD -> { date, month, town, places: [] }
+        var dailyMap = {}; // key: YYYY-MM-DD -> { date, month, town, lat, lng, places: [] }
 
         allTowns.forEach(function(town) {
           var places = getTownPlaces(town.id) || [];
@@ -6056,61 +6126,84 @@ window.openAddCustomTownModal = function() {
 
         var sortedDays = Object.keys(dailyMap).sort();
         if (sortedDays.length === 0) {
-          // 若尚無踩點紀錄，提供一組跨洲示範軌跡（台灣 -> 西班牙瓦倫西亞 -> 馬德里 -> 澳洲）讓地球儀可立即體驗
           return [
-            { key: '2025-09', granularity: 'month', label: '2025-09 (月份)', title: '台灣出發準備期', lat: 25.0330, lng: 121.5654, places: [], isDemo: true },
-            { key: '2025-10-03', granularity: 'day', label: '2025-10-03 (單日)', title: '西班牙・瓦倫西亞 Valencia', lat: 39.4699, lng: -0.3763, places: [{ name: '瓦倫西亞中央市場', iconText: '🍊' }], isDemo: true },
-            { key: '2025-10-08', granularity: 'day', label: '2025-10-08 (單日)', title: '西班牙・馬德里 Madrid', lat: 40.4168, lng: -3.7038, places: [{ name: '太陽門廣場與主廣場', iconText: '🏛️' }], isDemo: true },
-            { key: '2026-03', granularity: 'month', label: '2026-03 (月份)', title: '澳洲・布里斯本 / 昆士蘭', lat: -27.4705, lng: 153.0260, places: [], isDemo: true }
+            { key: 'BASE-START', granularity: 'month', label: '常駐基地・台灣', title: HOME_BASE_TAIWAN.title, lat: HOME_BASE_TAIWAN.lat, lng: HOME_BASE_TAIWAN.lng, places: [], isDemo: true },
+            { key: '2025-10-03', granularity: 'day', label: '2025-10-03 (示範單日)', title: '西班牙・瓦倫西亞 Valencia', lat: 39.4699, lng: -0.3763, places: [{ name: '瓦倫西亞中央市場', iconText: '🍊' }], isDemo: true },
+            { key: '2025-10-08', granularity: 'day', label: '2025-10-08 (示範單日)', title: '西班牙・馬德里 Madrid', lat: 40.4168, lng: -3.7038, places: [{ name: '太陽門廣場', iconText: '🏛️' }], isDemo: true },
+            { key: 'BASE-RETURN', granularity: 'month', label: '返回常駐基地・台灣', title: HOME_BASE_TAIWAN.title, lat: HOME_BASE_TAIWAN.lat, lng: HOME_BASE_TAIWAN.lng, places: [], isDemo: true }
           ];
         }
 
-        // 建立「月份為主、有紀錄之月份自動細分為天數」的混合尺度時間軸
-        var startMonth = sortedDays[0].slice(0, 7);
-        var endMonth = sortedDays[sortedDays.length - 1].slice(0, 7);
+        // 整理有實際足跡的月份清單
+        var activeMonths = [];
+        sortedDays.forEach(function(d) {
+          var m = d.slice(0, 7);
+          if (activeMonths.indexOf(m) === -1) activeMonths.push(m);
+        });
+
         var steps = [];
-        var curY = Number(startMonth.slice(0, 4));
-        var curM = Number(startMonth.slice(5, 7));
-        var endY = Number(endMonth.slice(0, 4));
-        var endM = Number(endMonth.slice(5, 7));
-        var lastKnownLoc = { title: '出發地', lat: dailyMap[sortedDays[0]].lat, lng: dailyMap[sortedDays[0]].lng };
-
-        while (curY < endY || (curY === endY && curM <= endM)) {
-          var mStr = curY + '-' + (curM < 10 ? '0' + curM : curM);
-          var daysInThisMonth = sortedDays.filter(function(d) { return d.startsWith(mStr); });
-
-          if (daysInThisMonth.length > 0) {
-            // 該月份有旅行紀錄 -> 細分為每一天
-            daysInThisMonth.forEach(function(dStr) {
-              var rec = dailyMap[dStr];
-              lastKnownLoc = { title: rec.town.name, lat: rec.lat, lng: rec.lng };
-              steps.push({
-                key: dStr,
-                granularity: 'day',
-                label: dStr,
-                title: rec.town.name,
-                lat: rec.lat,
-                lng: rec.lng,
-                places: rec.places
-              });
-            });
-          } else {
-            // 無新增移動的月份 -> 以月份為單位停留於上一站
-            steps.push({
-              key: mStr,
-              granularity: 'month',
-              label: mStr + '（整月停留）',
-              title: lastKnownLoc.title,
-              lat: lastKnownLoc.lat,
-              lng: lastKnownLoc.lng,
-              places: []
-            });
-          }
-
-          curM++;
-          if (curM > 12) { curM = 1; curY++; }
+        // 起點先從「台灣常駐基地」出發（若第一筆紀錄不在台灣，滑桿往右推就會看到從台灣飛出去的航線）
+        var firstRec = dailyMap[sortedDays[0]];
+        var startsOutsideTaiwan = calcHaversineKm(HOME_BASE_TAIWAN.lat, HOME_BASE_TAIWAN.lng, firstRec.lat, firstRec.lng) > 400;
+        if (startsOutsideTaiwan) {
+          steps.push({
+            key: firstRec.month + '-DEPART',
+            granularity: 'month',
+            label: firstRec.month + ' 出發前（台灣基地）',
+            title: HOME_BASE_TAIWAN.title,
+            lat: HOME_BASE_TAIWAN.lat,
+            lng: HOME_BASE_TAIWAN.lng,
+            places: []
+          });
         }
+
+        activeMonths.forEach(function(mStr, mIdx) {
+          var daysInThisMonth = sortedDays.filter(function(d) { return d.startsWith(mStr); });
+          daysInThisMonth.forEach(function(dStr) {
+            var rec = dailyMap[dStr];
+            steps.push({
+              key: dStr,
+              granularity: 'day',
+              label: dStr + '（' + mStr + ' 旅程）',
+              title: rec.town.name,
+              lat: rec.lat,
+              lng: rec.lng,
+              places: rec.places
+            });
+          });
+
+          // 檢查此月份最後一筆紀錄是否在海外；若是，且下一個有紀錄的月份隔超過 1 個月（或已是最後一筆），自動插入「返回台灣基地」節點
+          var lastDayOfMonth = daysInThisMonth[daysInThisMonth.length - 1];
+          var lastRec = dailyMap[lastDayOfMonth];
+          var isAbroad = calcHaversineKm(HOME_BASE_TAIWAN.lat, HOME_BASE_TAIWAN.lng, lastRec.lat, lastRec.lng) > 400;
+
+          if (isAbroad) {
+            var nextMonth = activeMonths[mIdx + 1];
+            var curTotalMonths = Number(mStr.slice(0, 4)) * 12 + Number(mStr.slice(5, 7));
+            var nextTotalMonths = nextMonth ? (Number(nextMonth.slice(0, 4)) * 12 + Number(nextMonth.slice(5, 7))) : 999999;
+
+            // 若中間隔了至少 1 個無海外紀錄的月份，或已無後續旅程，代表已返回台灣基地
+            if (nextTotalMonths - curTotalMonths > 1) {
+              var returnY = Number(mStr.slice(0, 4));
+              var returnM = Number(mStr.slice(5, 7)) + 1;
+              if (returnM > 12) { returnM = 1; returnY++; }
+              var returnMStr = returnY + '-' + (returnM < 10 ? '0' + returnM : returnM);
+
+              steps.push({
+                key: returnMStr + '-HOME',
+                granularity: 'month',
+                label: returnMStr + ' 起（返回台灣基地）',
+                title: HOME_BASE_TAIWAN.title,
+                lat: HOME_BASE_TAIWAN.lat,
+                lng: HOME_BASE_TAIWAN.lng,
+                places: []
+              });
+            }
+          }
+        });
+
         return steps;
+      }
       }
 
       window.toggleTravelGlobeModal = function() {
