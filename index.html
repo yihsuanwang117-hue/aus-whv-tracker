@@ -647,9 +647,11 @@
                 <input type="text" id="edit-town-desc-input" placeholder="例如：西班牙第三大城、海鮮飯發源地" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100 font-medium">
               </div>
             </div>
-
-           <div class="flex items-center justify-between gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
-              <button type="button" onclick="deleteSelectedTownFromModal()" class="px-3 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 text-xs font-bold cursor-pointer">🗑️ 刪除此城鎮</button>
+<div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="deleteSelectedTownFromModal()" class="px-2.5 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 text-xs font-bold cursor-pointer">🗑️ 刪除此城鎮</button>
+                <button type="button" onclick="purgeEmptyCountriesAndRegions(false)" class="px-2.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 text-xs font-bold cursor-pointer">🧹 清理空國家</button>
+              </div>
               <div class="flex items-center gap-2">
                 <button type="button" onclick="closeEditCurrentTownModal()" class="px-3.5 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 text-xs font-bold cursor-pointer">取消</button>
                 <button type="button" onclick="saveEditedTownCategory()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold cursor-pointer shadow-xs">💾 儲存分類變更</button>
@@ -4959,6 +4961,100 @@ if (goalProjEl) {
       var currentPlaceFilter = 'all';
       var selectedPlaceId = null;
 
+   var COUNTRY_FLAG_MAP = {
+        'taiwan': '🇹🇼', '台灣': '🇹🇼', '臺灣': '🇹🇼',
+        'australia': '🇦🇺', '澳洲': '🇦🇺', '澳大利亞': '🇦🇺',
+        'japan': '🇯🇵', '日本': '🇯🇵',
+        'spain': '🇪🇸', '西班牙': '🇪🇸',
+        'germany': '🇩🇪', '德國': '🇩🇪',
+        'korea': '🇰🇷', 'south korea': '🇰🇷', '韓國': '🇰🇷', '南韓': '🇰🇷',
+        'uk': '🇬🇧', 'united kingdom': '🇬🇧', 'britain': '🇬🇧', 'england': '🇬🇧', '英國': '🇬🇧',
+        'usa': '🇺🇸', 'united states': '🇺🇸', 'america': '🇺🇸', '美國': '🇺🇸',
+        'france': '🇫🇷', '法國': '🇫🇷',
+        'italy': '🇮🇹', '義大利': '🇮🇹', '意大利': '🇮🇹',
+        'new zealand': '🇳🇿', 'nz': '🇳🇿', '紐西蘭': '🇳🇿', '新西蘭': '🇳🇿',
+        'canada': '🇨🇦', '加拿大': '🇨🇦',
+        'singapore': '🇸🇬', '新加坡': '🇸🇬',
+        'thailand': '🇹🇭', '泰國': '🇹🇭',
+        'vietnam': '🇻🇳', '越南': '🇻🇳',
+        'malaysia': '🇲🇾', '馬來西亞': '🇲🇾',
+        'indonesia': '🇮🇩', '印尼': '🇮🇩', '印度尼西亞': '🇮🇩',
+        'philippines': '🇵🇭', '菲律賓': '🇵🇭',
+        'hong kong': '🇭🇰', '香港': '🇭🇰',
+        'macau': '🇲🇴', '澳門': '🇲🇴',
+        'switzerland': '🇨🇭', '瑞士': '🇨🇭',
+        'austria': '🇦🇹', '奧地利': '🇦🇹',
+        'netherlands': '🇳🇱', 'holland': '🇳🇱', '荷蘭': '🇳🇱',
+        'belgium': '🇧🇪', '比利時': '🇧🇪',
+        'portugal': '🇵🇹', '葡萄牙': '🇵🇹',
+        'greece': '🇬🇷', '希臘': '🇬🇷',
+        'czech': '🇨🇿', 'czech republic': '🇨🇿', 'czechia': '🇨🇿', '捷克': '🇨🇿',
+        'poland': '🇵🇱', '波蘭': '🇵🇱',
+        'hungary': '🇭🇺', '匈牙利': '🇭🇺',
+        'sweden': '🇸🇪', '瑞典': '🇸🇪',
+        'norway': '🇳🇴', '挪威': '🇳🇴',
+        'finland': '🇫🇮', '芬蘭': '🇫🇮',
+        'denmark': '🇩🇰', '丹麥': '🇩🇰',
+        'iceland': '🇮🇸', '冰島': '🇮🇸',
+        'ireland': '🇮🇪', '愛爾蘭': '🇮🇪',
+        'turkey': '🇹🇷', 'türkiye': '🇹🇷', '土耳其': '🇹🇷',
+        'egypt': '🇪🇬', '埃及': '🇪🇬',
+        'india': '🇮🇳', '印度': '🇮🇳',
+        'mexico': '🇲🇽', '墨西哥': '🇲🇽',
+        'brazil': '🇧🇷', '巴西': '🇧🇷',
+        'peru': '🇵🇪', '秘魯': '🇵🇪'
+      };
+
+      window.attachCountryFlag = function(rawCountry) {
+        var str = String(rawCountry || '').trim();
+        if (!str) return '';
+        // 若開頭已經有國旗 Emoji（Unicode Regional Indicator Symbols），直接回傳不重複加
+        if (/^[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/.test(str)) return str;
+        var cleanKey = str.toLowerCase();
+        if (COUNTRY_FLAG_MAP[cleanKey]) {
+          return COUNTRY_FLAG_MAP[cleanKey] + ' ' + str;
+        }
+        // 模糊比對（例如 "Spain 西班牙" 也能自動配上 🇪🇸）
+        var keys = Object.keys(COUNTRY_FLAG_MAP);
+        for (var i = 0; i < keys.length; i++) {
+          if (cleanKey.indexOf(keys[i]) !== -1) {
+            return COUNTRY_FLAG_MAP[keys[i]] + ' ' + str;
+          }
+        }
+        return str;
+      };
+
+      window.purgeEmptyCountriesAndRegions = function(silent) {
+        ensureTownsState();
+        var towns = typeof getAllTowns === 'function' ? getAllTowns() : [];
+        var activeCountries = {};
+        var activeRegionKeys = {};
+        towns.forEach(function(t) {
+          var c = t.country || '澳洲';
+          var r = t.regionCategory || '未分類地區';
+          activeCountries[c] = true;
+          activeRegionKeys[c + '||' + r] = true;
+        });
+
+        var beforeCount = (appState.emptyCountries || []).length + (appState.emptyRegions || []).length;
+        appState.emptyCountries = (appState.emptyCountries || []).filter(function(c) {
+          return !!activeCountries[c];
+        });
+        appState.emptyRegions = (appState.emptyRegions || []).filter(function(item) {
+          return item && !!activeRegionKeys[(item.country || '') + '||' + (item.region || '')];
+        });
+        var afterCount = appState.emptyCountries.length + appState.emptyRegions.length;
+
+        saveState();
+        if (typeof window.syncMapUIWithAppState === 'function') {
+          window.syncMapUIWithAppState();
+        }
+        if (!silent) {
+          var removed = Math.max(0, beforeCount - afterCount);
+          showGlobalToast(removed > 0 ? ('🧹 已清除 ' + removed + ' 個無城鎮的空國家/空分區！') : '✅ 目前沒有多餘的空國家或空分區');
+        }
+      };
+
       function ensureTownsState() {
         if (!appState.mapSavedData) appState.mapSavedData = {};
         if (!appState.customTowns) appState.customTowns = [];
@@ -4966,9 +5062,8 @@ if (goalProjEl) {
         if (!appState.townMetaOverrides) appState.townMetaOverrides = {};
         if (!appState.deletedDefaultTownIds) appState.deletedDefaultTownIds = [];
         if (!appState.emptyCountries) appState.emptyCountries = [];
-        if (!appState.emptyRegions) appState.emptyRegions = []; // 格式: [{ country: '澳洲', region: 'NSW 新南威爾斯' }]
+        if (!appState.emptyRegions) appState.emptyRegions = [];
       }
-
       // 取得所有有效城鎮（支援覆寫預設城鎮的國家、分類與名稱）
       function getAllTowns() {
         ensureTownsState();
@@ -5190,12 +5285,11 @@ if (goalProjEl) {
         renderTownsDirectory();
       };
 
-      // 新增國家
-      window.addNewCountryPrompt = function() {
-        var name = prompt("請輸入新國家名稱（例如：日本、德國、紐西蘭、英國）：");
+   window.addNewCountryPrompt = function() {
+        var name = prompt("請輸入新國家名稱（例如：Japan、Germany、Spain、Taiwan）：");
         if (!name || !name.trim()) return;
         ensureTownsState();
-        var clean = name.trim();
+        var clean = typeof window.attachCountryFlag === 'function' ? window.attachCountryFlag(name.trim()) : name.trim();
         if (!appState.emptyCountries.includes(clean)) appState.emptyCountries.push(clean);
         currentCountryFilter = clean;
         currentRegionFilter = 'ALL';
