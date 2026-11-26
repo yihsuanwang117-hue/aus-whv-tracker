@@ -131,6 +131,7 @@
 <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#78350f">
   <meta name="mobile-web-app-capable" content="yes">
+  <script src="https://unpkg.com/globe.gl@2.32.1/dist/globe.gl.min.js"></script>
 </head>
   <body class="bg-stone-100 text-stone-800 font-sans min-h-screen pb-16">
 
@@ -308,6 +309,17 @@
             <p id="goal-gap-text" class="text-[11px] text-stone-300 mt-1">距離目標還差約 A$ 0</p>
           </div>
         </div>
+        <!-- 🐷 10% 階梯式小豬撲滿視覺化 -->
+<div class="flex items-center gap-3 my-2 bg-stone-800/70 border border-stone-700/80 rounded-xl p-2.5">
+  <div id="piggy-bank-visual" class="w-24 h-20 shrink-0 flex items-center justify-center"></div>
+  <div class="text-[11px] space-y-1 flex-1">
+    <div class="flex items-center justify-between">
+      <span class="font-bold text-amber-300" id="piggy-milestone-title">🐷 撲滿蓄力中</span>
+      <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30" id="piggy-tier-badge">階梯 0 / 10</span>
+    </div>
+    <p class="text-stone-300 leading-snug" id="piggy-milestone-desc">每達成 10% 撲滿金幣水位將顯著上升一階！</p>
+  </div>
+</div>
         <div class="w-full h-3 bg-stone-700/80 rounded-full overflow-hidden p-0.5">
           <div id="goal-progress-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
@@ -339,7 +351,6 @@
           <button type="button" onclick="applyQuickTxPreset('income', '薪資', 'AUD', '', '每週薪資入帳')" class="px-2.5 py-1 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 font-bold cursor-pointer !min-h-0">＋ 週薪入帳</button>
           <button type="button" onclick="applyQuickTxPreset('expense', '房租', 'AUD', '', '每週房租 Rent')" class="px-2.5 py-1 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/40 font-bold cursor-pointer !min-h-0">－ 週繳房租</button>
           <button type="button" onclick="applyQuickTxPreset('expense', '飲食', 'AUD', '', '超市生鮮採買')" class="px-2.5 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/40 font-bold cursor-pointer !min-h-0">－ 超市採買</button>
-          <button type="button" onclick="applyQuickTxPreset('expense', '通訊', 'AUD', '35', '手機預付卡儲值')" class="px-2.5 py-1 rounded-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 border border-sky-400/40 font-bold cursor-pointer !min-h-0">－ 電信儲值</button>
         </div>
 
         <div class="mt-5">
@@ -579,7 +590,10 @@
             </h2>
             <p class="text-xs text-stone-500 mt-0.5">依「國家 ➔ 州/地區分類 ➔ 城鎮」分層管理；分類名稱與城鎮皆可隨時修改或刪除。</p>
           </div>
-          <div class="flex flex-wrap items-center gap-2">
+         <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="toggleTravelGlobeModal()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition cursor-pointer shadow-xs">
+              🌍 3D 旅途地球儀
+            </button>
             <button type="button" onclick="togglePhotoTimelineBanner()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition cursor-pointer shadow-xs">
               🎞️ 足跡時間軸條幅
             </button>
@@ -595,7 +609,59 @@
             </label>
           </div>
         </div>
+        <!-- 🌍 3D 旅途足跡地球儀面板 -->
+        <div id="travel-globe-panel" class="hidden bg-slate-950 text-slate-100 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-xl space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+            <div>
+              <h3 class="text-base font-bold text-sky-400 flex items-center gap-2">
+                <span>🌍</span> 多年旅行足跡 3D 地球儀
+              </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">無紀錄月份以「月」為單位；有踩點紀錄自動細分為「日」。跨洲移動顯示 ✈️ 航線，同區移動顯示 📍 Pin。</p>
+            </div>
+            <button type="button" onclick="toggleTravelGlobeModal()" class="px-2.5 py-1 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-xs font-bold cursor-pointer !min-h-0">✕ 關閉地球儀</button>
+          </div>
 
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center">
+            <!-- 3D 地球儀畫布 -->
+            <div class="lg:col-span-2 relative rounded-xl overflow-hidden border border-slate-800 bg-black flex items-center justify-center min-h-[340px]">
+              <div id="travel-globe-canvas" class="w-full h-[340px]"></div>
+              <div id="globe-transit-badge" class="absolute top-3 left-3 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700 text-xs font-bold text-amber-300 shadow">
+                拖拉下方時間軸探索足跡
+              </div>
+            </div>
+
+            <!-- 右側當期位置與店家詳情卡片 -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3 h-full flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">時間軸所在位置</span>
+                  <span id="globe-granularity-tag" class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">月份檢視</span>
+                </div>
+                <h4 id="globe-current-date-title" class="text-lg font-mono font-bold text-white">--</h4>
+                <div id="globe-current-location-name" class="text-sm font-bold text-emerald-400">尚未選取時間點</div>
+                <p id="globe-movement-desc" class="text-xs text-slate-300 leading-relaxed bg-slate-950/70 p-2.5 rounded-lg border border-slate-800">
+                  在城鎮地圖中為地標設定「造訪日期」並勾選已踩點，這裡就會自動串起你的全球移動軌跡！
+                </p>
+              </div>
+              <div id="globe-visited-shops-list" class="space-y-1.5 max-h-36 overflow-y-auto text-xs"></div>
+            </div>
+          </div>
+
+          <!-- 底部智能雙尺度時間軸拖拉滑桿 -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <button type="button" onclick="stepTravelGlobeSlider(-1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold cursor-pointer !min-h-0">◀ 上一個時間點</button>
+              <span class="font-mono text-amber-300 font-bold" id="globe-slider-progress-label">0 / 0</span>
+              <button type="button" onclick="stepTravelGlobeSlider(1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold cursor-pointer !min-h-0">下一個時間點 ▶</button>
+            </div>
+            <input type="range" id="travel-globe-slider" min="0" max="0" value="0" oninput="onTravelGlobeSliderChange(this.value)" class="w-full accent-amber-400 cursor-pointer">
+            <div class="flex justify-between text-[10px] font-mono text-slate-400">
+              <span id="globe-slider-start-date">--</span>
+              <span>拖拉滑桿穿越時間與大陸</span>
+              <span id="globe-slider-end-date">--</span>
+            </div>
+          </div>
+        </div>
         <!-- 🎞️ 旅遊足跡日期篩選與照片時間軸條幅面板 -->
         <div id="photo-timeline-banner-panel" class="hidden bg-stone-900 text-stone-100 rounded-2xl p-5 border border-stone-700 shadow-lg space-y-4">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-stone-700">
@@ -612,6 +678,7 @@
                 <span class="text-stone-400 text-[11px]">至</span>
                 <input type="date" id="timeline-filter-end" onchange="renderPhotoTimelineBanner()" class="bg-transparent text-stone-100 font-mono text-xs focus:outline-none !min-h-0">
               </div>
+             <button type="button" id="timeline-sort-btn" onclick="toggleTimelineSortOrder()" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-bold cursor-pointer !min-h-0">⬇️ 最新到最舊</button>
               <button type="button" onclick="resetTimelineDateFilter()" class="px-2.5 py-1.5 bg-stone-700 hover:bg-stone-600 text-stone-200 rounded-lg text-[11px] font-bold cursor-pointer !min-h-0">全部日期</button>
               <button type="button" onclick="togglePhotoTimelineBanner()" class="px-2.5 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-[11px] font-bold cursor-pointer !min-h-0">✕ 關閉</button>
             </div>
@@ -1280,7 +1347,83 @@
       var p = todayStr.split('-').map(Number);
       return new Date(p[0], p[1] - 1, p[2], 0, 0, 0, 0);
     }
+    function renderPiggyBankVisual(pct) {
+      var box = document.getElementById('piggy-bank-visual');
+      if (!box) return;
+      var safePct = Math.max(0, Math.min(100, Number(pct) || 0));
+      var tier = Math.floor(safePct / 10); // 每 10% 一階 (0~10)
+      // 豬肚子內部 Y 軸範圍：底部 y=66，頂部 y=22（高度 44px），每 10% 顯著上升 4.4px
+      var stepFillHeight = (tier * 10 / 100) * 44;
+      var stepFillY = 66 - stepFillHeight;
+      // 精準所在趴數線條 Y 座標
+      var exactLineY = 66 - (safePct / 100) * 44;
 
+      var titleEl = document.getElementById('piggy-milestone-title');
+      var badgeEl = document.getElementById('piggy-tier-badge');
+      var descEl = document.getElementById('piggy-milestone-desc');
+      if (badgeEl) badgeEl.textContent = '階梯 ' + tier + ' / 10';
+      if (titleEl && descEl) {
+        if (safePct >= 100) {
+          titleEl.textContent = '👑 小豬撲滿已完全裝滿！';
+          descEl.textContent = '100% 目標達成！準備好迎接下一階段旅程資金！';
+        } else {
+          var nextMilestone = (tier + 1) * 10;
+          titleEl.textContent = tier === 0 ? '🐷 小豬撲滿剛起步' : ('🐷 已突破 ' + (tier * 10) + '% 里程碑！');
+          descEl.textContent = '目前位於 ' + safePct + '% 刻度線，再存 ' + (nextMilestone - safePct) + '% 即可讓撲滿金幣再升一格！';
+        }
+      }
+
+      // 產生 10% ~ 90% 的細刻度線
+      var ticksHtml = '';
+      for (var t = 1; t <= 9; t++) {
+        var ty = 66 - (t / 10) * 44;
+        var reached = safePct >= t * 10;
+        ticksHtml += '<line x1="26" y1="' + ty.toFixed(1) + '" x2="74" y2="' + ty.toFixed(1) + '" stroke="' + (reached ? '#fef3c7' : '#78716c') + '" stroke-width="0.7" stroke-dasharray="2,2" opacity="' + (reached ? '0.65' : '0.35') + '" />';
+      }
+
+      box.innerHTML =
+        '<svg viewBox="0 0 115 80" class="w-full h-full overflow-visible">' +
+          '<defs>' +
+            '<clipPath id="piggy-body-clip">' +
+              '<ellipse cx="50" cy="44" rx="28" ry="22" />' +
+            '</clipPath>' +
+            '<linearGradient id="gold-fill-grad" x1="0" y1="0" x2="0" y2="1">' +
+              '<stop offset="0%" stop-color="#fbbf24" />' +
+              '<stop offset="100%" stop-color="#d97706" />' +
+            '</linearGradient>' +
+          '</defs>' +
+          // 達成 100% 時頂部出現皇冠
+          (safePct >= 100 ? '<text x="43" y="15" font-size="13">👑</text>' : '') +
+          // 投幣孔
+          '<rect x="43" y="19" width="14" height="3" rx="1.5" fill="#f59e0b" />' +
+          // 豬尾巴
+          '<path d="M22,42 C14,38 14,48 20,46 C23,45 21,41 18,43" fill="none" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" />' +
+          // 豬耳朵
+          '<polygon points="65,24 72,15 76,27" fill="#f472b6" />' +
+          // 豬腳
+          '<rect x="33" y="62" width="6" height="9" rx="2" fill="#ec4899" />' +
+          '<rect x="60" y="62" width="6" height="9" rx="2" fill="#ec4899" />' +
+          // 豬身體底色
+          '<ellipse cx="50" cy="44" rx="28" ry="22" fill="#292524" stroke="#f472b6" stroke-width="2.2" />' +
+          // 10% 階梯式金幣填充層
+          '<g clip-path="url(#piggy-body-clip)">' +
+            '<rect x="20" y="' + stepFillY.toFixed(1) + '" width="62" height="' + stepFillHeight.toFixed(1) + '" fill="url(#gold-fill-grad)" opacity="0.88" />' +
+            ticksHtml +
+          '</g>' +
+          // 重新描一次豬身體外框確保線條銳利
+          '<ellipse cx="50" cy="44" rx="28" ry="22" fill="none" stroke="' + (tier > 0 ? '#fbbf24' : '#f472b6') + '" stroke-width="2.2" />' +
+          // 豬鼻子與眼睛
+          '<ellipse cx="79" cy="45" rx="5" ry="7" fill="#f472b6" stroke="#be185d" stroke-width="1" />' +
+          '<circle cx="78" cy="43" r="1" fill="#831843" />' +
+          '<circle cx="80" cy="47" r="1" fill="#831843" />' +
+          '<circle cx="67" cy="37" r="2" fill="#fff" />' +
+          '<circle cx="67.5" cy="37" r="1" fill="#1c1917" />' +
+          // 所在趴數精準指示線與右側標籤
+          '<line x1="22" y1="' + exactLineY.toFixed(1) + '" x2="86" y2="' + exactLineY.toFixed(1) + '" stroke="#38bdf8" stroke-width="1.8" />' +
+          '<polygon points="85,' + exactLineY.toFixed(1) + ' 89,' + (exactLineY - 2.5).toFixed(1) + ' 89,' + (exactLineY + 2.5).toFixed(1) + '" fill="#38bdf8" />' +
+          '<text x="91" y="' + (exactLineY + 3).toFixed(1) + '" fill="#38bdf8" font-size="9" font-weight="bold" font-family="monospace">' + safePct + '%</text>' +
+        '</svg>';
+    }
     // 更新雙幣財務頂部「留學基金達標進度條」與「14天備份提醒」
     function updateFinanceGoalProgressBar() {
       // 1. 澳幣 / 歐元 / 台幣 隨手換算
@@ -1399,7 +1542,10 @@ window.applyQuickTxPreset = function(type, categoryKeyword, currency, amount, no
       document.getElementById('goal-current-twd').textContent = 'NT$ ' + currentTWD.toLocaleString();
       document.getElementById('goal-target-twd').textContent = 'NT$ ' + tgt.toLocaleString();
       document.getElementById('goal-pct-badge').textContent = pct + '%';
-      barEl.style.width = pct + '%';
+    barEl.style.width = pct + '%';
+      if (typeof renderPiggyBankVisual === 'function') {
+        renderPiggyBankVisual(pct);
+      }
 
       var gapEl = document.getElementById('goal-gap-text');
       if (currentTWD >= tgt) {
@@ -5722,6 +5868,16 @@ window.openAddCustomTownModal = function() {
         }
       };
 
+      window.timelineSortOrder = 'desc';
+      window.toggleTimelineSortOrder = function() {
+        window.timelineSortOrder = (window.timelineSortOrder === 'desc') ? 'asc' : 'desc';
+        var btn = document.getElementById('timeline-sort-btn');
+        if (btn) {
+          btn.textContent = window.timelineSortOrder === 'desc' ? '⬇️ 最新到最舊' : '⬆️ 最舊到最新';
+        }
+        renderPhotoTimelineBanner();
+      };
+
       window.resetTimelineDateFilter = function() {
         var s = document.getElementById('timeline-filter-start');
         var e = document.getElementById('timeline-filter-end');
@@ -5791,9 +5947,10 @@ window.openAddCustomTownModal = function() {
           return true;
         });
 
-        // 依日期由舊到新排序（像時間軸故事線一樣展開）
+       // 依選擇的排序方向排列（篩選日期後點擊按鈕也會即時重排）
+        var sortDir = window.timelineSortOrder || 'desc';
         filtered.sort(function(a, b) {
-          return a.date.localeCompare(b.date);
+          return sortDir === 'desc' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date);
         });
 
         if (filtered.length === 0) {
@@ -5842,6 +5999,272 @@ window.openAddCustomTownModal = function() {
             selectTownPlace(placeId, true);
           }, 250);
         }
+      };
+      // ==========================================
+      // 🌍 3D 旅途足跡地球儀（月份/天數雙尺度 ＋ 飛機/Pin 智能切換）
+      // ==========================================
+      var travelGlobeInstance = null;
+      var globeTimelineSteps = [];
+
+      // 簡易大洲判定（用於區分跨大陸飛機 ✈️ vs 同地區 Pin 📍）
+      function detectContinent(lat, lng) {
+        if (lat >= 35 && lng >= -15 && lng <= 45) return 'Europe';      // 歐洲（如西班牙瓦倫西亞、馬德里）
+        if (lat <= -10 && lng >= 110 && lng <= 180) return 'Oceania';   // 大洋洲（如澳洲）
+        if (lat >= 5 && lat <= 55 && lng >= 60 && lng <= 150) return 'Asia'; // 亞洲（如台灣）
+        if (lat >= 15 && lng >= -170 && lng <= -50) return 'NorthAmerica';
+        if (lat < 15 && lng >= -90 && lng <= -30) return 'SouthAmerica';
+        return 'Other';
+      }
+
+      function calcHaversineKm(lat1, lng1, lat2, lng2) {
+        var R = 6371;
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLng = (lng2 - lng1) * Math.PI / 180;
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      }
+
+      function buildGlobeTimelineSteps() {
+        var allTowns = typeof getAllTowns === 'function' ? getAllTowns() : [];
+        var dailyMap = {}; // key: YYYY-MM-DD -> { date, month, town, places: [] }
+
+        allTowns.forEach(function(town) {
+          var places = getTownPlaces(town.id) || [];
+          places.forEach(function(place) {
+            var uData = (appState.mapSavedData && appState.mapSavedData[place.id]) || {};
+            var photos = uData.photos || [];
+            var vDate = uData.visitedDate || (photos[0] && photos[0].date) || '';
+            if ((uData.visited || photos.length > 0) && /^\d{4}-\d{2}-\d{2}$/.test(vDate)) {
+              if (!dailyMap[vDate]) {
+                dailyMap[vDate] = {
+                  date: vDate,
+                  month: vDate.slice(0, 7),
+                  town: town,
+                  lat: place.lat || town.lat,
+                  lng: place.lng || town.lng,
+                  places: []
+                };
+              }
+              dailyMap[vDate].places.push(place);
+              dailyMap[vDate].lat = place.lat || town.lat;
+              dailyMap[vDate].lng = place.lng || town.lng;
+            }
+          });
+        });
+
+        var sortedDays = Object.keys(dailyMap).sort();
+        if (sortedDays.length === 0) {
+          // 若尚無踩點紀錄，提供一組跨洲示範軌跡（台灣 -> 西班牙瓦倫西亞 -> 馬德里 -> 澳洲）讓地球儀可立即體驗
+          return [
+            { key: '2025-09', granularity: 'month', label: '2025-09 (月份)', title: '台灣出發準備期', lat: 25.0330, lng: 121.5654, places: [], isDemo: true },
+            { key: '2025-10-03', granularity: 'day', label: '2025-10-03 (單日)', title: '西班牙・瓦倫西亞 Valencia', lat: 39.4699, lng: -0.3763, places: [{ name: '瓦倫西亞中央市場', iconText: '🍊' }], isDemo: true },
+            { key: '2025-10-08', granularity: 'day', label: '2025-10-08 (單日)', title: '西班牙・馬德里 Madrid', lat: 40.4168, lng: -3.7038, places: [{ name: '太陽門廣場與主廣場', iconText: '🏛️' }], isDemo: true },
+            { key: '2026-03', granularity: 'month', label: '2026-03 (月份)', title: '澳洲・布里斯本 / 昆士蘭', lat: -27.4705, lng: 153.0260, places: [], isDemo: true }
+          ];
+        }
+
+        // 建立「月份為主、有紀錄之月份自動細分為天數」的混合尺度時間軸
+        var startMonth = sortedDays[0].slice(0, 7);
+        var endMonth = sortedDays[sortedDays.length - 1].slice(0, 7);
+        var steps = [];
+        var curY = Number(startMonth.slice(0, 4));
+        var curM = Number(startMonth.slice(5, 7));
+        var endY = Number(endMonth.slice(0, 4));
+        var endM = Number(endMonth.slice(5, 7));
+        var lastKnownLoc = { title: '出發地', lat: dailyMap[sortedDays[0]].lat, lng: dailyMap[sortedDays[0]].lng };
+
+        while (curY < endY || (curY === endY && curM <= endM)) {
+          var mStr = curY + '-' + (curM < 10 ? '0' + curM : curM);
+          var daysInThisMonth = sortedDays.filter(function(d) { return d.startsWith(mStr); });
+
+          if (daysInThisMonth.length > 0) {
+            // 該月份有旅行紀錄 -> 細分為每一天
+            daysInThisMonth.forEach(function(dStr) {
+              var rec = dailyMap[dStr];
+              lastKnownLoc = { title: rec.town.name, lat: rec.lat, lng: rec.lng };
+              steps.push({
+                key: dStr,
+                granularity: 'day',
+                label: dStr,
+                title: rec.town.name,
+                lat: rec.lat,
+                lng: rec.lng,
+                places: rec.places
+              });
+            });
+          } else {
+            // 無新增移動的月份 -> 以月份為單位停留於上一站
+            steps.push({
+              key: mStr,
+              granularity: 'month',
+              label: mStr + '（整月停留）',
+              title: lastKnownLoc.title,
+              lat: lastKnownLoc.lat,
+              lng: lastKnownLoc.lng,
+              places: []
+            });
+          }
+
+          curM++;
+          if (curM > 12) { curM = 1; curY++; }
+        }
+        return steps;
+      }
+
+      window.toggleTravelGlobeModal = function() {
+        var panel = document.getElementById('travel-globe-panel');
+        if (!panel) return;
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+          initAndRenderTravelGlobe();
+        }
+      };
+
+      function initAndRenderTravelGlobe() {
+        var container = document.getElementById('travel-globe-canvas');
+        if (!container || typeof Globe === 'undefined') return;
+
+        globeTimelineSteps = buildGlobeTimelineSteps();
+        var slider = document.getElementById('travel-globe-slider');
+        if (slider) {
+          slider.min = 0;
+          slider.max = Math.max(0, globeTimelineSteps.length - 1);
+          slider.value = Math.max(0, globeTimelineSteps.length - 1);
+        }
+        var startLbl = document.getElementById('globe-slider-start-date');
+        var endLbl = document.getElementById('globe-slider-end-date');
+        if (startLbl) startLbl.textContent = globeTimelineSteps[0].key;
+        if (endLbl) endLbl.textContent = globeTimelineSteps[globeTimelineSteps.length - 1].key;
+
+        if (!travelGlobeInstance) {
+          travelGlobeInstance = Globe()(container)
+            .width(container.clientWidth || 520)
+            .height(340)
+            .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+            .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+            .backgroundColor('#020617')
+            .arcColor(function(d) { return d.isIntercontinental ? ['#38bdf8', '#fbbf24'] : ['#34d399', '#a7f3d0']; })
+            .arcDashLength(function(d) { return d.isIntercontinental ? 0.45 : 0.9; })
+            .arcDashGap(function(d) { return d.isIntercontinental ? 0.2 : 0; })
+            .arcDashAnimateTime(function(d) { return d.isIntercontinental ? 1600 : 0; })
+            .arcAltitude(function(d) { return d.isIntercontinental ? 0.28 : 0.03; })
+            .htmlElementsData([])
+            .htmlElement(function(d) {
+              var el = document.createElement('div');
+              el.style.fontSize = d.isPlane ? '22px' : '20px';
+              el.style.transform = 'translate(-50%, -50%)';
+              el.style.pointerEvents = 'none';
+              el.innerHTML = d.emoji + '<div style="font-size:10px;font-weight:bold;color:#fff;background:rgba(15,23,42,0.85);padding:1px 5px;border-radius:6px;white-space:nowrap;margin-top:1px;">' + d.caption + '</div>';
+              return el;
+            });
+        }
+
+        onTravelGlobeSliderChange(slider ? slider.value : 0);
+      }
+
+      window.stepTravelGlobeSlider = function(delta) {
+        var slider = document.getElementById('travel-globe-slider');
+        if (!slider) return;
+        var nextVal = Math.max(0, Math.min(Number(slider.max), Number(slider.value) + delta));
+        slider.value = nextVal;
+        onTravelGlobeSliderChange(nextVal);
+      };
+
+      window.onTravelGlobeSliderChange = function(idxStr) {
+        var idx = Number(idxStr) || 0;
+        var step = globeTimelineSteps[idx];
+        if (!step || !travelGlobeInstance) return;
+
+        var prevStep = idx > 0 ? globeTimelineSteps[idx - 1] : null;
+        var isMoving = prevStep && (Math.abs(prevStep.lat - step.lat) > 0.01 || Math.abs(prevStep.lng - step.lng) > 0.01);
+        var isIntercontinental = false;
+
+        if (isMoving) {
+          var contA = detectContinent(prevStep.lat, prevStep.lng);
+          var contB = detectContinent(step.lat, step.lng);
+          var distKm = calcHaversineKm(prevStep.lat, prevStep.lng, step.lat, step.lng);
+          isIntercontinental = (contA !== contB) || (distKm > 1500);
+        }
+
+        // 更新文字資訊面板
+        var progLbl = document.getElementById('globe-slider-progress-label');
+        if (progLbl) progLbl.textContent = (idx + 1) + ' / ' + globeTimelineSteps.length;
+
+        var granTag = document.getElementById('globe-granularity-tag');
+        if (granTag) granTag.textContent = step.granularity === 'day' ? '📅 單日精細刻度' : '🗓️ 月份總覽刻度';
+
+        var dateTitle = document.getElementById('globe-current-date-title');
+        if (dateTitle) dateTitle.textContent = step.label;
+
+        var locName = document.getElementById('globe-current-location-name');
+        if (locName) locName.textContent = (step.isDemo ? '【示範軌跡】' : '') + step.title;
+
+        var badge = document.getElementById('globe-transit-badge');
+        var moveDesc = document.getElementById('globe-movement-desc');
+        if (isMoving) {
+          if (isIntercontinental) {
+            if (badge) badge.textContent = '✈️ 跨大陸飛行移動：' + prevStep.title + ' ➔ ' + step.title;
+            if (moveDesc) moveDesc.textContent = '✈️ 偵測到跨洲／長距離移動，地球儀已繪製高空飛行弧線前往「' + step.title + '」。';
+          } else {
+            if (badge) badge.textContent = '📍 同地區移動：' + prevStep.title + ' ➔ ' + step.title;
+            if (moveDesc) moveDesc.textContent = '📍 偵測到同大陸地區移動，已切換為地面 Pin 標記移動至「' + step.title + '」。';
+          }
+        } else {
+          if (badge) badge.textContent = '📍 駐留位置：' + step.title;
+          if (moveDesc) moveDesc.textContent = step.granularity === 'day'
+            ? ('當日在「' + step.title + '」共有 ' + step.places.length + ' 筆踩點紀錄。')
+            : ('此月份主要停留於「' + step.title + '」。');
+        }
+
+        var shopsList = document.getElementById('globe-visited-shops-list');
+        if (shopsList) {
+          shopsList.innerHTML = step.places.length === 0
+            ? '<div class="text-slate-500 italic">該時段無額外新增店家打卡</div>'
+            : step.places.map(function(p) {
+                return '<div class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700 flex items-center gap-2">' +
+                  '<span>' + (p.iconText || '📍') + '</span>' +
+                  '<span class="font-bold text-slate-100 truncate">' + escapeMapHTML(p.name) + '</span>' +
+                '</div>';
+              }).join('');
+        }
+
+        // 更新 3D 地球儀弧線與 ✈️ / 📍 標記
+        var arcs = [];
+        var htmlMarkers = [{
+          lat: step.lat,
+          lng: step.lng,
+          emoji: '📍',
+          caption: step.title,
+          isPlane: false
+        }];
+
+        if (isMoving) {
+          arcs.push({
+            startLat: prevStep.lat,
+            startLng: prevStep.lng,
+            endLat: step.lat,
+            endLng: step.lng,
+            isIntercontinental: isIntercontinental
+          });
+          if (isIntercontinental) {
+            htmlMarkers.push({
+              lat: (prevStep.lat + step.lat) / 2,
+              lng: (prevStep.lng + step.lng) / 2,
+              emoji: '✈️',
+              caption: '跨洲航線',
+              isPlane: true
+            });
+          }
+        }
+
+        travelGlobeInstance.arcsData(arcs).htmlElementsData(htmlMarkers);
+        travelGlobeInstance.pointOfView({
+          lat: step.lat,
+          lng: step.lng,
+          altitude: isIntercontinental ? 2.1 : 1.35
+        }, 900);
       };
 
       window.deleteCustomPlace = function(placeId) {
