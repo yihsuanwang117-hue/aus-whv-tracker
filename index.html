@@ -577,6 +577,9 @@
             <p class="text-xs text-stone-500 mt-0.5">依「國家 ➔ 州/地區分類 ➔ 城鎮」分層管理；分類名稱與城鎮皆可隨時修改或刪除。</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="togglePhotoTimelineBanner()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition cursor-pointer shadow-xs">
+              🎞️ 足跡時間軸條幅
+            </button>
             <button type="button" onclick="openAddCustomTownModal()" class="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold transition cursor-pointer shadow-xs">
               ＋ 新增城鎮
             </button>
@@ -588,6 +591,31 @@
               <input type="file" id="map-import-file" accept=".json" class="hidden" onchange="importMapRecords(event)">
             </label>
           </div>
+        </div>
+
+        <!-- 🎞️ 旅遊足跡日期篩選與照片時間軸條幅面板 -->
+        <div id="photo-timeline-banner-panel" class="hidden bg-stone-900 text-stone-100 rounded-2xl p-5 border border-stone-700 shadow-lg space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-stone-700">
+            <div>
+              <h3 class="text-base font-bold text-amber-400 flex items-center gap-2">
+                <span>🎞️</span> 旅遊足跡回憶條幅
+              </h3>
+              <p class="text-[11px] text-stone-400 mt-0.5">依日期篩選這段期間造訪過的地標與上傳的照片，點擊卡片可直接跳轉該地點。</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <div class="flex items-center gap-1.5 bg-stone-800 px-2.5 py-1 rounded-lg border border-stone-700">
+                <span class="text-stone-400 text-[11px]">從</span>
+                <input type="date" id="timeline-filter-start" onchange="renderPhotoTimelineBanner()" class="bg-transparent text-stone-100 font-mono text-xs focus:outline-none !min-h-0">
+                <span class="text-stone-400 text-[11px]">至</span>
+                <input type="date" id="timeline-filter-end" onchange="renderPhotoTimelineBanner()" class="bg-transparent text-stone-100 font-mono text-xs focus:outline-none !min-h-0">
+              </div>
+              <button type="button" onclick="resetTimelineDateFilter()" class="px-2.5 py-1.5 bg-stone-700 hover:bg-stone-600 text-stone-200 rounded-lg text-[11px] font-bold cursor-pointer !min-h-0">全部日期</button>
+              <button type="button" onclick="togglePhotoTimelineBanner()" class="px-2.5 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-[11px] font-bold cursor-pointer !min-h-0">✕ 關閉</button>
+            </div>
+          </div>
+
+          <!-- 橫向捲動底片條幅區 -->
+          <div id="photo-timeline-strip-container" class="flex gap-4 overflow-x-auto pb-3 pt-1 snap-x"></div>
         </div>
 
         <!-- 階層篩選面板：第 1 層國家 + 第 2 層地區分類（附修改/刪除） -->
@@ -5570,15 +5598,247 @@ window.openAddCustomTownModal = function() {
         showGlobalToast(uData.visited ? '✅ 已設為「踩點完成」並同步！' : '📍 已取消踩點標記');
       };
 
-      window.savePlaceComment = function(placeId) {
+    window.savePlaceComment = function(placeId) {
         var noteInput = document.getElementById('place-comment-input');
         var dateInput = document.getElementById('place-visited-date');
         var uData = getPlaceUserData(placeId);
         uData.note = noteInput ? noteInput.value : '';
-        if (dateInput) uData.visitedDate = dateInput.value;
+        if (dateInput) {
+          uData.visitedDate = dateInput.value;
+          // 同步更新該地點尚未單獨設定日期的照片日期
+          (uData.photos || []).forEach(function(ph) {
+            if (!ph.date) ph.date = dateInput.value;
+          });
+        }
         saveState();
         renderTownMarkers();
         showGlobalToast('💾 評論與踩點備註已儲存並同步！');
+      };
+
+      function renderPlacePhotosGridHtml(placeId, photos) {
+        if (!photos || photos.length === 0) {
+          return '<div class="text-[11px] text-stone-400 bg-white/70 border border-dashed border-amber-200 rounded-lg py-3 text-center">尚未上傳照片，點擊右上角「＋ 上傳照片」記錄回憶</div>';
+        }
+        return '<div class="grid grid-cols-3 gap-2">' +
+          photos.map(function(ph, idx) {
+            return '<div class="relative group rounded-lg overflow-hidden border border-stone-200 bg-white aspect-square">' +
+              '<img src="' + ph.dataUrl + '" class="w-full h-full object-cover" alt="踩點照片">' +
+              '<span class="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] font-mono px-1 py-0.5 truncate">' + escapeMapHTML(ph.date || '') + '</span>' +
+              '<button type="button" onclick="deletePlacePhoto(\'' + placeId + '\', ' + idx + ')" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600/90 text-white text-[10px] font-bold flex items-center justify-center opacity-90 hover:opacity-100 cursor-pointer !min-h-0" title="刪除此照片">✕</button>' +
+            '</div>';
+          }).join('') +
+        '</div>';
+      }
+
+      // 自動將照片等比例壓縮至長邊 800px，避免撐爆瀏覽器儲存空間
+      function compressImageFileToDataUrl(file, maxDim, quality) {
+        return new Promise(function(resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            var img = new Image();
+            img.onload = function() {
+              var w = img.width;
+              var h = img.height;
+              if (w > maxDim || h > maxDim) {
+                if (w > h) {
+                  h = Math.round((h * maxDim) / w);
+                  w = maxDim;
+                } else {
+                  w = Math.round((w * maxDim) / h);
+                  h = maxDim;
+                }
+              }
+              var canvas = document.createElement('canvas');
+              canvas.width = w;
+              canvas.height = h;
+              var ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      window.handlePlacePhotoUpload = function(placeId, event) {
+        var files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        var uData = getPlaceUserData(placeId);
+        if (!uData.photos) uData.photos = [];
+        var dateInput = document.getElementById('place-visited-date');
+        var photoDate = (dateInput && dateInput.value) ? dateInput.value : (uData.visitedDate || getLocalTodayStr(0));
+
+        // 若尚未標記已踩點，上傳照片時順便自動幫你勾選已踩點與日期
+        if (!uData.visited) {
+          uData.visited = true;
+          uData.visitedDate = photoDate;
+        }
+
+        showGlobalToast('⏳ 正在最佳化壓縮 ' + files.length + ' 張照片...');
+        var tasks = Array.prototype.slice.call(files).map(function(f) {
+          return compressImageFileToDataUrl(f, 800, 0.72).then(function(dataUrl) {
+            uData.photos.push({
+              id: 'ph_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+              date: photoDate,
+              dataUrl: dataUrl
+            });
+          });
+        });
+
+        Promise.all(tasks).then(function() {
+          saveState();
+          updateTownProgressBadges();
+          renderTownMarkers();
+          selectTownPlace(placeId, false);
+          showGlobalToast('✅ 已成功上傳 ' + files.length + ' 張踩點照片！');
+        }).catch(function() {
+          showGlobalToast('❌ 照片處理失敗，請重新嘗試');
+        });
+      };
+
+      window.deletePlacePhoto = function(placeId, photoIdx) {
+        var uData = getPlaceUserData(placeId);
+        if (!uData.photos) return;
+        uData.photos.splice(photoIdx, 1);
+        saveState();
+        selectTownPlace(placeId, false);
+        showGlobalToast('🗑️ 已移除該張照片');
+      };
+
+      // --- 旅遊足跡時間軸條幅模組 ---
+      window.togglePhotoTimelineBanner = function() {
+        var panel = document.getElementById('photo-timeline-banner-panel');
+        if (!panel) return;
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+          renderPhotoTimelineBanner();
+        }
+      };
+
+      window.resetTimelineDateFilter = function() {
+        var s = document.getElementById('timeline-filter-start');
+        var e = document.getElementById('timeline-filter-end');
+        if (s) s.value = '';
+        if (e) e.value = '';
+        renderPhotoTimelineBanner();
+      };
+
+      window.renderPhotoTimelineBanner = function() {
+        var strip = document.getElementById('photo-timeline-strip-container');
+        if (!strip) return;
+
+        var startVal = (document.getElementById('timeline-filter-start') || {}).value || '';
+        var endVal = (document.getElementById('timeline-filter-end') || {}).value || '';
+
+        // 蒐集所有城鎮與地標的足跡紀錄（含已踩點或有上傳照片的地標）
+        var allTowns = typeof getAllTowns === 'function' ? getAllTowns() : [];
+        var timelineEntries = [];
+
+        allTowns.forEach(function(town) {
+          var places = getTownPlaces(town.id) || [];
+          places.forEach(function(place) {
+            var uData = (appState.mapSavedData && appState.mapSavedData[place.id]) || {};
+            var photos = uData.photos || [];
+            var vDate = uData.visitedDate || (photos[0] && photos[0].date) || '';
+
+            if (photos.length > 0) {
+              photos.forEach(function(ph) {
+                var d = ph.date || vDate || '未標註日期';
+                timelineEntries.push({
+                  date: d,
+                  townId: town.id,
+                  townName: town.name,
+                  placeId: place.id,
+                  placeName: place.name,
+                  categoryLabel: place.categoryLabel,
+                  color: place.color,
+                  iconText: place.iconText,
+                  note: uData.note || '',
+                  photoUrl: ph.dataUrl
+                });
+              });
+            } else if (uData.visited && vDate) {
+              // 即使沒上傳照片，只要有勾選已踩點與日期，也會出現在足跡條幅上
+              timelineEntries.push({
+                date: vDate,
+                townId: town.id,
+                townName: town.name,
+                placeId: place.id,
+                placeName: place.name,
+                categoryLabel: place.categoryLabel,
+                color: place.color,
+                iconText: place.iconText,
+                note: uData.note || '',
+                photoUrl: ''
+              });
+            }
+          });
+        });
+
+        // 依日期篩選
+        var filtered = timelineEntries.filter(function(item) {
+          if (!startVal && !endVal) return true;
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(item.date)) return false;
+          if (startVal && item.date < startVal) return false;
+          if (endVal && item.date > endVal) return false;
+          return true;
+        });
+
+        // 依日期由舊到新排序（像時間軸故事線一樣展開）
+        filtered.sort(function(a, b) {
+          return a.date.localeCompare(b.date);
+        });
+
+        if (filtered.length === 0) {
+          strip.innerHTML =
+            '<div class="w-full py-10 text-center text-xs text-stone-400 border border-dashed border-stone-700 rounded-xl">' +
+              '此日期區間尚無足跡或上傳照片。<br><span class="text-[11px] text-stone-500 mt-1 inline-block">點進任一城鎮地標上傳照片並設定造訪日期，這裡就會自動串成回憶條幅！</span>' +
+            '</div>';
+          return;
+        }
+
+        strip.innerHTML = filtered.map(function(entry, index) {
+          var mediaHtml = entry.photoUrl
+            ? '<div class="h-36 w-full overflow-hidden bg-stone-800 relative">' +
+                '<img src="' + entry.photoUrl + '" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">' +
+                '<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow" style="background:' + entry.color + '">' + entry.iconText + ' ' + escapeMapHTML(entry.categoryLabel) + '</span>' +
+              '</div>'
+            : '<div class="h-36 w-full bg-stone-800/80 flex flex-col items-center justify-center p-3 text-center relative">' +
+                '<span class="text-3xl mb-1">' + entry.iconText + '</span>' +
+                '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style="background:' + entry.color + '">' + escapeMapHTML(entry.categoryLabel) + '</span>' +
+                '<span class="text-[10px] text-stone-400 mt-1.5">（純文字踩點紀錄）</span>' +
+              '</div>';
+
+          return '<div onclick="jumpFromTimelineToPlace(\'' + entry.townId + '\', \'' + entry.placeId + '\')" class="snap-start shrink-0 w-[230px] bg-stone-800 hover:bg-stone-750 border border-stone-700 hover:border-amber-500 rounded-xl overflow-hidden shadow-md cursor-pointer transition group flex flex-col">' +
+            '<div class="px-3 py-1.5 bg-stone-950/60 border-b border-stone-700/80 flex items-center justify-between">' +
+              '<span class="font-mono font-bold text-xs text-amber-400">📅 ' + escapeMapHTML(entry.date) + '</span>' +
+              '<span class="text-[10px] text-stone-400">#' + (index + 1) + '</span>' +
+            '</div>' +
+            mediaHtml +
+            '<div class="p-3 flex-1 flex flex-col justify-between space-y-1.5">' +
+              '<div>' +
+                '<div class="text-[10px] font-bold text-emerald-400 truncate">📍 ' + escapeMapHTML(entry.townName) + '</div>' +
+                '<h4 class="font-bold text-xs text-white truncate mt-0.5 group-hover:text-amber-300">' + escapeMapHTML(entry.placeName) + '</h4>' +
+              '</div>' +
+              (entry.note ? '<p class="text-[11px] text-stone-300 line-clamp-2 leading-snug bg-stone-900/60 p-1.5 rounded border border-stone-700/60">💬 ' + escapeMapHTML(entry.note) + '</p>' : '<p class="text-[10px] text-stone-500 italic">點擊查看該地標詳情 →</p>') +
+            '</div>' +
+          '</div>';
+        }).join('');
+      };
+
+      window.jumpFromTimelineToPlace = function(townId, placeId) {
+        var panel = document.getElementById('photo-timeline-banner-panel');
+        if (panel) panel.classList.add('hidden');
+        if (typeof openTownDetailMap === 'function') {
+          openTownDetailMap(townId);
+          setTimeout(function() {
+            selectTownPlace(placeId, true);
+          }, 250);
+        }
       };
 
       window.deleteCustomPlace = function(placeId) {
@@ -5650,9 +5910,18 @@ window.openAddCustomTownModal = function() {
                 '<span class="text-stone-600 font-semibold">造訪日期：</span>' +
                 '<input type="date" id="place-visited-date" value="' + escapeMapHTML(uData.visitedDate || '') + '" class="bg-white border border-amber-200 rounded px-2 py-0.5 font-mono text-stone-700">' +
               '</div>' +
-              '<textarea id="place-comment-input" rows="4" placeholder="寫下你的真實評價：例如推薦點哪一道、營業時間雷點、物價貴不貴、店員友不友善..." class="w-full text-xs bg-white border border-amber-200 rounded-lg p-2 text-stone-700 focus:outline-none focus:border-amber-600 leading-relaxed">' + escapeMapHTML(uData.note || '') + '</textarea>' +
+            '<textarea id="place-comment-input" rows="3" placeholder="寫下你的真實評價：例如推薦點哪一道、營業時間雷點、物價貴不貴、店員友不友善..." class="w-full text-xs bg-white border border-amber-200 rounded-lg p-2 text-stone-700 focus:outline-none focus:border-amber-600 leading-relaxed">' + escapeMapHTML(uData.note || '') + '</textarea>' +
+              '<div class="pt-1 border-t border-amber-200/70 space-y-2">' +
+                '<div class="flex items-center justify-between">' +
+                  '<span class="text-[11px] font-bold text-amber-950">📸 踩點照片 (' + ((uData.photos || []).length) + ' 張)</span>' +
+                  '<label class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition shadow-2xs">' +
+                    '＋ 上傳照片' +
+                    '<input type="file" accept="image/*" multiple class="hidden" onchange="handlePlacePhotoUpload(\'' + place.id + '\', event)">' +
+                  '</label>' +
+                '</div>' +
+                renderPlacePhotosGridHtml(place.id, uData.photos || []) +
+              '</div>' +
             '</div>' +
-
             '<div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-3">' +
               '<h4 class="text-[11px] font-bold text-stone-800 uppercase tracking-wider mb-1">✨ 店家介紹與功能</h4>' +
               '<p class="text-xs text-stone-600 leading-relaxed">' + escapeMapHTML(place.features || '自訂踩點地標。') + '</p>' +
