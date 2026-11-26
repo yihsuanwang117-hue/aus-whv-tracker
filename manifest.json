@@ -1,0 +1,19 @@
+{
+  "name": "澳洲打工度假 x 德國碩士追蹤器",
+  "short_name": "澳洲WHV追蹤",
+  "description": "雙幣財務、時程日曆、城鎮踩點地圖與出發裝備整合 App",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f4",
+  "theme_color": "#78350f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3125/3125713.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
