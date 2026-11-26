@@ -27,10 +27,7 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  // 只處理標準 http/https 的 GET 請求，直接放行 chrome-extension:// 等擴充套件請求
   if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) return;
-
-  // Firebase、Google APIs、匯率、地圖圖磚不走靜態快取
   var url = event.request.url;
   if (url.includes('firebase') || url.includes('googleapis.com') || url.includes('er-api.com') || url.includes('openstreetmap') || url.includes('unpkg.com')) {
     return;
